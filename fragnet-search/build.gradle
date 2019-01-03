@@ -1,0 +1,101 @@
+/*
+ * Copyright (c) 2019 Informatics Matters Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+
+description = 'Fragment network search'
+def contextName = 'fragnet-search'
+
+String RDBASE = System.getenv('RDBASE')
+String RDKitJarFile = '/Code/JavaWrappers/gmwrapper/org.RDKit.jar'
+boolean RDKitJava = RDBASE && file(RDBASE + RDKitJarFile).exists()
+
+apply plugin: 'war'
+apply plugin: 'com.bmuschko.tomcat'
+apply plugin: 'com.bmuschko.docker-remote-api'
+
+
+
+dependencies {
+
+    compile "org.jboss.weld.servlet:weld-servlet-core:$weldVersion"
+    
+    compile "org.apache.camel:camel-core:$camelVersion"
+    compile "org.apache.camel:camel-jackson:$camelVersion"
+    compile "org.apache.camel:camel-servlet:$camelVersion"
+    compile "org.apache.camel:camel-servletlistener:$camelVersion"
+    compile "org.apache.camel:camel-cdi:$camelVersion"
+    compile "org.apache.camel:camel-swagger:$camelVersion"
+    compile "org.apache.camel:camel-swagger-java:$camelVersion"
+
+    if (RDKitJava) {
+        println "RDBASE defined as $RDBASE - using that location for RDKit"
+        compile files(RDBASE + RDKitJarFile)
+    } else {
+        println "Using local org.RDKit.jar"
+        compile files("../../lib/rdkit/org.RDKit.jar")
+    }
+
+    compile 'org.neo4j.driver:neo4j-java-driver:1.7.2'
+    
+    providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
+
+    def tomcatVersion = '8.5.37'
+    tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
+            "org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}"
+}
+
+task(runQuery, dependsOn: 'classes', type: JavaExec) {
+    main = 'org.squonk.fragnet.search.queries.SimpleNeighbourhoodQuery'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+tomcat {
+    enableSSL = false
+    httpProtocol = 'org.apache.coyote.http11.Http11Nio2Protocol'
+    ajpProtocol  = 'org.apache.coyote.ajp.AjpNio2Protocol'
+}
+
+docker {
+    url = dockerHost
+    certPath = null
+}
+
+task buildDockerFile(type: Dockerfile, dependsOn: war) {
+
+    destFile = project.file('build/Dockerfile')
+    from "informaticsmatters/rdkit-tomcat-debian:Release_2018_09"
+    label(['maintainer': 'Tim Dudgeon "tdudgeon@informaticsmatters.com"'])
+
+    //runCommand("rm -rf /usr/local/tomcat/webapps/*")
+
+    def warFile = tasks.war.outputs.files.singleFile
+    addFile('libs/' + warFile.name, "/usr/local/tomcat/webapps/${contextName}.war")
+
+    exposePort(8080)
+}
+
+/** Build a Docker image
+ * run the generated image with something like this:
+ *
+ * docker run -d --name fragnet-search -p 80:8080 squonk/fragnet-search:latest
+ *
+ */
+task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
+    inputDir = buildDockerFile.destFile.get().asFile.parentFile
+    tags.add("squonk/${contextName}:latest")
+}

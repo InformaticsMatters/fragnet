@@ -1,0 +1,160 @@
+/*
+ * Copyright (c) 2019 Informatics Matters Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.squonk.fragnet.search.queries;
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.neo4j.driver.v1.*;
+import org.neo4j.driver.v1.types.Path;
+import org.squonk.fragnet.chem.Calculator;
+import org.squonk.fragnet.chem.MolStandardize;
+import org.squonk.fragnet.search.model.FragmentGraph;
+import org.squonk.fragnet.search.model.NeighbourhoodGraph;
+
+import javax.validation.constraints.NotNull;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import static org.neo4j.driver.v1.Values.parameters;
+
+public class SimpleNeighbourhoodQuery {
+
+    private static final Logger LOG = Logger.getLogger(SimpleNeighbourhoodQuery.class.getName());
+
+    private final Session session;
+    private int limit = 1000;
+
+    public SimpleNeighbourhoodQuery(Session session) {
+        this.session = session;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public void setLimit(int limit) {
+        this.limit = limit;
+    }
+
+    // example smiles c1ccc(Nc2nc3ccccc3o2)cc1
+    private final String NEIGHBOURHOOD_QUERY = "MATCH p=(m:MOL)-[:F2EDGE%s]-(e:MOL)\n" +
+            "WHERE m.smiles=$smiles %s\nRETURN p LIMIT $limit";
+
+    /** Execute a query for the neighbourhood around a particular molecule in the fragment network.
+     *
+     * @param smiles The query structure. Will be canonicalised.
+     * @param hops The number of edges to traverse. Defaults to 1 if not specified.
+     * @param hac A limit for the change in the heavy atom counts. If null then no limit.
+     * @param rac A limit for the change in the ring atom counts. If null then no limit.
+     * @return
+     */
+    public NeighbourhoodGraph executeNeighbourhoodQuery(@NotNull String smiles, Integer hops, Integer hac, Integer rac) {
+
+        String stdSmiles = MolStandardize.prepareMol(smiles);
+
+        if (hops == null) {
+            hops = 1;
+        }
+
+        List<Object> params = new ArrayList<>();
+        params.add("smiles");
+        params.add(stdSmiles);
+        params.add("limit");
+        params.add(limit);
+
+        String filter = "";
+
+        if (hac != null) {
+            filter += " AND abs(m.hac - e.hac) <= $hac";
+            params.add("hac");
+            params.add(hac);
+        }
+
+        if (rac != null) {
+            filter += " AND abs(m.chac - e.chac) <= $rac";
+            params.add("rac");
+            params.add(rac);
+        }
+
+        String q;
+        if (hops == 1) {
+            q = String.format(NEIGHBOURHOOD_QUERY, "", filter);
+        } else if (hops == 2) {
+            q = String.format(NEIGHBOURHOOD_QUERY, "*1..2", filter);
+        } else {
+            throw new IllegalArgumentException("Hops must be 1 or 2");
+        }
+
+        NeighbourhoodGraph graph = session.writeTransaction((tx) -> {
+            LOG.info("Executing Query: " + q);
+            StatementResult result = tx.run(q, parameters(params.toArray()));
+            return handleResult(result, stdSmiles);
+        });
+        return graph;
+    }
+
+    private NeighbourhoodGraph handleResult(@NotNull StatementResult result, @NotNull String querySmiles) {
+
+        NeighbourhoodGraph graph = new NeighbourhoodGraph(querySmiles);
+        long t0 = new Date().getTime();
+        result.stream().forEachOrdered((r) -> {
+            LOG.finer("Handling record " + r);
+            Map<String, Object> m = r.asMap();
+            m.forEach((k, v) -> {
+                LOG.finer("Handling value " + k);
+                Path path = (Path) v;
+                graph.add(path);
+            });
+        });
+        long t1 = new Date().getTime();
+        graph.setQuery(result.summary().statement().text());
+        graph.setParameters(result.summary().statement().parameters().asMap());
+        graph.setResultAvailableAfter(result.summary().resultAvailableAfter(TimeUnit.MILLISECONDS));
+        graph.setProcessingTime(t1 - t0);
+
+        LOG.info(String.format("Results built. %s nodes, %s edges", graph.numNodes(), graph.numEdges()));
+
+        return graph;
+    }
+
+    public static void main(String... args) throws Exception {
+
+        System.loadLibrary("GraphMolWrap");
+
+        Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "hts"));
+        try (Session session = driver.session()) {
+
+            SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session);
+            //NeighbourhoodGraph result = query.executeNeighbourhoodQuery("c1ccc(Nc2nc3ccccc3o2)cc1", 2, 3, 1);
+            NeighbourhoodGraph result = query.executeNeighbourhoodQuery("N(C1=NC2=CC=CC=C2O1)C1=CC=CC=C1", 2, 3, 1);
+
+            result.calculate(result.getRefmol(), Calculator.Calculation.values());
+
+//            Collection<NeighbourhoodGraph.Group> collected = result.getGroups();
+//            System.out.println("Num groupings: " + collected.size());
+//            collected.forEach((k,v) -> {
+//                System.out.println(k +  " -> " + v.stream().map((m) -> m.getSmiles()).collect(Collectors.joining(".")));
+//            });
+            System.out.println("\n\n");
+            ObjectMapper mapper = new ObjectMapper();
+            System.out.println(mapper.writeValueAsString(result));
+        } finally {
+            driver.close();
+        }
+    }
+}

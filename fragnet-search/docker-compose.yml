@@ -1,0 +1,27 @@
+version: '3.1'
+services:
+  neo4j:
+    image: informaticsmatters/neo4j:3.5.0
+    environment:
+      NEO4J_dbms_memory_pagecache_size: 18g
+      NEO4J_dbms_memory_heap_initial__size: 8g
+      NEO4J_dbms_memory_heap_max__size: 8g
+      NEO4J_EDITION: community
+      EXTENSION_SCRIPT: /data-loader/load_neo4j.sh
+    volumes:
+    - "/home/timbo/dev/docker-neo4j-frag/hts/data-loader:/data-loader:Z"
+    - "/home/timbo/dev/docker-neo4j-frag/hts/data:/data:Z"
+    ports:
+    - "7474:7474"
+    - "7687:7687"
+
+  fragnet-search:
+    image: squonk/fragnet-search:latest
+    environment:
+      NEOJ4_SERVER: neo4j
+      NEOJ4_USER: neo4j
+      NEOJ4_PASSWORD:
+    ports:
+    - "80:8080"
+    depends_on:
+      - neo4j
