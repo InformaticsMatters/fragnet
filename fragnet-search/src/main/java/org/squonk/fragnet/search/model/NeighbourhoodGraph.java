@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"query", "parameters", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "nodes", "edges", "groupings"})
+@JsonPropertyOrder({"query", "parameters", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "nodes", "edges", "groups"})
 public class NeighbourhoodGraph extends FragmentGraph {
 
     private static final Logger LOG = Logger.getLogger(NeighbourhoodGraph.class.getName());

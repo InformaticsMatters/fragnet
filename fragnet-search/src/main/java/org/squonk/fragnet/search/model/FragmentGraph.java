@@ -106,6 +106,14 @@ public class FragmentGraph {
         this.resultAvailableAfter = resultAvailableAfter;
     }
 
+    public Collection<MoleculeNode> getNodes() {
+        return nodes.values();
+    }
+
+    public Collection<MoleculeEdge> getEdges() {
+        return edges.values();
+    }
+
     public void calculate(String refmolSmiles, Calculator.Calculation... calcs) {
         long t0 = new Date().getTime();
         RWMol refmol = Calculator.createMol(refmolSmiles);
@@ -256,13 +264,6 @@ public class FragmentGraph {
         }
     }
 
-    public Collection<MoleculeNode> getNodes() {
-        return nodes.values();
-    }
-
-    public Collection<MoleculeEdge> getEdges() {
-        return edges.values();
-    }
 
     @Override
     public String toString() {

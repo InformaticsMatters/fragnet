@@ -77,7 +77,7 @@ public class FragnetRouteBuilder extends RouteBuilder implements AutoCloseable {
 
 
         // example:
-        // curl "http://localhost:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=2&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+        // curl "http://localhost:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
         rest("/v1/search/").description("Fragnet search")
                 .bindingMode(RestBindingMode.json)
                 // service descriptor
@@ -86,6 +86,7 @@ public class FragnetRouteBuilder extends RouteBuilder implements AutoCloseable {
                 .param().name("rac").type(RestParamType.query).description("Ring atom count bounds").endParam()
                 .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
                 .param().name("calcs").type(RestParamType.query).description("Calculations to execute").endParam()
+                .param().name("limit").type(RestParamType.query).description("Limit parameter for the number of paths to return from the graph query").endParam()
                 .bindingMode(RestBindingMode.json)
                 .produces("application/json")
                 .route()

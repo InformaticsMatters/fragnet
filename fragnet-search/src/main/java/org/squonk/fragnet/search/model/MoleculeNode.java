@@ -38,13 +38,6 @@ public class MoleculeNode {
     }
 
 
-    public enum SmilesType {
-        CISS, // Canonical    Isomeric    Standardized    Smiles
-        CNSS, // Canonical    Nonisomeric Standardized    Smiles
-        CINS, // Canonical    Isomeric    Nonstandardized Smiles
-        NINS  // Noncanonical Isomeric    Nonstandardized Smiles
-    }
-
     public enum MoleculeType {
         NET_MOL,  // real molecule that is part of the nonisomeric fragment network
         NET_FRAG, // a fragment that is part of the nonisomeric fragment network
