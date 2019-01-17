@@ -94,34 +94,34 @@ Java class.
 
 This has the following top level properties describing the query:
 
-1. query - the Neo4j Cypher query that was executed.
-1. parameters = the parameters for the query.
-1. resultAvailableAfter - the time in ms for the Cypher query to return results.
-1. processingTime - the time in ms taken for processing the Cypher query results and generating these Fragment Graph results. 
-1. calculationTime - the time in ms for any calculations that were specified.
+1. **query** - the Neo4j Cypher query that was executed.
+1. **parameters** - the parameters for the query.
+1. **resultAvailableAfter** - the time in ms for the Cypher query to return results.
+1. **processingTime** - the time in ms taken for processing the Cypher query results and generating these Fragment Graph results. 
+1. **calculationTime** - the time in ms for any calculations that were specified.
 
 The Nodes and Edges are present as top level properties.
 
-Nodes are present as the `nodes` property which is an array of JSON serialised
+Nodes are present as the **nodes** property which is an array of JSON serialised
 [org.squonk.fragnet.search.model.MoleculeNode](src/main/java/org/squonk/fragnet/search/model/MoleculeNode.java) instances
 which provide the following properties: 
 
-* id - a unique ID for the node. Only to be used internally. The ID for a particular molecule will change between different databases. 
-* smiles - the canonical standardised SMILES for the molecule in the fragment network.
-* molType - the type of molecule: `NET_MOL` for a real molecule that is part of the non-isomeric fragment network, `NET_FRAG`
-for a fragment that is part of the non-isomeric fragment network and `ISO_MOL` for an isomeric molecule that is not a direct 
-part of the fragment network but links into it through its `NET_MOL` non-isomeric counterpart.
-* labels - labels that are present in the Neo4j node. Probably not to be used. 
-* props - a map of properties such as `hac` and any calculations that were requested.
+* **id** - a unique ID for the node. Only to be used internally. The ID for a particular molecule will change between different databases. 
+* **smiles** - the canonical standardised SMILES for the molecule in the fragment network.
+* **molType** - the type of molecule: **NET_MOL** for a real molecule that is part of the non-isomeric fragment network, **NET_FRAG**
+for a fragment that is part of the non-isomeric fragment network and **ISO_MOL** for an isomeric molecule that is not a direct 
+part of the fragment network but links into it through its **NET_MOL** non-isomeric counterpart.
+* **labels** - labels that are present in the Neo4j node. Probably not to be used. 
+* **props** - a map of properties such as `hac` and any calculations that were requested.
 
 Edges are present as the `edges` property which is an array of JSON serialised
 [org.squonk.fragnet.search.model.MoleculeEdge](src/main/java/org/squonk/fragnet/search/model/MoleculeEdge.java) instances
 which provide the following properties:
 
-* id - a unique ID for the edge. Only to be used internally. The ID for a particular molecule will change between different databases. 
-* parentId - the ID of the parent node.
-* childId - the ID of the child node.
-* label - the label in the Neo4j edge that describes the type of transform (as described in the Astex paper). 
+* **id** - a unique ID for the edge. Only to be used internally. The ID for a particular molecule will change between different databases. 
+* **parentId** - the ID of the parent node.
+* **childId** - the ID of the child node.
+* **label** - the label in the Neo4j edge that describes the type of transform (as described in the Astex paper). 
 
 NOTE: the IDs should only be used for reconstructing the dataset. They are not guaranteed to be stable between searches.
 For longer term persistence use the SMILES string of the node.
@@ -141,25 +141,25 @@ in either order.
 
 Additional properties are:
 
-* refmol - the query smiles that formed the basis of the search
-* groups - an array of groupings of the nodes according to the type of change.
+* **refmol** - the query smiles that formed the basis of the search
+* **groups** - an array of groupings of the nodes according to the type of change.
 
-Each `group` is a JSON serialised `org.squonk.fragnet.search.model.NeighbourhoodGraph.Group`
+Each **group** is a JSON serialised `org.squonk.fragnet.search.model.NeighbourhoodGraph.Group`
 instance (this is an inner class of `NeighbourhoodGraph`) and has properties for:
 
-* key - a generated key for the group based on the traversal path
-* description - a description of the type of change e.g. addition, substitution (NOTE: currently this is not populated)
-* members - an array of members of the group.
+* **key** - a generated key for the group based on the traversal path
+* **description** - a description of the type of change e.g. addition, substitution (NOTE: currently this is not populated)
+* **members** - an array of members of the group.
 
 The members have these properties:
 
-* id - the ID of the node that can be found in the `nodes` section.
-* smiles - the SMILES of the node. NOTE: this is currently provided for convenience and might be removed as it can be obtained 
+* **id** - the ID of the node that can be found in the **nodes** section.
+* **smiles** - the SMILES of the node. NOTE: this is currently provided for convenience and might be removed as it can be obtained 
 from the node.
-* edgeIds - an array of arrays of edge ID that traverse from the query molecule to this node. There is one outer array for
+* **edgeIds** - an array of arrays of **edge** ID that traverse from the query molecule to this node. There is one outer array for
 each path from the query. If there are multiple paths then there are multiple elements. The value of each path element is itself an
-array of edge IDs that defines the path. Positive values describe the ID of a parent-to-child edge and negative values describe 
-the negative ID of a child-to-parent edge.
+array of **edge** IDs that defines the path. Positive values describe the ID of a parent-to-child **edge** and negative values describe 
+the negative ID of a child-to-parent **edge**.
 
 #### Expected use
 
@@ -171,6 +171,6 @@ results to generate a depiction like that of figure 2 in the Astex paper.
 
 Processing would proceed as follows:
 
-1. Process the `nodes` and create a Map of node instances keyed by ID.
-1. Optionally process the `edges` in a similar way.
-1. Process the groups, associating the group members with the nodes by using the node ID. 
+1. Process the **nodes** and create a Map of node instances keyed by ID.
+1. Optionally process the **edges** in a similar way.
+1. Process the **groups**, associating the group members with the nodes by using the node ID.
