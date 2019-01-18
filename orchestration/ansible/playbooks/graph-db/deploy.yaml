@@ -1,0 +1,17 @@
+---
+
+# Install the ACME Controller for OpenShift.
+# This automatically provision certificates using ACME protocol
+# and manage their lifecycle.
+#
+# The playbook can be assured that the following variables will have
+# been provided by the OKD Orchestrator: -
+#
+# - okd_api_hostname
+# - okd_admin
+# - okd_admin_password
+
+- hosts: graph
+
+  roles:
+  - graph-db

@@ -3,3 +3,10 @@
 **/*.iml
 **/build
 **/out
+
+orchestration/**/*.tfstate
+orchestration/**/*.tfstate.backup
+orchestration/**/*.tfstate.lock.info
+orchestration/**/.terraform
+orchestration/ansible/**/*.retry
+orchestration/ansible/inventory

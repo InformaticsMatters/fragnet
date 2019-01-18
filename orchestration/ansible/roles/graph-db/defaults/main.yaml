@@ -1,0 +1,39 @@
+---
+
+# The graph build "combination", this is the combination build that is
+# expected to reside in the 's3_fragnet_bucket' combination directory.
+# The combination is a tag that is expected to be in the combination catalogue,
+# a tab-separated text file in the 's3_fragnet_bucket' directory.
+#
+# All files in the S3 bucket for the combination are downloaded
+# to the graph database ready for import.
+combination: 1
+
+# The user is expected to have defined AWS credentials on the control machine
+# (the machine the playbook is run on, not the host being modified)
+# and other AWS-specific environment variables, namely: -
+#
+# - AWS_ACCESS_KEY
+# - AWS_SECRET_KEY
+# - AWS_REGION
+#
+# We read them here to ensure that the playbook does not progress
+# unless the user has been explict about the region 9especially).
+
+aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+aws_region: "{{ lookup('env', 'AWS_DEFAULT_REGION') }}"
+
+# The Fragnet bucket (where the graph "combinations" are located)
+s3_fragnet_bucket: im-fragnet
+
+# The graph loader, database (graph) and log directories.
+# The loader is where the graph combination files are downloaded to
+# This also acts as the neo4j volume mount.
+graph_loader_directory: /neo4j/loader
+graph_db_directory: /neo4j/graph
+graph_log_directory: /neo4j/log
+# The import/loader script
+graph_laoder_script: load-neo4j.sh
+# Graph (cache algorithm) version
+graph_a_version: 3.5.0.1

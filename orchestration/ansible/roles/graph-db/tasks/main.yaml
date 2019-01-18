@@ -1,0 +1,7 @@
+---
+
+# Just run these plays...
+
+- import_tasks: prepare.yaml
+- import_tasks: get-data.yaml
+- import_tasks: start.yaml

@@ -1,0 +1,92 @@
+---
+
+# Preparation script for the graph node.
+# Here we check the binary tools, directories, files etc.
+# that are needed for the graph database.
+
+- name: Install tools
+  package:
+    name: "{{ item }}"
+  become: yes
+  loop:
+  - docker-1.13.1
+
+- name: Create graph directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0777
+  become: yes
+  loop:
+  - "{{ graph_loader_directory }}"
+  - "{{ graph_db_directory }}"
+  - "{{ graph_log_directory }}"
+  - "{{ ansible_env.HOME }}/build"
+
+- name: Install pip
+  easy_install:
+    name: pip
+    state: latest
+  become: yes
+
+- name: Install Python packages
+  pip:
+    name: "{{ item.name }}"
+    version: "{{ item.version }}"
+  become: yes
+  loop:
+  - { name: awscli, version: 1.16.91 }
+  - { name: docker-py, version: 1.10.6 }
+
+- name: Start Services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  become: yes
+  loop:
+  - docker
+
+- name: Create docker group
+  group:
+    name: docker
+    system: yes
+  become: yes
+
+- name: Add user to docker
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+  become: yes
+
+# Copy material for our own build of the Graph image.
+# We use neo4j but patch the entry point and add the caching tools
+# and then build the image on the node.
+
+- name: Copy graph build files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_env.HOME }}/build/"
+  loop:
+  - Dockerfile
+  - docker-entrypoint.sh
+
+- name: Get graph algorithms
+  get_url:
+    url: "{{ a_host }}/{{ graph_a_version }}/graph-algorithms-algo-{{ graph_a_version }}.jar"
+    dest: "{{ ansible_env.HOME }}/build/"
+  vars:
+    a_host: https://github.com/neo4j-contrib/neo4j-graph-algorithms/releases/download
+
+- name: Build the (local) graph image
+  docker_image:
+    path: "{{ ansible_env.HOME }}/build/"
+    name: informaticsmatters/neo4j
+    tag: stable
+    force: yes
+    buildargs:
+      a_version: "{{ graph_a_version }}"
+  become: yes
