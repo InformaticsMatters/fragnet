@@ -12,11 +12,15 @@ To create the cluster (and write the ansible inventory file): -
     $ cd terraform/aws
     $ terraform apply -auto-approve
 
->   CAUTION: If you're not using S£ for terraform state then
-    you must remember that your terraform state files are
-    vital and must not be removed as only you can alter and delete
-    the deployed instances.
+>   CAUTION: If you're not using S3 for Terraform state then
+    you *must* remember that your state files are vital and must not be
+    removed while the cluster is active as only you can alter and delete
+    the deployed instances and without the state files you'll have to
+    delete the instances manually.
 
+The cluster creation renders the corresponding Ansible inventory file
+with the created host's details so Ansible is ready to run.
+ 
 To destroy the cluster, return to the Terraform AWS directory and run
 the following: -
 
