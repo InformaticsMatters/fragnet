@@ -52,7 +52,7 @@ public class SimpleNeighbourhoodQuery {
     }
 
     // example smiles c1ccc(Nc2nc3ccccc3o2)cc1
-    private final String NEIGHBOURHOOD_QUERY = "MATCH p=(m:MOL)-[:F2EDGE%s]-(e:MOL)\n" +
+    private final String NEIGHBOURHOOD_QUERY = "MATCH p=(m:F2)-[:F2EDGE%s]-(e:MOL)\n" +
             "WHERE m.smiles=$smiles %s\nRETURN p LIMIT $limit";
 
     /** Execute a query for the neighbourhood around a particular molecule in the fragment network.

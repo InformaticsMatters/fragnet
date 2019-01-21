@@ -43,7 +43,8 @@ Playbooks are contained in the `playbooks` sub-directory with each play
 supported by a corresponding *Role*. 
 
 -   deploy
--   reset
+-   stop (the containers)
+-   reset (stop and reset the containers - i.e. remove DB)
 
 ### The deploy playbook
 Configures the graph-db node with a "combination" of choice.

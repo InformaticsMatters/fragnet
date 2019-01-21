@@ -8,7 +8,8 @@ resource "aws_instance" "graph-node" {
   key_name = "${var.aws_key_name}"
   availability_zone = "${var.aws_zone}"
   vpc_security_group_ids = ["${aws_security_group.neo4j.id}",
-                            "${aws_security_group.ssh.id}"]
+                            "${aws_security_group.ssh.id}",
+                            "${aws_security_group.fragnet.id}"]
   subnet_id = "${var.aws_subnet_id}"
   source_dest_check = false
 

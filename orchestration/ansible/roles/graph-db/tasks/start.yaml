@@ -30,10 +30,12 @@
     import_dir: /data-loader
   become: yes
 
-- name: Start fragnet
+- name: Start fragnet container
   docker_container:
     name: fragnet
     image: squonk/fragnet-search:{{ fragnet_tag }}
+    pull:
+      yes
     published_ports:
     - "{{ fragnet_port }}:8080"
     env:
