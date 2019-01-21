@@ -16,7 +16,12 @@ To create the cluster (and write the ansible inventory file): -
     you must remember that your terraform state files are
     vital and must not be removed as only you can alter and delete
     the deployed instances.
-    
+
+To destroy the cluster, return to the Terraform AWS directory and run
+the following: -
+
+    $ terraform destroy -force
+
 ## Ansible
 If you have not used terraform to cerate the cluster you will need to adjust
 the inventory file to identify the required hosts for your deployment.
