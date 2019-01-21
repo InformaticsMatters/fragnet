@@ -14,6 +14,9 @@
 
 # -----------------------------------------------------------------------------
 
+# AWS variables...
+# ---
+
 # The user is expected to have defined AWS credentials on the control machine
 # (the machine the playbook is run on, not the host being modified)
 # and other AWS-specific environment variables, namely: -
@@ -32,6 +35,9 @@ aws_region: "{{ lookup('env', 'AWS_DEFAULT_REGION') }}"
 # The Fragnet bucket (where the graph "combinations" are located)
 s3_fragnet_bucket: im-fragnet
 
+# Graph (neo4j) variables...
+# -----
+
 # The graph loader, database (graph) and log directories.
 # The loader is where the graph combination files are downloaded to
 # This also acts as the neo4j volume mount.
@@ -42,3 +48,13 @@ graph_log_directory: /neo4j/log
 graph_laoder_script: load-neo4j.sh
 # Graph (cache algorithm) version
 graph_a_version: 3.5.0.1
+
+# Fragnet application variables...
+# -------
+
+# The Docker image tag for the 'squonk/fragnet-search' image.
+fragnet_tag: latest
+# The port to expose the Fragnet service on.
+# Internally the port is expected to be on 8080,
+# this is the port Fragnet is mapped to on the host.
+fragnet_port: 3080

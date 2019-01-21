@@ -45,18 +45,18 @@ public class FragnetRouteBuilder extends RouteBuilder implements AutoCloseable {
     }
 
     private static final String NEO4J_SERVER = Utils.getConfiguration("NEO4J_SERVER", "neo4j");
-    private static final String NEOJ4_USER = Utils.getConfiguration("NEOJ4_USER", "neo4j");
-    private static final String NEOJ4_PASSWORD = Utils.getConfiguration("NEOJ4_PASSWORD", "hts");
-    private static final String NEOJ4_URL = "bolt://" + NEO4J_SERVER + ":7687";
+    private static final String NEO4J_USER = Utils.getConfiguration("NEO4J_USER", "neo4j");
+    private static final String NEO4J_PASSWORD = Utils.getConfiguration("NEO4J_PASSWORD", null);
+    private static final String NEO4J_URL = "bolt://" + NEO4J_SERVER + ":7687";
 
 
-    private Driver driver = GraphDatabase.driver(NEOJ4_URL, AuthTokens.basic(NEOJ4_USER, NEOJ4_PASSWORD));
+    private Driver driver = GraphDatabase.driver(NEO4J_URL, AuthTokens.basic(NEO4J_USER, NEO4J_PASSWORD));
 
     @Override
     public void configure() throws Exception {
 
 
-        LOG.info("Connecting to Neo4j at " + NEOJ4_URL + " as user " + NEOJ4_USER);
+        LOG.info("Connecting to Neo4j at " + NEO4J_URL + " as user " + NEO4J_USER);
 
 
         restConfiguration().component("servlet").host("0.0.0.0");

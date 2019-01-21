@@ -31,6 +31,13 @@ If you have not used terraform to cerate the cluster you will need to adjust
 the inventory file to identify the required hosts for your deployment.
 Copy the template as `inventory` and replace the `${}` values.
 
+### The ssh-agent
+You might need to use the ssh agent to allow Ansible access to the
+created hosts. You just need to add the key used by terraform. i.e. :-
+
+    $ eval $(ssh-agent)
+    $ ssh-add ~/.ssh/abc-im
+
 ### The graph-db playbook
 Playbooks are contained in the `playbooks` sub-directory with each play
 supported by a corresponding *Role*. 

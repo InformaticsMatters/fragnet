@@ -19,6 +19,7 @@
       NEO4J_dbms_memory_heap_max__size: 8G
       NEO4J_dbms_directories_data: "{{ graph_db_directory }}"
       NEO4J_dbms_directories_logs: "{{ graph_log_directory }}"
+      NEO4J_dbms_connector_bolt_advertised__address: "{{ inventory_hostname }}:7687"
       NEO4J_EDITION: community
       EXTENSION_SCRIPT: "{{ import_dir }}/{{ graph_laoder_script }}"
     volumes:
@@ -27,4 +28,16 @@
     - "{{ graph_log_directory }}:{{ graph_log_directory }}:Z"
   vars:
     import_dir: /data-loader
+  become: yes
+
+- name: Start fragnet
+  docker_container:
+    name: fragnet
+    image: squonk/fragnet-search:{{ fragnet_tag }}
+    published_ports:
+    - "{{ fragnet_port }}:8080"
+    env:
+      NEO4J_SERVER: "{{ inventory_hostname }}"
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: neo4j
   become: yes

@@ -20,6 +20,18 @@ resource "aws_security_group" "neo4j" {
   }
 }
 
+resource "aws_security_group" "fragnet" {
+  name = "FragNet Security Group"
+  vpc_id = "${var.aws_vpc_id}"
+
+  ingress {
+    from_port = 3080
+    to_port = 3080
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_security_group" "ssh" {
   name = "SSH Security Group"
   vpc_id = "${var.aws_vpc_id}"

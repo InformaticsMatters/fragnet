@@ -2,9 +2,10 @@
 # Various Terraform provider definitions
 # -----------------------------------------------------------------------------
 
-terraform {
-  required_version = "0.11.11"
-}
+# Be pedantic and insist on a specific  Terraform...
+#terraform {
+#  required_version = "0.11.11"
+#}
 
 provider "aws" {
   access_key = "${var.aws_access_key}"
