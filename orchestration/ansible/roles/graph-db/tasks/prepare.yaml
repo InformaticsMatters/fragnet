@@ -9,11 +9,6 @@
     msg: "You must provide a 'combination' value"
   when: not combination is defined
 
-- name: Assert graph user password
-  fail:
-    msg: "You must provide a 'graph_password' value"
-  when: not graph_password is defined
-
 # Ready to go...
 
 # Preparation script for the graph node.

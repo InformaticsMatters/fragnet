@@ -47,11 +47,13 @@ supported by a corresponding *Role*.
 -   reset (stop and reset the containers - i.e. remove DB)
 
 ### The deploy playbook
-Configures the graph-db node with a "combination" of choice.
+Configures the graph-db node with a chosen "combination".
 The playbook execution for combination "1" would be: -
 
     $ cd ansible
-    $ ansible-playbook -i inventory -e combination=1 playbooks/graph-db/deploy.yaml 
+    $ ansible-playbook -i inventory \
+        -e combination=1 \
+        playbooks/graph-db/deploy.yaml 
 
 -   You must have an installation of Ansible
 -   You must have AWS credentials defined in suitable environment variables.
