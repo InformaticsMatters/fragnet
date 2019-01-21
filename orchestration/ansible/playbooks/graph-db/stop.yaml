@@ -3,7 +3,7 @@
 - hosts: graph
 
   tasks:
-  - name: Run the Role Reset Tasks
+  - name: Run the Role 'stop' Tasks
     include_role:
       name: graph-db
       tasks_from: stop.yaml

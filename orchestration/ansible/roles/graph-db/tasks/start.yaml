@@ -5,6 +5,11 @@
 #
 # The 'import_dir' is the one referred to in the import script
 
+- name: Assert graph user password
+  fail:
+    msg: "You must provide a 'graph_password' value"
+  when: not graph_password is defined
+
 - name: Start graph container
   docker_container:
     name: graph
@@ -13,7 +18,7 @@
     - 7474:7474
     - 7687:7687
     env:
-      NEO4J_AUTH: none
+      NEO4J_AUTH: neo4j/{{ graph_password }}
       NEO4J_dbms_memory_pagecache_size: 20G
       NEO4J_dbms_memory_heap_initial__size: 8G
       NEO4J_dbms_memory_heap_max__size: 8G
@@ -21,7 +26,7 @@
       NEO4J_dbms_directories_logs: "{{ graph_log_directory }}"
       NEO4J_dbms_connector_bolt_advertised__address: "{{ inventory_hostname }}:7687"
       NEO4J_EDITION: community
-      EXTENSION_SCRIPT: "{{ import_dir }}/{{ graph_laoder_script }}"
+      EXTENSION_SCRIPT: "{{ import_dir }}/{{ graph_loader_script }}"
     volumes:
     - "{{ graph_loader_directory }}:{{ import_dir }}:Z"
     - "{{ graph_db_directory }}:{{ graph_db_directory }}:Z"
@@ -29,6 +34,15 @@
   vars:
     import_dir: /data-loader
   become: yes
+
+- name: Wait for graph
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    port: 7474
+    delay: 10
+    sleep: 20
+    timeout: "{{ seconds_to_wait_for_graph }}"
+  when: wait_for_graph
 
 - name: Start fragnet container
   docker_container:

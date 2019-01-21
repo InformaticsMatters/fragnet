@@ -45,9 +45,13 @@ graph_loader_directory: /neo4j/loader
 graph_db_directory: /neo4j/graph
 graph_log_directory: /neo4j/log
 # The import/loader script
-graph_laoder_script: load-neo4j.sh
+graph_loader_script: load-neo4j.sh
 # Graph (cache algorithm) version
 graph_a_version: 3.5.0.1
+# Do we wait for the graph DB before continuing?
+wait_for_graph: yes
+# And the time to wait (1h = 3600)
+seconds_to_wait_for_graph: 7200
 
 # Fragnet application variables...
 # -------

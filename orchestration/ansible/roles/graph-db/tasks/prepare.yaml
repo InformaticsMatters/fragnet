@@ -1,10 +1,20 @@
 ---
 
-# Has the user defined the 'combination'?
+# Pre-flight checks...
+
+# Has the user defined suitable key variables?
+
 - name: Assert combination
   fail:
-    msg: "You must define the 'combination' value"
+    msg: "You must provide a 'combination' value"
   when: not combination is defined
+
+- name: Assert graph user password
+  fail:
+    msg: "You must provide a 'graph_password' value"
+  when: not graph_password is defined
+
+# Ready to go...
 
 # Preparation script for the graph node.
 # Here we check the binary tools, directories, files etc.
