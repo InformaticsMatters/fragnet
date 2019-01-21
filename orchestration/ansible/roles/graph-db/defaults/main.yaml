@@ -1,13 +1,18 @@
 ---
 
-# The graph build "combination", this is the combination build that is
+# The user is required to define the graph build "combination"
+# on the command-line forcing the user to define it before the Role
+# can progress, e.g. with something like "-e combination=1".
+#
+# The combination is the combination build that is
 # expected to reside in the 's3_fragnet_bucket' combination directory.
 # The combination is a tag that is expected to be in the combination catalogue,
 # a tab-separated text file in the 's3_fragnet_bucket' directory.
 #
 # All files in the S3 bucket for the combination are downloaded
 # to the graph database ready for import.
-combination: 1
+
+# -----------------------------------------------------------------------------
 
 # The user is expected to have defined AWS credentials on the control machine
 # (the machine the playbook is run on, not the host being modified)

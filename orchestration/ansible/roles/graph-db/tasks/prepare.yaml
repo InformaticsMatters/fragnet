@@ -1,5 +1,11 @@
 ---
 
+# Has the user defined the 'combination'?
+- name: Assert combination
+  fail:
+    msg: "You must define the 'combination' value"
+  when: not combination is defined
+
 # Preparation script for the graph node.
 # Here we check the binary tools, directories, files etc.
 # that are needed for the graph database.

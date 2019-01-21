@@ -13,7 +13,7 @@ To create the cluster (and write the ansible inventory file): -
     $ terraform apply -auto-approve
 
 >   CAUTION: If you're not using S£ for terraform state then
-    you must remember that yoru terraform state files are
+    you must remember that your terraform state files are
     vital and must not be removed as only you can alter and delete
     the deployed instances.
     
@@ -30,10 +30,11 @@ supported by a corresponding *Role*.
 -   reset
 
 ### The deploy playbook
-Configures the graph-db node. Typical playbook execution is of the form: -
+Configures the graph-db node with a "combination" of choice.
+The playbook execution for combination "1" would be: -
 
     $ cd ansible
-    $ ansible-playbook -i inventory playbooks/graph-db/deploy.yaml 
+    $ ansible-playbook -i inventory -e combination=1 playbooks/graph-db/deploy.yaml 
 
 -   You must have an installation of Ansible
 -   You must have AWS credentials defined in suitable environment variables.
