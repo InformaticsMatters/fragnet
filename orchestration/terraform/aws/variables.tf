@@ -54,6 +54,6 @@ variable "data_volume_size" {
 }
 
 variable "ansible_dir" {
-  description = "Relative pathg to Ansible"
+  description = "Relative path to Ansible (for inventory rendering)"
   default = "../../ansible"
 }
