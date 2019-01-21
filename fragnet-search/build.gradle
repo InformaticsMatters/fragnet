@@ -47,7 +47,7 @@ dependencies {
         compile files(RDBASE + RDKitJarFile)
     } else {
         println "Using local org.RDKit.jar"
-        compile files("../../lib/rdkit/org.RDKit.jar")
+        compile files("../lib/rdkit/org.RDKit.jar")
     }
 
     compile 'org.neo4j.driver:neo4j-java-driver:1.7.2'
