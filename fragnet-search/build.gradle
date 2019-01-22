@@ -59,6 +59,12 @@ dependencies {
             "org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}"
 }
 
+task copyKeycloakFiles(type: Copy) {
+    from "../lib/keycloak-2.1.0-jars-tomcat8"
+    into "build/libs/keycloak-2.1.0-jars-tomcat8/"
+    include "*.jar"
+}
+
 task(runQuery, dependsOn: 'classes', type: JavaExec) {
     main = 'org.squonk.fragnet.search.queries.SimpleNeighbourhoodQuery'
     classpath = sourceSets.main.runtimeClasspath
@@ -75,7 +81,12 @@ docker {
     certPath = null
 }
 
-task buildDockerFile(type: Dockerfile, dependsOn: war) {
+task buildDockerFile(type: Dockerfile) {
+
+    dependsOn = [
+        'war',
+        'copyKeycloakFiles'
+    ]
 
     destFile = project.file('build/Dockerfile')
     from "informaticsmatters/rdkit-tomcat-debian:Release_2018_09"
@@ -85,6 +96,7 @@ task buildDockerFile(type: Dockerfile, dependsOn: war) {
 
     def warFile = tasks.war.outputs.files.singleFile
     addFile('libs/' + warFile.name, "/usr/local/tomcat/webapps/${contextName}.war")
+    addFile('libs/keycloak-2.1.0-jars-tomcat8/', '$CATALINA_HOME/lib/')
 
     exposePort(8080)
 }
