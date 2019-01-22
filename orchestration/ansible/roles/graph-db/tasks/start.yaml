@@ -76,6 +76,7 @@
         -Dkeycloak.secret=$KEYCLOAK_SECRET"
     volumes:
     - "./fragnet/logging.properties:/usr/local/tomcat/conf/logging.properties:ro,Z"
-    - "./fragnet/keycloak.json:/usr/local/tomcat/webapps/example-servlet/WEB-INF/keycloak.json:ro,Z"
-    - "./fragnet/context.xml:/usr/local/tomcat/webapps/example-servlet/META-INF/context.xml:ro,Z"
+    - "./fragnet/keycloak.json:/usr/local/tomcat/webapps/fragnet-search/WEB-INF/keycloak.json:ro,Z"
+    - "./fragnet/web.xml:/usr/local/tomcat/webapps/fragnet-search/WEB-INF/web.xml:ro,Z"
+    - "./fragnet/context.xml:/usr/local/tomcat/webapps/fragnet-search/META-INF/context.xml:ro,Z"
   become: yes

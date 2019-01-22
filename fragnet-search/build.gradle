@@ -96,6 +96,8 @@ task buildDockerFile(type: Dockerfile) {
 
     def warFile = tasks.war.outputs.files.singleFile
     addFile('libs/' + warFile.name, "/usr/local/tomcat/webapps/${contextName}.war")
+    runCommand("cd /usr/local/tomcat/webapps && unzip -d ${contextName} ${contextName}.war && rm ${contextName}.war")
+
     addFile('libs/keycloak-2.1.0-jars-tomcat8/', '$CATALINA_HOME/lib/')
 
     exposePort(8080)

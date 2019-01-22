@@ -100,6 +100,7 @@
   - context.xml
   - keycloak.json
   - logging.properties
+  - web.xml
 
 - name: Get graph algorithms
   get_url:
