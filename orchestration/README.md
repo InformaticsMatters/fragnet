@@ -53,6 +53,7 @@ The playbook execution for combination "1" would be: -
     $ cd ansible
     $ ansible-playbook -i inventory \
         -e combination=1 \
+        -e graph_passqword=blob1234 \
         playbooks/graph-db/deploy.yaml 
 
 -   You must have an installation of Ansible

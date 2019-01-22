@@ -50,5 +50,5 @@
     env:
       NEO4J_SERVER: "{{ inventory_hostname }}"
       NEO4J_USER: neo4j
-      NEO4J_PASSWORD: neo4j
+      NEO4J_PASSWORD: "{{ graph_password }}"
   become: yes
