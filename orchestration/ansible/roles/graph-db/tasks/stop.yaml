@@ -10,7 +10,7 @@
     state: stopped
   loop:
   - graph
-  - fragnet
+  - fragnet-search
   become: yes
   ignore_errors: yes
 

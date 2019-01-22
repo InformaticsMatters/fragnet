@@ -4,6 +4,7 @@
 **/build
 **/out
 
+orchestration/setenv.sh
 orchestration/**/*.tfstate
 orchestration/**/*.tfstate.backup
 orchestration/**/*.tfstate.lock.info

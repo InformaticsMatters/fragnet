@@ -53,9 +53,12 @@ graph_loader_script: load-neo4j.sh
 # Graph (cache algorithm) version
 graph_a_version: 3.5.0.1
 # Do we wait for the graph DB before continuing?
-wait_for_graph: yes
+wait_for_graph: no
 # And the time to wait (1h = 3600)
 seconds_to_wait_for_graph: 7200
+
+# Set to avoid deploying the graph database
+skip_graph: no
 
 # Fragnet application variables...
 # -------
@@ -65,4 +68,15 @@ fragnet_tag: latest
 # The port to expose the Fragnet service on.
 # Internally the port is expected to be on 8080,
 # this is the port Fragnet is mapped to on the host.
-fragnet_port: 3080
+fragnet_port: 8080
+
+# Keycloak variables...
+# --------
+
+# Keycloak material that's expected by the
+# 'keycloak.json' file mounted in the fragnet-search container.
+# This dynamic/sensitive material is expected to be made available
+# as environment variables. See the orchestration/setenv-template file.
+keycloak_server_url: "{{ lookup('env', 'KEYCLOAK_SERVER_URL') }}"
+keycloak_public_key: "{{ lookup('env', 'KEYCLOAK_PUBLIC_KEY') }}"
+keycloak_secret: "{{ lookup('env', 'KEYCLOAK_SECRET') }}"

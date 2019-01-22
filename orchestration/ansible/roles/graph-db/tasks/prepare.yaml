@@ -9,6 +9,11 @@
     msg: "You must provide a 'combination' value"
   when: not combination is defined
 
+- name: Assert keycloak variables
+  fail:
+    msg: "You must provide 'keycloak' variables"
+  when: keycloak_server_url == ''
+
 # Ready to go...
 
 # Preparation script for the graph node.
@@ -35,6 +40,7 @@
   - "{{ graph_db_directory }}"
   - "{{ graph_log_directory }}"
   - "{{ ansible_env.HOME }}/build"
+  - "{{ ansible_env.HOME }}/fragnet"
 
 - name: Install pip
   easy_install:
@@ -84,6 +90,16 @@
   loop:
   - Dockerfile
   - docker-entrypoint.sh
+  when: not skip_graph|bool
+
+- name: Copy fragnet keycloak files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_env.HOME }}/fragnet/"
+  loop:
+  - context.xml
+  - keycloak.json
+  - logging.properties
 
 - name: Get graph algorithms
   get_url:
@@ -91,8 +107,9 @@
     dest: "{{ ansible_env.HOME }}/build/"
   vars:
     a_host: https://github.com/neo4j-contrib/neo4j-graph-algorithms/releases/download
+  when: not skip_graph|bool
 
-- name: Build the (local) graph image
+- name: Build the graph image (locally)
   docker_image:
     path: "{{ ansible_env.HOME }}/build/"
     name: informaticsmatters/neo4j
@@ -101,3 +118,4 @@
     buildargs:
       a_version: "{{ graph_a_version }}"
   become: yes
+  when: not skip_graph|bool

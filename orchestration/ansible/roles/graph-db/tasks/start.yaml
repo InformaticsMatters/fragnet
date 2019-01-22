@@ -2,6 +2,8 @@
 
 # Launches the Graph DB (neo4j in this case)
 # using the loader directory as an input.
+# The graph DB is built locally on the cluster
+# by the build task in the 'prepare.yaml' play.
 #
 # The 'import_dir' is the one referred to in the import script
 
@@ -28,7 +30,15 @@
     - "{{ graph_log_directory }}:{{ graph_log_directory }}:Z"
   vars:
     import_dir: /data-loader
+  when: not skip_graph|bool
   become: yes
+
+# Optionally wait for the graph database.
+# The graph DB can take a lot of time to initialise
+# so this step can be avoided by clearing 'wait_for_graph'.
+#
+# If you don't wait you will still need to wait to use the DB
+# until neo has finished initialising.
 
 - name: Wait for graph
   wait_for:
@@ -37,11 +47,17 @@
     delay: 10
     sleep: 20
     timeout: "{{ seconds_to_wait_for_graph }}"
-  when: wait_for_graph
+  when:
+  - not skip_graph|bool
+  - wait_for_graph
+
+# Start the fragnet-search container
+# (currently on the same node as the graph DB).
+# We 'always' pull the images (this is not OpenShift after all)
 
 - name: Start fragnet container
   docker_container:
-    name: fragnet
+    name: fragnet-search
     image: squonk/fragnet-search:{{ fragnet_tag }}
     pull:
       yes
@@ -51,4 +67,15 @@
       NEO4J_SERVER: "{{ inventory_hostname }}"
       NEO4J_USER: neo4j
       NEO4J_PASSWORD: "{{ graph_password }}"
+      KEYCLOAK_SERVER_URL: "{{ keycloak_server_url }}"
+      KEYCLOAK_PUBLIC_KEY: "{{ keycloak_public_key }}"
+      KEYCLOAK_SECRET: "{{ keycloak_secret }}"
+      CATALINA_OPTS: >-
+        "-Dkeycloak.baseurl=$KEYCLOAK_SERVER_URL
+        -Dkeycloak.publickey=$KEYCLOAK_PUBLIC_KEY
+        -Dkeycloak.secret=$KEYCLOAK_SECRET"
+    volumes:
+    - "./fragnet/logging.properties:/usr/local/tomcat/conf/logging.properties:ro,Z"
+    - "./fragnet/keycloak.json:/usr/local/tomcat/webapps/example-servlet/WEB-INF/keycloak.json:ro,Z"
+    - "./fragnet/context.xml:/usr/local/tomcat/webapps/example-servlet/META-INF/context.xml:ro,Z"
   become: yes
