@@ -102,3 +102,9 @@ Starts the (stopped) containers.
 
 ### The 'reset' playbook
 Stops the graph database and fragnet search and removes all of its data.
+
+### Example graph query
+
+    MATCH (c:MolPort)-->(m:F2)-->(a:Available)
+        WHERE m.smiles = 'NC1CCCNC1' RETURN c,m,a LIMIT 10
+        
