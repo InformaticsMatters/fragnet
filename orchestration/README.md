@@ -87,6 +87,7 @@ The playbook execution for combination "1" would be: -
         -e combination=1 \
         -e graph_passqword=blob1234 \
         -e skip_graph=no \
+        -e wait_for_graph=yes \
         playbooks/graph-db/deploy.yaml 
 
 >   You can avoid the time-consuming tasks relating to deploying

@@ -49,7 +49,7 @@
     timeout: "{{ seconds_to_wait_for_graph }}"
   when:
   - not skip_graph|bool
-  - wait_for_graph
+  - wait_for_graph|bool
 
 # Start the fragnet-search container
 # (currently on the same node as the graph DB).
