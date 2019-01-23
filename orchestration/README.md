@@ -110,6 +110,20 @@ Starts the (stopped) containers, usually best after a `stop`.
 ### The 'reset' playbook
 Stops the graph database and fragnet search and removes all of its data.
 
+### Example REST interaction
+Get your token (jq) with a USER, PASS and CLIENT...
+
+    $ token=$(curl --data "grant_type=password&client_id=fragnet-search&username=${USER}&password=${PASS}" \
+        -d "client_secret=${CLIENT}" \
+        https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
+        | jq -r '.access_token')
+
+
+And then curl the HOST...
+
+    $ curl -LH "Authorization: bearer $token" \
+        "http://${HOST}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+
 ### Example graph query
 
     MATCH (c:MolPort)-->(m:F2)-->(a:Available)
