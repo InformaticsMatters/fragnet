@@ -45,7 +45,7 @@
 
     <security-constraint>
         <web-resource-collection>
-            <web-resource-name>FragnetSearch</web-resource-name>
+            <web-resource-name>fragnet-search</web-resource-name>
             <url-pattern>/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
@@ -54,7 +54,7 @@
     </security-constraint>
 
     <login-config>
-        <auth-method>KEYCLOAK</auth-method>
+        <auth-method>BASIC</auth-method>
         <realm-name>squonk</realm-name>
     </login-config>
 

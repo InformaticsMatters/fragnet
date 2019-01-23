@@ -8,6 +8,9 @@ The Squonk Keycloak server needs: -
 1.  A **Valid Redirect URIs** that is set to the Fragnet Search container
     host and port (until we have a domain re-direction then you'll
     need the cluster IP discussed below)
+1.  The client's *Service Accounts Enabled* and *Direct Access Grants Enabled*
+    should be `ON`
+1.  You will also need to a 'fragnet-search' *Role* and users in it
 1.  You will need to put the Keycloak Public Key and client secret
     into your `setenv.sh` (see below)
 

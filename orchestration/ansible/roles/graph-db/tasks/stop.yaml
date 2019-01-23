@@ -4,10 +4,10 @@
 # This is simple, it stops the container
 # and removes the expected directories.
 
-- name: Stop containers
+- name: Stop (remove) containers
   docker_container:
     name: "{{ item }}"
-    state: stopped
+    state: absent
   loop:
   - graph
   - fragnet-search
