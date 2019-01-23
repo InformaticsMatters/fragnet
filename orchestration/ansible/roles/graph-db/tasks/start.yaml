@@ -1,5 +1,12 @@
 ---
 
+# Has the user defined suitable key variables?
+
+- name: Assert keycloak variables
+  fail:
+    msg: "You must provide 'keycloak' variables"
+  when: keycloak_server_url == ''
+
 # Launches the Graph DB (neo4j in this case)
 # using the loader directory as an input.
 # The graph DB is built locally on the cluster
@@ -71,9 +78,9 @@
       KEYCLOAK_PUBLIC_KEY: "{{ keycloak_public_key }}"
       KEYCLOAK_SECRET: "{{ keycloak_secret }}"
       CATALINA_OPTS: >-
-        "-Dkeycloak.baseurl=$KEYCLOAK_SERVER_URL
+        -Dkeycloak.baseurl=$KEYCLOAK_SERVER_URL
         -Dkeycloak.publickey=$KEYCLOAK_PUBLIC_KEY
-        -Dkeycloak.secret=$KEYCLOAK_SECRET"
+        -Dkeycloak.secret=$KEYCLOAK_SECRET
     volumes:
     - "./fragnet/logging.properties:/usr/local/tomcat/conf/logging.properties:ro,Z"
     - "./fragnet/keycloak.json:/usr/local/tomcat/webapps/fragnet-search/WEB-INF/keycloak.json:ro,Z"
