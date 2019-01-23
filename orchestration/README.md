@@ -83,7 +83,7 @@ The playbook execution for combination "1" would be: -
 
 
     $ cd ansible
-    $ ansible-playbook -i inventory \
+    $ ansible-playbook \
         -e combination=1 \
         -e graph_passqword=blob1234 \
         -e skip_graph=no \
@@ -97,8 +97,12 @@ The playbook execution for combination "1" would be: -
 ### The 'stop' playbook
 Stops the running containers, leaving containers intact.
 
+    $ ansible-playbook playbooks/graph-db/stop.yaml 
+
 ### The 'start' playbook
-Starts the (stopped) containers.
+Starts the (stopped) containers, usually best after a `stop`.
+
+    $ ansible-playbook playbooks/graph-db/start.yaml 
 
 ### The 'reset' playbook
 Stops the graph database and fragnet search and removes all of its data.
