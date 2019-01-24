@@ -17,7 +17,7 @@ The Squonk Keycloak server needs: -
 ## Terraform
 You can use terraform to create the AWS cluster nodes. You will need: -
 
-- Terraform 0.11.11
+- Terraform
 - Ansible 2.6.3 or better
 
 To create the cluster (and write the ansible inventory file): -
@@ -85,11 +85,11 @@ The playbook execution for combination "1" would be: -
     -   AWS_DEFAULT_REGION
 
 
+    $ source setenv.sh
     $ cd ansible
     $ ansible-playbook \
         -e combination=1 \
         -e graph_passqword=blob1234 \
-        -e skip_graph=no \
         playbooks/graph-db/deploy.yaml 
 
 >   You can avoid the time-consuming tasks relating to deploying
@@ -97,32 +97,50 @@ The playbook execution for combination "1" would be: -
     skips deploying the DB, which is different form *not waiting* for
     the database. 
 
-### The 'stop' playbook
-Stops the running containers, leaving containers intact.
+### The 'stop' playbooks
+Stops the running containers.
 
-    $ ansible-playbook playbooks/graph-db/stop.yaml 
+    $ ansible-playbook playbooks/graph-db/stop-fragnet-search.yaml 
 
-### The 'start' playbook
-Starts the (stopped) containers, usually best after a `stop`.
+There are playbooks for: -
 
-    $ ansible-playbook playbooks/graph-db/start.yaml 
+-   stop
+-   stop-fragnet-search
+-   stop-graph
+
+### The 'start' playbooks
+Starts the (stopped) containers.
+
+    $ ansible-playbook playbooks/graph-db/start-fragnet-search.yaml 
+
+There are playbooks for: -
+
+-   start
+-   start-fragnet-search
+-   start-graph
 
 ### The 'reset' playbook
-Stops the graph database and fragnet search and removes all of its data.
+Stops the graph database and fragnet search and removes the graph
+database (not the import files) and its logs.
 
 ### Example REST interaction
-Get your token (jq) with a USER, PASS and CLIENT...
+Get your token (jq) with a FRAGNET_USERNAME, FRAGNET_PASSWORD
+and KEYCLOAK_SECRET...
 
-    $ token=$(curl --data "grant_type=password&client_id=fragnet-search&username=${USER}&password=${PASS}" \
-        -d "client_secret=${CLIENT}" \
+    $ token=$(curl \
+        -d "grant_type=password" \
+        -d "client_id=fragnet-search" \
+        -d "username=${FRAGNET_USERNAME}" \
+        -d "password=${FRAGNET_PASSWORD}" \
+        -d "client_secret=${KEYCLOAK_SECRET}" \
         https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
         | jq -r '.access_token')
 
 
-And then curl the HOST...
+And then curl the FRAGNET_HOST...
 
     $ curl -LH "Authorization: bearer $token" \
-        "http://${HOST}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+        "http://${FRAGNET_HOST}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 
 ### Example graph query
 

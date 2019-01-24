@@ -5,20 +5,17 @@
 # ENVIRONMENT VARIABLES
 # Define these secrets as environment variables
 #
-# - TF_VAR_aws_access_key                 Your AWS access token
-# - TF_VAR_aws_secret_key                 Your AWS secret key
+# - TF_VAR_aws_access_key     Your AWS access token
+# - TF_VAR_aws_secret_key     Your AWS secret key
+# - TF_VAR_aws_key_name       The name of your keyfile in the AWS region
 
 variable "aws_access_key" {}
 variable "aws_secret_key" {}
+variable "aws_key_name" {}
 
 # -----------------------------------------------------------------------------
 # Default Parameters (can be changed via command-line or ENV)
 # -----------------------------------------------------------------------------
-
-variable "aws_key_name" {
-  description = "The name of the Key Pair, as known by AWS"
-  default = "abc-im"
-}
 
 variable "aws_region" {
   description = "EC2 Region for the Cluster"

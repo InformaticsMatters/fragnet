@@ -1,0 +1,8 @@
+---
+
+- name: Stop (remove) fragnet-search
+  docker_container:
+    name: fragnet-search
+    state: absent
+  become: yes
+  ignore_errors: yes

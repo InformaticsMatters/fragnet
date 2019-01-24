@@ -1,0 +1,8 @@
+---
+
+- name: Stop graph
+  docker_container:
+    name: graph
+    state: stopped
+  become: yes
+  ignore_errors: yes

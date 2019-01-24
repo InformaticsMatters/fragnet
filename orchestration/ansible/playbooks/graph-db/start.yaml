@@ -3,7 +3,13 @@
 - hosts: graph
 
   tasks:
-  - name: Run the Role 'start' Tasks
+
+  - name: Run a Role Task (start-graph)
     include_role:
       name: graph-db
-      tasks_from: start.yaml
+      tasks_from: start-graph.yaml
+
+  - name: Run a Role Task (start-fragnet-search)
+    include_role:
+      name: graph-db
+      tasks_from: start-fragnet-search.yaml

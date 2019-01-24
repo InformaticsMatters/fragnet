@@ -1,0 +1,48 @@
+---
+
+# Has the user defined suitable key variables?
+
+- name: Assert keycloak variables
+  fail:
+    msg: "You must provide 'keycloak' variables"
+  when: keycloak_server_url == ''
+
+# Start the fragnet-search container
+# (currently on the same node as the graph DB).
+# We 'always' pull the images (this is not OpenShift after all)
+
+- name: Copy fragnet keycloak files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_env.HOME }}/fragnet/"
+  loop:
+    - context.xml
+    - keycloak.json
+    - logging.properties
+    - web.xml
+
+- name: Start fragnet container
+  docker_container:
+    name: fragnet-search
+    image: squonk/fragnet-search:{{ fragnet_tag }}
+    pull:
+      yes
+    published_ports:
+    - "{{ fragnet_port }}:8080"
+    env:
+      NEO4J_SERVER: "{{ inventory_hostname }}"
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: "{{ graph_password }}"
+      KEYCLOAK_SERVER_URL: "{{ keycloak_server_url }}"
+      KEYCLOAK_PUBLIC_KEY: "{{ keycloak_public_key }}"
+      KEYCLOAK_SECRET: "{{ keycloak_secret }}"
+      CATALINA_OPTS: >-
+        -Dkeycloak.baseurl=$KEYCLOAK_SERVER_URL
+        -Dkeycloak.publickey=$KEYCLOAK_PUBLIC_KEY
+        -Dkeycloak.secret=$KEYCLOAK_SECRET
+    volumes:
+    - "./fragnet/logging.properties:/usr/local/tomcat/conf/logging.properties:ro,Z"
+    - "./fragnet/keycloak.json:/usr/local/tomcat/webapps/fragnet-search/WEB-INF/keycloak.json:ro,Z"
+    - "./fragnet/web.xml:/usr/local/tomcat/webapps/fragnet-search/WEB-INF/web.xml:ro,Z"
+    - "./fragnet/context.xml:/usr/local/tomcat/webapps/fragnet-search/META-INF/context.xml:ro,Z"
+  become: yes

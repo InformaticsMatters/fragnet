@@ -57,9 +57,6 @@ wait_for_graph: no
 # And the time to wait (1h = 3600)
 seconds_to_wait_for_graph: 7200
 
-# Set to avoid deploying the graph database
-skip_graph: no
-
 # Fragnet application variables...
 # -------
 

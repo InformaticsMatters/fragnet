@@ -90,17 +90,6 @@
   loop:
   - Dockerfile
   - docker-entrypoint.sh
-  when: not skip_graph|bool
-
-- name: Copy fragnet keycloak files
-  copy:
-    src: "{{ item }}"
-    dest: "{{ ansible_env.HOME }}/fragnet/"
-  loop:
-  - context.xml
-  - keycloak.json
-  - logging.properties
-  - web.xml
 
 - name: Get graph algorithms
   get_url:
@@ -108,7 +97,6 @@
     dest: "{{ ansible_env.HOME }}/build/"
   vars:
     a_host: https://github.com/neo4j-contrib/neo4j-graph-algorithms/releases/download
-  when: not skip_graph|bool
 
 - name: Build the graph image (locally)
   docker_image:
@@ -119,4 +107,3 @@
     buildargs:
       a_version: "{{ graph_a_version }}"
   become: yes
-  when: not skip_graph|bool

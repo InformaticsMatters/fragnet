@@ -3,5 +3,6 @@
 # Just run these plays...
 
 - import_tasks: prepare.yaml
-- import_tasks: get-data.yaml
-- import_tasks: start.yaml
+- import_tasks: get-combination.yaml
+- import_tasks: start-graph.yaml
+- import_tasks: start-fragnet-search.yaml
