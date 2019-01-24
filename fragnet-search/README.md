@@ -16,8 +16,8 @@ The current search types that are supported are:
 
 Planned searches are:
 
-1. Activity island searches - find clusters of molecules with activity
-
+1. Activity island searches - find clusters of molecules with activity.
+2. Compound availability search - find out who you can purchase molecules from.
 
 ### Molecule neighbourhood search
 
@@ -39,6 +39,7 @@ An example query run with `curl` might look like this:
 ```
 curl "http://localhost:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ``` 
+Note that the query molecule is specified as smiles and must by URL encoded.
 
 Results are of type `Fragment Neighbourhood results` described below.  
 
@@ -54,7 +55,7 @@ Currently query molecules are canonicalised but not standardised so you need to 
 Details of the standardisation can be found
 [here](https://github.com/InformaticsMatters/fragalysis/blob/master/frag/utils/rdkit_utils.py#L245-L268).
 you can use that Python method to perform exactly the same standardisation if you wish. Otherwise here are some simple
-rules that will suffice in most cases:
+rules that should suffice in most cases:
 
 1. Sketch the molecule 'correctly' e.g. without covalently bonded metal atoms.
 1. Do not include salts.
@@ -66,8 +67,8 @@ able to perform standardisation.
 ### Calculations
 
 We have a small number of molecular calculations built in that are available to include in query results. Heavy atom count
-(`hac` property) and ring atom count (`chac` property - NOTE: we plan to rename this to `rac`) are present in the fragment network data and always included. You can 
-optionally include the following additional calculation by adding the `calcs` query parameter.
+(`hac` property) and ring atom count (`chac` property - NOTE: we plan to rename this to `rac`) are present in the fragment 
+network data and always included. You can optionally include the following additional calculation by adding the `calcs` query parameter.
 
 | Name | Description |
 |------|-------------|
@@ -81,6 +82,33 @@ All these properties are calculated with RDKit.
 
 Specify the properties to caclulate as a comma separated list of values for the `calcs` property for queries that support
 this property. e.g. `calcs=LOGP,SIM_RDKIT_TANIMOTO`
+
+### Authentication
+
+In the Squonk production environment access to the search service will require authentication.
+To achieve this you will need to:
+ 
+1. Get a login to the Squonk systems. Contact info@informaticsmatters to get an account set up.
+2. Request access to fragnet-search. You need to be given the `fragnet-search` role to be able to use this.
+3. Generate an authentication token.
+4. Run the query passing in the authentication token.
+
+To perform step 3 with `curl` you will need to do something like this:
+
+```
+token=$(curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username=<username>" -d "password=<password>"\
+  https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
+  | jq -r '.access_token')
+
+```
+Replace \<username\>, \<password\> and \<client-secret\> with the appropriate values.
+You can use `echo $token` to make sure you have obtained a token.
+
+To perform step 4 you will need to do something like this:
+```
+curl -LH "Authorization: bearer $token" "http://100.25.105.8:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+```
+Notice how the token is sent with the request.
 
 ## Result Details
 
