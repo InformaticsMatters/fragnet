@@ -5,7 +5,8 @@ This is primarily Java based tooling using RDKit and the Neo4j graph database.
 
 Current components:
 
-1. [fragnet-search]() - fragment network query REST web service.
+1. [fragnet-search](fragnet-search/) - fragment network query REST web service.
+2. [orchestration](orchestration/) - orchestration of fragnet-search.
 
 For more information see:
 
