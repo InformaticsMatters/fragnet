@@ -89,7 +89,7 @@ task buildDockerFile(type: Dockerfile) {
     ]
 
     destFile = project.file('build/Dockerfile')
-    from "informaticsmatters/rdkit-tomcat-debian:latest"
+    from "informaticsmatters/rdkit-tomcat-debian:Release_2018_09"
     label(['maintainer': 'Tim Dudgeon "tdudgeon@informaticsmatters.com"'])
 
 //    addFile('libs/keycloak-2.1.0-jars-tomcat8/', '$CATALINA_HOME/lib/')
