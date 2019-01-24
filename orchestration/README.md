@@ -90,7 +90,7 @@ The playbook execution for combination "1" would be: -
     $ ansible-playbook \
         -e combination=1 \
         -e graph_passqword=blob1234 \
-        playbooks/graph-db/deploy.yaml 
+        playbooks/fragnet/deploy.yaml 
 
 >   You can avoid the time-consuming tasks relating to deploying
     the graph database by adding `-e skip_graph=yes`. Using that
@@ -100,7 +100,7 @@ The playbook execution for combination "1" would be: -
 ### The 'stop' playbooks
 Stops the running containers.
 
-    $ ansible-playbook playbooks/graph-db/stop-fragnet-search.yaml 
+    $ ansible-playbook playbooks/fragnet/stop-fragnet-search.yaml 
 
 There are playbooks for: -
 
@@ -111,7 +111,7 @@ There are playbooks for: -
 ### The 'start' playbooks
 Starts the (stopped) containers.
 
-    $ ansible-playbook playbooks/graph-db/start-fragnet-search.yaml 
+    $ ansible-playbook playbooks/fragnet/start-fragnet-search.yaml 
 
 There are playbooks for: -
 

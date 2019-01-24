@@ -5,5 +5,5 @@
   tasks:
   - name: Run the Role 'reset' Tasks
     include_role:
-      name: graph-db
+      name: fragnet
       tasks_from: reset.yaml

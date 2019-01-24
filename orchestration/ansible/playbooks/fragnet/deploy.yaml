@@ -14,4 +14,4 @@
 - hosts: graph
 
   roles:
-  - graph-db
+  - fragnet

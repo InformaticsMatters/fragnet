@@ -5,5 +5,5 @@
   tasks:
   - name: Run the Role 'stop' Tasks
     include_role:
-      name: graph-db
+      name: fragnet
       tasks_from: stop-graph.yaml

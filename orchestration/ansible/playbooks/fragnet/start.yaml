@@ -6,10 +6,10 @@
 
   - name: Run a Role Task (start-graph)
     include_role:
-      name: graph-db
+      name: fragnet
       tasks_from: start-graph.yaml
 
   - name: Run a Role Task (start-fragnet-search)
     include_role:
-      name: graph-db
+      name: fragnet
       tasks_from: start-fragnet-search.yaml
