@@ -16,10 +16,10 @@
     src: "{{ item }}"
     dest: "{{ ansible_env.HOME }}/fragnet/"
   loop:
-    - context.xml
-    - keycloak.json
-    - logging.properties
-    - web.xml
+    - fragnet-search/context.xml
+    - fragnet-search/keycloak.json
+    - fragnet-search/logging.properties
+    - fragnet-search/web.xml
 
 - name: Start fragnet container
   docker_container:

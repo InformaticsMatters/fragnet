@@ -6,7 +6,7 @@
 # essentially a sub-directory of the bucket's "combination" directory.
 # The combination is expected to contain all the nodes, relationships and
 # headers along with a "load-neo4j.sh" (and optional "index-neo4j.sh) script -
-# i.e.
+# i.e. the *full set of import files*.
 
 - name: Get combination
   shell: aws s3 sync s3://{{ origin }} {{ graph_loader_directory }}
