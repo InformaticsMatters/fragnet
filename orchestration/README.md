@@ -23,6 +23,7 @@ You can use terraform to create the AWS cluster nodes. You will need: -
 To create the cluster (and write the ansible inventory file): -
 
     $ cd terraform/aws
+    $ terraform init
     $ terraform apply -auto-approve
 
 >   CAUTION: If you're not using S3 for Terraform state then

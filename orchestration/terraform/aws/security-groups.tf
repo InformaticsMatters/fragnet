@@ -18,6 +18,10 @@ resource "aws_security_group" "neo4j" {
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags {
+    Name = "fragnet"
+  }
 }
 
 resource "aws_security_group" "fragnet" {
@@ -25,16 +29,14 @@ resource "aws_security_group" "fragnet" {
   vpc_id = "${var.aws_vpc_id}"
 
   ingress {
-    from_port = 3080
-    to_port = 3080
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
     from_port = 8080
     to_port = 8080
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Name = "fragnet"
   }
 }
 
@@ -64,5 +66,9 @@ resource "aws_security_group" "ssh" {
     from_port = 0
     to_port = 0
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Name = "fragnet"
   }
 }

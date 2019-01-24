@@ -6,7 +6,7 @@ data "template_file" "inventory" {
   template = "${file("${var.ansible_dir}/inventory.tpl")}"
 
   vars {
-    graph_host = "${aws_instance.graph-node.0.public_ip}"
+    graph_host = "${aws_eip_association.graph_node.public_ip}"
   }
 }
 

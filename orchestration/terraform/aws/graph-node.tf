@@ -19,6 +19,15 @@ resource "aws_instance" "graph-node" {
     volume_size = "${var.data_volume_size}"
     volume_type = "gp2"
   }
+
+  tags {
+    Name = "fragnet"
+  }
+}
+
+resource "aws_eip_association" "graph_node" {
+  instance_id   = "${aws_instance.graph-node.id}"
+  allocation_id = "${var.aws_graph_eip_id}"
 }
 
 #resource "aws_spot_instance_request" "graph-node" {

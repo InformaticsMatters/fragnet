@@ -37,6 +37,11 @@ variable "aws_zone" {
   default = "us-east-1e"
 }
 
+variable "aws_graph_eip_id" {
+  description = "Pre-existing EC2 Elastic IP for the Cluster"
+  default = "eipalloc-04a07ba754c5aa573"
+}
+
 variable "amis" {
   description = "AMIs by Region"
   type = "map"
@@ -47,7 +52,7 @@ variable "amis" {
 
 variable "data_volume_size" {
   description = "Size of graph data volume (Gi)"
-  default = "300"
+  default = "500"
 }
 
 variable "ansible_dir" {
