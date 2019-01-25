@@ -78,6 +78,13 @@ The playbook execution for combination "1" would be: -
         -e combination=1 \
         playbooks/fragnet/deploy.yaml 
 
+You can **STOP** the AWS compute instance when you're not using it.
+When you **START** it again you need to run the following to
+restart the containers: -
+
+    $ ansible-playbook playbooks/fragnet/start-graph.yaml
+    $ ansible-playbook playbooks/fragnet/start-fragnet-search.yaml
+ 
 ### The 'stop' playbooks
 Stops the running containers.
 
