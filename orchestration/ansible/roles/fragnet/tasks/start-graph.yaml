@@ -1,5 +1,12 @@
 ---
 
+# Has the user defined suitable key variables?
+
+- name: Assert keycloak variables
+  fail:
+    msg: "You must provide a neo4j password"
+  when: graph_password == ''
+
 # Launches the Graph DB (neo4j in this case)
 # using the loader directory as an input.
 # The graph DB is built locally on the cluster
@@ -15,7 +22,7 @@
     - 7474:7474
     - 7687:7687
     env:
-      NEO4J_AUTH: neo4j/x
+      NEO4J_AUTH: neo4j/{{ graph_password }}
       NEO4J_dbms_memory_pagecache_size: 20G
       NEO4J_dbms_memory_heap_initial__size: 8G
       NEO4J_dbms_memory_heap_max__size: 8G

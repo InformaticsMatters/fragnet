@@ -14,6 +14,11 @@
     msg: "You must provide 'keycloak' variables"
   when: keycloak_server_url == ''
 
+- name: Assert keycloak variables
+  fail:
+    msg: "You must provide a neo4j password"
+  when: graph_password == ''
+
 # Ready to go...
 
 # Preparation script for the graph node.
@@ -66,18 +71,12 @@
   loop:
   - docker
 
-- name: Create docker group
-  group:
-    name: docker
-    system: yes
-  become: yes
-
-- name: Add user to docker
-  user:
-    name: "{{ ansible_user }}"
-    groups: docker
-    append: yes
-  become: yes
+- name: Add authorised users
+  authorized_key:
+    user: "{{ ansible_user }}"
+    key: "{{ lookup('file', item) }}"
+  with_fileglob:
+  - public_keys/*
 
 # Copy material for our own build of the Graph image.
 # We use neo4j but patch the entry point and add the caching tools

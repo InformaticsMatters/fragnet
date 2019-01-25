@@ -1,4 +1,4 @@
-FROM neo4j:3.5.0
+FROM neo4j:3.5.2
 
 ARG a_version=3.5.0.1
 COPY ./docker-entrypoint.sh /

@@ -9,3 +9,6 @@ export KEYCLOAK_PUBLIC_KEY="SetMe"
 
 # the client secret for fragnet-search client in the realm
 export KEYCLOAK_SECRET="SetMe"
+
+# the neo4j user password
+export NEO4J_PASSWORD="SetMe"

@@ -1,6 +1,11 @@
 # Orchestration
 This directory contains early Terraform and Ansible files.
 
+You will need: -
+
+- Terraform
+- Ansible 2.6.3 or better
+
 ## The Squonk Keycloak Server
 The Squonk Keycloak server needs: -
 
@@ -15,28 +20,18 @@ The Squonk Keycloak server needs: -
     into your `setenv.sh` (see below)
 
 ## Terraform
-You can use terraform to create the AWS cluster nodes. You will need: -
-
-- Terraform
-- Ansible 2.6.3 or better
-
 To create the cluster (and write the ansible inventory file): -
 
     $ cd terraform/aws
     $ terraform init
     $ terraform apply -auto-approve
 
->   CAUTION: If you're not using S3 for Terraform state then
-    you *must* remember that your state files are vital and must not be
-    removed while the cluster is active as only you can alter and delete
-    the deployed instances and without the state files you'll have to
-    delete the instances manually.
+>   Terraform state is preserved in an AWS S3 bucket.
 
 The cluster creation renders the corresponding Ansible inventory file
-with the created host's details so Ansible is ready to run.
+with the created host's details, so Ansible is ready to run.
  
-To destroy the cluster, return to the Terraform AWS directory and run
-the following: -
+To destroy the cluster, return to the Terraform AWS directory and run: -
 
     $ terraform destroy -force
 
@@ -45,9 +40,9 @@ the following: -
     to the SKeycloak server.
 
 ## Ansible
-If you have not used terraform to cerate the cluster you will need to adjust
-the inventory file to identify the required hosts for your deployment.
-Copy the template as `inventory` and replace the `${}` values.
+>   If you have not used terraform to create the cluster you will need to
+    adjust the inventory file to identify the required hosts for your
+    deployment. Copy the template as `inventory` and replace the `${}` values.
 
 You will need essential environment variables defined, which Ansible
 will expect. Before going any further...
@@ -77,52 +72,28 @@ supported by a corresponding *Role* task.
 Configures the graph-db node with a chosen "combination".
 The playbook execution for combination "1" would be: -
 
--   You must have an installation of Ansible
--   You must have AWS credentials defined in suitable environment variables.
-    These include: -
-    
-    -   AWS_ACCESS_KEY_ID
-    -   AWS_SECRET_ACCESS_KEY
-    -   AWS_DEFAULT_REGION
-
-
     $ source setenv.sh
     $ cd ansible
     $ ansible-playbook \
         -e combination=1 \
-        -e graph_passqword=blob1234 \
         playbooks/fragnet/deploy.yaml 
-
->   You can avoid the time-consuming tasks relating to deploying
-    the graph database by adding `-e skip_graph=yes`. Using that
-    skips deploying the DB, which is different form *not waiting* for
-    the database. 
 
 ### The 'stop' playbooks
 Stops the running containers.
 
     $ ansible-playbook playbooks/fragnet/stop-fragnet-search.yaml 
 
-There are playbooks for: -
-
--   stop
--   stop-fragnet-search
--   stop-graph
-
 ### The 'start' playbooks
 Starts the (stopped) containers.
 
     $ ansible-playbook playbooks/fragnet/start-fragnet-search.yaml 
 
-There are playbooks for: -
-
--   start
--   start-fragnet-search
--   start-graph
-
-### The 'reset' playbook
+### The 'undeploy' playbook
 Stops the graph database and fragnet search and removes the graph
 database (not the import files) and its logs.
+
+Once un-deployed you will need to run the initial `deploy` playbook
+to recover the system.
 
 ### Example REST interaction
 Get your token (jq) with a FRAGNET_USERNAME, FRAGNET_PASSWORD
@@ -133,7 +104,6 @@ and KEYCLOAK_SECRET...
         -d "client_id=fragnet-search" \
         -d "username=${FRAGNET_USERNAME}" \
         -d "password=${FRAGNET_PASSWORD}" \
-        -d "client_secret=${KEYCLOAK_SECRET}" \
         https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
         | jq -r '.access_token')
 

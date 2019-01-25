@@ -38,10 +38,8 @@ s3_fragnet_bucket: im-fragnet
 # Graph (neo4j) variables...
 # -----
 
-# Default Graph user password.
-# The neo4j user password must be set to this -
-# it's used by the fragnet service to connect to neo4j.
-graph_password: blob1234
+# The default (neo4j) password
+graph_password: "{{ lookup('env', 'NEO4J_PASSWORD') }}"
 # The graph loader, database (graph) and log directories.
 # The loader is where the graph combination files are downloaded to
 # This also acts as the neo4j volume mount.
