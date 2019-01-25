@@ -80,7 +80,8 @@ The playbook execution for combination "1" would be: -
 
 You can **STOP** the AWS compute instance when you're not using it.
 When you **START** it again you need to run the following to
-restart the containers: -
+restart the containers (`start-graph` will wait for port 7474 before
+continuing): -
 
     $ ansible-playbook playbooks/fragnet/start-graph.yaml
     $ ansible-playbook playbooks/fragnet/start-fragnet-search.yaml

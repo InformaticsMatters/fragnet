@@ -7,3 +7,5 @@
     include_role:
       name: fragnet
       tasks_from: start-graph.yaml
+    vars:
+      wait_for_graph: yes
