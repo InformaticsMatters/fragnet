@@ -57,6 +57,10 @@ public class NeighbourhoodGraph extends FragmentGraph {
         return grouping.collectGroups();
     }
 
+    public int numGroups() {
+        return grouping.size();
+    }
+
     @Override
     public void add(Path path) {
 

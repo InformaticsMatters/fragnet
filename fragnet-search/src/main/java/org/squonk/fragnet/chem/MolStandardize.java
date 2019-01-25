@@ -27,8 +27,14 @@ public class MolStandardize {
 
     public static String prepareMol(@NotNull String smiles) {
         RWMol mol = RWMol.MolFromSmiles(smiles);
+        if (mol == null) {
+            throw new RuntimeException("Invalid molecule: " + smiles);
+        }
         String canon = mol.MolToSmiles(true);
         LOG.finer("Smiles: " + smiles + " Canon: " + canon);
+        if (canon == null) {
+            throw new RuntimeException("Unable to canonicalize molecule: " + smiles);
+        }
         return canon;
     }
 }

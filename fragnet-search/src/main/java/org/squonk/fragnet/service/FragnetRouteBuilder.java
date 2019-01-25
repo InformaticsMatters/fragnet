@@ -29,7 +29,15 @@ import org.squonk.fragnet.chem.Calculator;
 import org.squonk.fragnet.search.model.NeighbourhoodGraph;
 import org.squonk.fragnet.search.queries.SimpleNeighbourhoodQuery;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.Principal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,9 +56,44 @@ public class FragnetRouteBuilder extends RouteBuilder implements AutoCloseable {
     private static final String NEO4J_USER = Utils.getConfiguration("NEO4J_USER", "neo4j");
     private static final String NEO4J_PASSWORD = Utils.getConfiguration("NEO4J_PASSWORD", null);
     private static final String NEO4J_URL = "bolt://" + NEO4J_SERVER + ":7687";
-
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+    private final File queryLogFile;
 
     private Driver driver = GraphDatabase.driver(NEO4J_URL, AuthTokens.basic(NEO4J_USER, NEO4J_PASSWORD));
+
+    public FragnetRouteBuilder() {
+        this(true);
+    }
+
+    public FragnetRouteBuilder(boolean writeQueryLog) {
+        if (writeQueryLog) {
+            String home = System.getProperty("user.home");
+            if (home != null) {
+                File file = new File(home, "fragnet-queries.log");
+                if (Utils.createFileIfNotPresent(file) == 1) {
+                    try {
+                        // test we can write to it
+                        try (FileOutputStream fos = new FileOutputStream(file)) {
+                            String msg = "Query log created on " + DATE_FORMAT.format(new Date()) + "\n";
+                            fos.write(msg.getBytes());
+                        }
+                    } catch (Exception e) {
+                        LOG.warning("Failed to create query log file for writing");
+                        file = null;
+                    }
+                }
+                queryLogFile = file;
+                LOG.info("Writing query log to " + file.getPath());
+
+            } else {
+                queryLogFile = null;
+                LOG.warning("No home dir found. Cannot create fragnet-queries.log");
+            }
+        } else {
+            queryLogFile = null;
+            LOG.warning("Writing to fragnet-queries.log is disabled");
+        }
+    }
 
     @Override
     public void configure() throws Exception {
@@ -96,6 +139,16 @@ public class FragnetRouteBuilder extends RouteBuilder implements AutoCloseable {
                 .endRest();
     }
 
+    private String getUsername(Exchange exch) {
+        HttpServletRequest request = exch.getIn().getBody(HttpServletRequest.class);
+        Principal principal = request.getUserPrincipal();
+        if (principal != null) {
+            return principal.getName();
+        } else {
+            return "unauthenticated";
+        }
+    }
+
     void executeNeighbourhoodQuery(Exchange exch) {
 
         Message message = exch.getIn();
@@ -103,6 +156,10 @@ public class FragnetRouteBuilder extends RouteBuilder implements AutoCloseable {
 //        message.getHeaders().forEach((k,v) -> {
 //            System.out.println(k + " -> " +v);
 //        });
+
+        long t0 = new Date().getTime();
+        String username = getUsername(exch);
+
 
         try {
             String smilesQuery = message.getHeader("smiles", String.class);
@@ -148,15 +205,45 @@ public class FragnetRouteBuilder extends RouteBuilder implements AutoCloseable {
 
             message.setBody(result);
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+            long t1 = new Date().getTime();
+            writeToQueryLog(username, "NeighbourhoodQuery", t1 - t0, result.numNodes(), result.numEdges(), result.numGroups());
+
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Query Failed", ex);
             message.setBody("{\"error\": \"Query Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+
+            long t1 = new Date().getTime();
+            writeErrorToQueryLog(username, "NeighbourhoodQuery", t1 - t0, ex.getLocalizedMessage());
         }
     }
 
     @Override
     public void close() throws Exception {
         driver.close();
+    }
+
+    private void writeToQueryLog(String user, String searchType, long executionTime, int nodes, int edges, int groups) {
+        String date = DATE_FORMAT.format(new Date());
+        String txt = String.format("%s\t%s\t%s\t%s\tnodes=%s,edges=%s,groups=%s\n",
+                user, date, searchType, executionTime, nodes, edges, groups);
+        writeToQueryLog(txt);
+    }
+
+    private void writeErrorToQueryLog(String user, String searchType, long executionTime, String msg) {
+        String date = DATE_FORMAT.format(new Date());
+        String txt = String.format("%s\t%s\t%s\t%s\terror=%s\n",
+                user, date, searchType, executionTime, msg);
+        writeToQueryLog(txt);
+    }
+
+    private void writeToQueryLog(String txt) {
+        if (queryLogFile != null) {
+            try {
+                Utils.appendToFile(queryLogFile, txt);
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, "Failed to write to query log", e);
+            }
+        }
     }
 }

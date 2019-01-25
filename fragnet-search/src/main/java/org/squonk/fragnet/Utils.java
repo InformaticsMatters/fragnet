@@ -17,7 +17,14 @@ package org.squonk.fragnet;
 
 import org.jboss.weld.exceptions.IllegalStateException;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.logging.Logger;
+
 public class Utils {
+
+    private static final Logger LOG = Logger.getLogger(Utils.class.getName());
 
     /**
      * Get a value that might be configured externally. Looks first for a system property
@@ -49,6 +56,36 @@ public class Utils {
         }
         return defaultValue;
 
+    }
+
+    public static void appendToFile(File file, String text) throws IOException {
+        if (createFileIfNotPresent(file) >= 0) {
+            FileOutputStream fos = new FileOutputStream(file, true);
+            try {
+                java.nio.channels.FileLock lock = fos.getChannel().lock();
+                try {
+                    fos.write(text.getBytes());
+                } finally {
+                    lock.release();
+                }
+            } finally {
+                fos.close();
+            }
+        }
+    }
+
+    public static int createFileIfNotPresent(File file) {
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+                LOG.info("File " + file.getPath() + " created");
+                return 1;
+            } catch (Exception e) {
+                LOG.warning("Failed to create file " + file.getPath());
+                return -1;
+            }
+        }
+        return 0;
     }
 
 }

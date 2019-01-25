@@ -99,7 +99,6 @@ To perform step 3 with `curl` you will need to do something like this:
 token=$(curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username=<username>" -d "password=<password>"\
   https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
   | jq -r '.access_token')
-
 ```
 Replace \<username\>, \<password\> and \<client-secret\> with the appropriate values.
 You can use `echo $token` to make sure you have obtained a token.

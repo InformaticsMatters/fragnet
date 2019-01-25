@@ -53,8 +53,16 @@
         </auth-constraint>
     </security-constraint>
 
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>fragnet-search health check</web-resource-name>
+            <url-pattern>/ping</url-pattern>
+        </web-resource-collection>
+        <!-- no auth-constraint -->
+    </security-constraint>
+
     <login-config>
-        <auth-method>BASIC</auth-method>
+        <auth-method>KEYCOAK</auth-method>
         <realm-name>squonk</realm-name>
     </login-config>
 
