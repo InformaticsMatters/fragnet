@@ -34,10 +34,11 @@ Parameters:
 | calcs  | Query | No       | Comma separated list of the calculations to be performed on the resulting molecules. See below for details. |
 | limit  | Query | No       | The maximum number of paths to return from the graph query. Default is 1000 and this is usually more than enough. Values greater than 5000 are not permitted. | 
 
-An example query run with `curl` might look like this:
+An example query run with `curl`, where the Fragnet server address is
+in the `FRAGNET_SERVER` environment variable, might look like this:
 
 ```
-curl "http://localhost:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+curl "http://${FRAGNET_SERVER}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ``` 
 Note that the query molecule is specified as smiles and must by URL encoded.
 
@@ -100,12 +101,12 @@ token=$(curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username
   https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
   | jq -r '.access_token')
 ```
-Replace \<username\>, \<password\> and \<client-secret\> with the appropriate values.
+Replace `\<username\>`, `\<password\>` and `\<client-secret\>` with the appropriate values.
 You can use `echo $token` to make sure you have obtained a token.
 
 To perform step 4 you will need to do something like this:
 ```
-curl -LH "Authorization: bearer $token" "http://100.25.105.8:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+curl -LH "Authorization: bearer $token" "http://${FRAGNET_SERVER}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ```
 Notice how the token is sent with the request.
 
