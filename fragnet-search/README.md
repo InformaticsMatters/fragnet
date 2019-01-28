@@ -34,15 +34,15 @@ Parameters:
 | calcs  | Query | No       | Comma separated list of the calculations to be performed on the resulting molecules. See below for details. |
 | limit  | Query | No       | The maximum number of paths to return from the graph query. Default is 1000 and this is usually more than enough. Values greater than 5000 are not permitted. | 
 
-An example query run with `curl`, where the Fragnet server address is
-in the `FRAGNET_SERVER` environment variable, might look like this:
+An example query run with [curl], where the Fragnet server address is
+set in the `FRAGNET_SERVER` environment variable, might look like this:
 
 ```
 curl "http://${FRAGNET_SERVER}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ``` 
 Note that the query molecule is specified as smiles and must by URL encoded.
 
-Results are of type `Fragment Neighbourhood results` described below.  
+Results are of type **Fragment Neighbourhood results** described below.  
 
 ## Search details
 
@@ -55,7 +55,7 @@ generation of the fragment network. If not then 'equivalent' but non 'identical'
 Currently query molecules are canonicalised but not standardised so you need to provide your query molecule with some care.
 Details of the standardisation can be found
 [here](https://github.com/InformaticsMatters/fragalysis/blob/master/frag/utils/rdkit_utils.py#L245-L268).
-you can use that Python method to perform exactly the same standardisation if you wish. Otherwise here are some simple
+You can use that Python method to perform exactly the same standardisation if you wish. Otherwise here are some simple
 rules that should suffice in most cases:
 
 1. Sketch the molecule 'correctly' e.g. without covalently bonded metal atoms.
@@ -94,7 +94,7 @@ To achieve this you will need to:
 3. Generate an authentication token.
 4. Run the query passing in the authentication token.
 
-To perform step 3 with `curl` you will need to do something like this:
+To perform step 3 with [curl] and [jq] you will need to do something like this:
 
 ```
 token=$(curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username=<username>" -d "password=<password>"\
@@ -124,9 +124,9 @@ This has the following top level properties describing the query:
 
 1. **query** - the Neo4j Cypher query that was executed.
 1. **parameters** - the parameters for the query.
-1. **resultAvailableAfter** - the time in ms for the Cypher query to return results.
-1. **processingTime** - the time in ms taken for processing the Cypher query results and generating these Fragment Graph results. 
-1. **calculationTime** - the time in ms for any calculations that were specified.
+1. **resultAvailableAfter** - the time in milliseconds for the Cypher query to return results.
+1. **processingTime** - the time in milliseconds taken for processing the Cypher query results and generating these Fragment Graph results. 
+1. **calculationTime** - the time in milliseconds for any calculations that were specified.
 
 The Nodes and Edges are present as top level properties.
 
@@ -202,3 +202,8 @@ Processing would proceed as follows:
 1. Process the **nodes** and create a Map of node instances keyed by ID.
 1. Optionally process the **edges** in a similar way.
 1. Process the **groups**, associating the group members with the nodes by using the node ID.
+
+---
+
+[curl]: https://github.com/curl/curl
+[jq]: https://stedolan.github.io/jq/
