@@ -15,9 +15,18 @@ fragnet_password = os.environ['FRAGNET_PASSWORD']
 
 class FragnetSearch:
 
+    SUPPORTED_CALCULATIONS = ['LOGP',
+                              'TPSA ',
+                              'SIM_RDKIT_TANIMOTO',
+                              'SIM_MORGAN2_TANIMOTO',
+                              'SIM_MORGAN3_TANIMOTO']
+    MAX_LIMIT = 5000
+    MAX_HOPS = 2
+
     TOKEN_URI = 'https://squonk.it/auth/realms/squonk/protocol/openid-connect/token'
     API = 'fragnet-search/rest/v1'
     CLIENT_ID = 'fragnet-search'
+    REQUEST_TIMOUT_S = 10
 
     def __init__(self, fragnet_host, username, password):
         """Initialises the FragnetSearch module.
@@ -51,9 +60,14 @@ class FragnetSearch:
                    'client_id': FragnetSearch.CLIENT_ID,
                    'username': self._username,
                    'password': self._password}
-        resp = requests.post(FragnetSearch.TOKEN_URI,
-                             data=payload,
-                             headers=headers)
+        try:
+            resp = requests.post(FragnetSearch.TOKEN_URI,
+                                 data=payload,
+                                 headers=headers,
+                                 timeout=FragnetSearch.REQUEST_TIMOUT_S)
+        except requests.exceptions.ConnectTimeout:
+            return False
+
         if resp.status_code != 200:
             return False
 
@@ -76,12 +90,36 @@ class FragnetSearch:
                        This will be URL-encoded bnu the method so you provide
                        the 'raw' smiles.
         :type smiles: ``str``
-        :param calculations: The list of calculations
+        :param hac: Heavy Atom Count.
+        :type hac: ``int``
+        :param rac: Ring Atom Count.
+        :type rac: ``int``
+        :param hops: Hops (1 or 2)
+        :type hops: ``int``
+        :param hops: limit.
+        :type hops: ``int``
+        :param calculations: The list of calculations (can be empty)
         :type calculations: ``list``
         :returns: A tuple consisting of the GET status code
-                  (normally 200 on success)
-                  ans the response JSON content.
+                  (normally 200 on success), a message,
+                  and the response JSON content (or None).
         """
+        # Sanity check arguments...
+        if not smiles.strip():
+            return 600, 'EmptySmiles', None
+        if hac < 1:
+            return 600, 'InvalidHAC', None
+        if rac < 1:
+            return 600, 'InvalidRAC', None
+        if hops < 1 or hops > FragnetSearch.MAX_HOPS:
+            return 600, 'InvalidHops', None
+        if limit < 1 or limit > FragnetSearch.MAX_LIMIT:
+            return 600, 'InvalidLimit', None
+        if calculations:
+            for calculation in calculations:
+                if calculation not in FragnetSearch.SUPPORTED_CALCULATIONS:
+                    return 600, 'InvalidCalculation', None
+
         # Construct the basic URI, whcih includes the URL-encoded
         # version of the provided SMILES string...
         search_uri = '{}/{}/search/neighbourhood/{}'.\
@@ -93,11 +131,18 @@ class FragnetSearch:
         params = {'hac': hac,
                   'rac': rac,
                   'hops': hops,
-                  'limit': limit,
-                  'calcs': ','.join(calculations)}
-        resp = requests.get(search_uri,
-                            params=params,
-                            headers=headers)
+                  'limit': limit}
+        if calculations:
+            params['calcs'] = ','.join(calculations)
+
+        # Make the request...
+        try:
+            resp = requests.get(search_uri,
+                                params=params,
+                                headers=headers,
+                                timeout=FragnetSearch.REQUEST_TIMOUT_S)
+        except requests.exceptions.ConnectTimeout:
+            return 600, 'RequestTimeout', None
 
         # Try to extract the JSON content
         # and return it and the status code.
@@ -109,7 +154,7 @@ class FragnetSearch:
             # Nothing to do - content is already 'None'
             pass
 
-        return resp.status_code, content
+        return resp.status_code, 'Success', content
 
 if __name__ == '__main__':
 
@@ -131,7 +176,11 @@ if __name__ == '__main__':
     hops = 2
     limit = 10
     calculations = ['LOGP', 'SIM_RDKIT_TANIMOTO']
-    status, json = fs.search_neighbourhood('c1ccc(Nc2nc3ccccc3o2)cc1',
-                                           hac, rac, hops, limit, calculations)
+    status, msg, json = fs.search_neighbourhood('c1ccc(Nc2nc3ccccc3o2)cc1',
+                                                hac, rac, hops, limit,
+                                                calculations)
+
+    # Pretty-print a summary...
     pp.pprint(status)
+    pp.pprint(msg)
     pp.pprint(json)
