@@ -23,6 +23,8 @@ class FragnetSearch:
     MAX_LIMIT = 5000
     MAX_HOPS = 2
 
+    INTERNAL_ERROR_CODE = 600
+
     TOKEN_URI = 'https://squonk.it/auth/realms/squonk/protocol/openid-connect/token'
     API = 'fragnet-search/rest/v1'
     CLIENT_ID = 'fragnet-search'
@@ -32,13 +34,13 @@ class FragnetSearch:
         """Initialises the FragnetSearch module.
         An API token is collected when you 'authenticate'.
 
+        :param fragnet_host: The Fragnet host and designated port,
+                             i.e. http://fragnet.squonk.ot:8080
+        :type fragnet_host: ``str``
         :param username: A Fragnet username
         :type username: ``str``
         :param password: The Fragnet user's password
         :type password: ``str``
-        :param fragnet_host: The Fragnet host and designated port,
-                             i.e. http://fragnet.squonk.ot:8080
-        :type fragnet_host: ``str``
         """
         self._username = username
         self._password = password
@@ -53,7 +55,7 @@ class FragnetSearch:
         """Authenticates against the server provided in the class initialiser.
         Here we obtain a fresh access and refresh token.
 
-        :returns: True in success
+        :returns: True on success
         """
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         payload = {'grant_type': 'password',
@@ -96,8 +98,8 @@ class FragnetSearch:
         :type rac: ``int``
         :param hops: Hops (1 or 2)
         :type hops: ``int``
-        :param hops: limit.
-        :type hops: ``int``
+        :param limit: Search limit.
+        :type limit: ``int``
         :param calculations: The list of calculations (can be empty)
         :type calculations: ``list``
         :returns: A tuple consisting of the GET status code
@@ -106,19 +108,20 @@ class FragnetSearch:
         """
         # Sanity check arguments...
         if not smiles.strip():
-            return 600, 'EmptySmiles', None
+            return FragnetSearch.INTERNAL_ERROR_CODE, 'EmptySmiles', None
         if hac < 1:
-            return 600, 'InvalidHAC', None
+            return FragnetSearch.INTERNAL_ERROR_CODE, 'InvalidHAC', None
         if rac < 1:
-            return 600, 'InvalidRAC', None
+            return FragnetSearch.INTERNAL_ERROR_CODE, 'InvalidRAC', None
         if hops < 1 or hops > FragnetSearch.MAX_HOPS:
-            return 600, 'InvalidHops', None
+            return FragnetSearch.INTERNAL_ERROR_CODE, 'InvalidHops', None
         if limit < 1 or limit > FragnetSearch.MAX_LIMIT:
-            return 600, 'InvalidLimit', None
+            return FragnetSearch.INTERNAL_ERROR_CODE, 'InvalidLimit', None
         if calculations:
             for calculation in calculations:
                 if calculation not in FragnetSearch.SUPPORTED_CALCULATIONS:
-                    return 600, 'InvalidCalculation', None
+                    return FragnetSearch.INTERNAL_ERROR_CODE,\
+                           'InvalidCalculation', None
 
         # Construct the basic URI, whcih includes the URL-encoded
         # version of the provided SMILES string...
@@ -142,7 +145,7 @@ class FragnetSearch:
                                 headers=headers,
                                 timeout=FragnetSearch.REQUEST_TIMOUT_S)
         except requests.exceptions.ConnectTimeout:
-            return 600, 'RequestTimeout', None
+            return FragnetSearch.INTERNAL_ERROR_CODE, 'RequestTimeout', None
 
         # Try to extract the JSON content
         # and return it and the status code.
