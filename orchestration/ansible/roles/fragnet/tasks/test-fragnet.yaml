@@ -17,6 +17,10 @@
 # - Run an example search
 # - Echo the size of the search results (nodes, edges, groups)
 # - Check the search result (just the count of nodes, edges, groups)
+#
+# Refer to the **Example REST interaction** section of the
+# `orchestration/README.md`, which is the source of the original
+# cURL command sequence for the example being automatically tested here.
 
 - name: Get an API token
   uri:
