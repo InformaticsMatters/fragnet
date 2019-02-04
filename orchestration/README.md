@@ -86,7 +86,14 @@ continuing): -
 
     $ ansible-playbook playbooks/fragnet/start-graph.yaml
     $ ansible-playbook playbooks/fragnet/start-fragnet-search.yaml
- 
+
+Once deployed you can _test_ the Fragnet server's basic
+search capabilities with the `test-fragnet` playbook,
+which basically just checks the query described
+in the curl/jq-based **Example REST interaction** section below: -
+
+    $ ansible-playbook playbooks/fragnet/test-fragnet.yaml
+
 ### The 'stop' playbooks
 Stops the running containers.
 

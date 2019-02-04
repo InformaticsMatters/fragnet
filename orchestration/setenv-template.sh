@@ -12,3 +12,9 @@ export KEYCLOAK_SECRET="SetMe"
 
 # the neo4j user password
 export NEO4J_PASSWORD="SetMe"
+
+# Variables used to test the service.
+# We just need an authorised user (and password).
+# Then run 'test-fragnet' playbook.
+export FRAGNET_USERNAME="SetMe"
+export FRAGNET_PASSWORD="SetMe"

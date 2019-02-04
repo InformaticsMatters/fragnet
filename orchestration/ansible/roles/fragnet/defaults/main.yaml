@@ -49,7 +49,7 @@ graph_log_directory: /neo4j/log
 # The import/loader script
 graph_loader_script: load-neo4j.sh
 # THhe InformaticsMatters Graph version
-graph_docker_version: 3.5.2
+graph_version: 3.5.2
 # Do we wait for the graph DB before continuing?
 wait_for_graph: no
 # And the time to wait (2 minutes?).
@@ -65,6 +65,9 @@ fragnet_tag: latest
 # Internally the port is expected to be on 8080,
 # this is the port Fragnet is mapped to on the host.
 fragnet_port: 8080
+# A username and password (generally for tests)
+fragnet_username: "{{ lookup('env', 'FRAGNET_USERNAME') }}"
+fragnet_password: "{{ lookup('env', 'FRAGNET_PASSWORD') }}"
 
 # Keycloak variables...
 # --------

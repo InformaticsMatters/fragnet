@@ -1,0 +1,12 @@
+---
+
+# A simple playbook that runs some tasks
+# to test the Fragnet service.
+
+- hosts: graph
+
+  tasks:
+  - name: Run the Role 'test-fragnet' Tasks
+    include_role:
+      name: fragnet
+      tasks_from: test-fragnet.yaml

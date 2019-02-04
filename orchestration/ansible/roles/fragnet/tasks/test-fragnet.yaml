@@ -1,0 +1,65 @@
+---
+
+# Has the user defined suitable variables needed to run these tasks?
+
+- name: Assert Fragnet variables
+  fail:
+    msg: "You must define a FRAGNET_USERNAME and FRAGNET_PASSWORD"
+  when: fragnet_username == '' or fragnet_password == ''
+
+# A series of tasks to test the Fragnet service.
+# This relies on a suitable username and password that can be used
+# to obtain a Fragnet API access token.
+#
+# In this simple example we...
+#
+# - Get a token from the Fragnet server
+# - Run an example search
+# - Echo the size of the search results (nodes, edges, groups)
+# - Check the search result (just the count of nodes, edges, groups)
+
+- name: Get an API token
+  uri:
+    url: https://squonk.it/auth/realms/squonk/protocol/openid-connect/token
+    body: "grant_type=password&\
+          client_id=fragnet-search&\
+          username={{ fragnet_username }}&\
+          password={{ fragnet_password }}"
+    body_format: json
+    method: POST
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+  register: fragnet_result
+
+- name: Run an example search
+  uri:
+    url: "http://{{ api }}/{{ method }}/{{ smiles|urlencode }}?\
+          {{ hac }}&\
+          {{ rac }}&\
+          {{ hops }}&\
+          {{ calcs }}"
+    headers:
+      Authorization: bearer {{ fragnet_result.json.access_token }}
+  vars:
+    api: "{{ ansible_host }}:8080/fragnet-search/rest/v1"
+    method: search/neighbourhood
+    smiles: c1ccc(Nc2nc3ccccc3o2)cc1
+    hac: 3
+    rac: 1
+    hops: 2
+    calcs: LOGP,SIM_RDKIT_TANIMOTO
+  register: search_result
+
+- name: Echo search results
+  debug:
+    msg: >-
+      edges={{ search_result.json.edges|length }}
+      nodes={{ search_result.json.nodes|length }}
+      groups={{ search_result.json.groups|length }}
+
+- name: Check search results
+  assert:
+    that:
+    - search_result.json.edges|length == 23
+    - search_result.json.nodes|length == 24
+    - search_result.json.groups|length == 6
