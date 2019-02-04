@@ -30,6 +30,10 @@ class FragnetSearch:
     CLIENT_ID = 'fragnet-search'
     REQUEST_TIMOUT_S = 10
 
+    # The minimum remaining life of a token (in seconds)
+    # before it's automatically refreshed.
+    TOKEN_REFRESH_TIME_S = datetime.timedelta(seconds=30)
+
     def __init__(self, fragnet_host, username, password):
         """Initialises the FragnetSearch module.
         An API token is collected when you 'authenticate'.
@@ -50,6 +54,67 @@ class FragnetSearch:
         self._access_token_expiry = None
         self._refresh_token = None
         self._refresh_token_expiry = None
+
+    def _get_tokens(self, json):
+        """Sets tokens from a valid json response.
+        The JSON is expected to contain an 'access_token',
+        'refresh_token' and 'expires_in'.
+
+        We calculate the token expiry time here,
+        which is used by '_check_token()' to automatically
+        renew the token.
+
+        :param json: The JSON payload, containing tokens
+        """
+        if 'access_token' not in json:
+            return False
+        if 'expires_in' not in json:
+            return False
+        if 'refresh_token' not in json:
+            return False
+
+        time_now = datetime.datetime.now()
+        self._access_token =json['access_token']
+        self._access_token_expiry = time_now + \
+            datetime.timedelta(seconds=json['expires_in'])
+        self._refresh_token = json['refresh_token']
+
+        return True
+
+    def _check_token(self):
+        """Refreshes the access token if it's close to expiry.
+        (i.e. if it's within the refresh period).
+
+        :returns: False if the token could not be refreshed.
+        """
+        time_now = datetime.datetime.now()
+        remaining_time = self._access_token_expiry - time_now
+        if remaining_time > FragnetSearch.TOKEN_REFRESH_TIME_S:
+            # Token's got plenty of time left to live.
+            # Nothing to do...
+            return True
+
+        print('Refreshing token...')
+
+        # Token's dangerously old, refresh it
+        # using the existing refresh token....
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+        payload = {'grant_type': 'refresh_token',
+                   'client_id': FragnetSearch.CLIENT_ID,
+                   'refresh_token': self._refresh_token}
+        try:
+            resp = requests.post(FragnetSearch.TOKEN_URI,
+                                 data=payload,
+                                 headers=headers,
+                                 timeout=FragnetSearch.REQUEST_TIMOUT_S)
+        except requests.exceptions.ConnectTimeout:
+            return False
+
+        if resp.status_code != 200:
+            return False
+
+        # Get the tokens from the response...
+        return self._get_tokens(resp.json())
 
     def authenticate(self):
         """Authenticates against the server provided in the class initialiser.
@@ -73,15 +138,8 @@ class FragnetSearch:
         if resp.status_code != 200:
             return False
 
-        time_now = datetime.datetime.now()
-        self._access_token = resp.json()['access_token']
-        self._access_token_expiry = time_now +\
-            datetime.timedelta(seconds=resp.json()['expires_in'])
-        self._refresh_token = resp.json()['refresh_token']
-        self._refresh_token_expiry = time_now + \
-            datetime.timedelta(seconds=resp.json()['refresh_expires_in'])
-
-        return True
+        # Get the tokens from the response...
+        return self._get_tokens(resp.json())
 
     def search_neighbourhood(self, smiles, hac, rac, hops, limit, calculations):
         """Runs a 'search/neighbourhood' query on the Fragnet server.
@@ -122,6 +180,12 @@ class FragnetSearch:
                 if calculation not in FragnetSearch.SUPPORTED_CALCULATIONS:
                     return FragnetSearch.INTERNAL_ERROR_CODE,\
                            'InvalidCalculation', None
+
+        # Always try to refresh the access token.
+        # The token is only refreshed if it is close to expiry.
+        if not self._check_token():
+            return FragnetSearch.INTERNAL_ERROR_CODE, \
+                   'APITokenRefreshFailure', None
 
         # Construct the basic URI, whcih includes the URL-encoded
         # version of the provided SMILES string...
