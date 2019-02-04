@@ -86,6 +86,8 @@ this property. e.g. `calcs=LOGP,SIM_RDKIT_TANIMOTO`
 
 ### Authentication
 
+#### Linux for Mac
+
 In the Squonk production environment access to the search service will require authentication.
 To achieve this you will need to:
  
@@ -94,14 +96,14 @@ To achieve this you will need to:
 3. Generate an authentication token.
 4. Run the query passing in the authentication token.
 
-To perform step 3 with [curl] and [jq] you will need to do something like this:
+For instance, assuming have [curl] and [jq] installed, to perform step 3 you will need to do something like this:
 
 ```
 token=$(curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username=<username>" -d "password=<password>"\
   https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
   | jq -r '.access_token')
 ```
-Replace `<username>`, `<password>` and `<client-secret>` with the appropriate values.
+Replace `<username>` and `<password>` with the appropriate values.
 You can use `echo $token` to make sure you have obtained a token.
 
 To perform step 4 you will need to do something like this:
@@ -109,6 +111,32 @@ To perform step 4 you will need to do something like this:
 curl -LH "Authorization: bearer $token" "http://${FRAGNET_SERVER}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ```
 Notice how the token is sent with the request.
+
+#### Windows
+
+If you are unfortunate enough to have to use Windows then try something like this (you need to have `curl` installed):
+
+1. Get the token:
+```
+curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username=username" -d "password=password" https://squonk.it/auth/realms/squonk/protocol/openid-connect/token
+```
+(change username and password accordingly).
+
+2. Then from the JSON that you get back copy out the value of the access_token property and set it to a variable like this:
+```
+set token=<paste-token-here>
+```
+
+3. Check it like this:
+```
+echo %token%
+```
+
+4. Use it like this:
+
+```
+curl -LH "Authorization: bearer %token%" "http://100.25.105.8:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+```
 
 ## Result Details
 
