@@ -3,6 +3,7 @@
 import datetime
 import os
 import pprint
+import sys
 import urllib
 
 import requests
@@ -42,6 +43,8 @@ class FragnetSearch:
     def authenticate(self):
         """Authenticates against the server provided in the class initialiser.
         Here we obtain a fresh access and refresh token.
+
+        :returns: True in success
         """
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         payload = {'grant_type': 'password',
@@ -52,7 +55,8 @@ class FragnetSearch:
                              data=payload,
                              headers=headers)
         if resp.status_code != 200:
-            print('Bang!')
+            return False
+
         time_now = datetime.datetime.now()
         self._access_token = resp.json()['access_token']
         self._access_token_expiry = time_now +\
@@ -60,6 +64,8 @@ class FragnetSearch:
         self._refresh_token = resp.json()['refresh_token']
         self._refresh_token_expiry = time_now + \
             datetime.timedelta(seconds=resp.json()['refresh_expires_in'])
+
+        return True
 
     def search_neighbourhood(self, smiles, hac, rac, hops, limit, calculations):
         """Runs a 'search/neighbourhood' query on the Fragnet server.
@@ -72,6 +78,9 @@ class FragnetSearch:
         :type smiles: ``str``
         :param calculations: The list of calculations
         :type calculations: ``list``
+        :returns: A tuple consisting of the GET status code
+                  (normally 200 on success)
+                  ans the response JSON content.
         """
         # Construct the basic URI, whcih includes the URL-encoded
         # version of the provided SMILES string...
@@ -81,24 +90,48 @@ class FragnetSearch:
                    urllib.quote(smiles))
 
         headers = {'Authorization': 'bearer {}'.format(self._access_token)}
-        calcs = ','.join(calculations)
         params = {'hac': hac,
                   'rac': rac,
                   'hops': hops,
                   'limit': limit,
-                  'calcs': calcs}
+                  'calcs': ','.join(calculations)}
         resp = requests.get(search_uri,
                             params=params,
                             headers=headers)
 
-        pp.pprint(resp.json()['nodes'])
+        # Try to extract the JSON content
+        # and return it and the status code.
+        content = None
+        try:
+            content = resp.json()
+        except ValueError:
+            # No json content.
+            # Nothing to do - content is already 'None'
+            pass
+
+        return resp.status_code, content
 
 if __name__ == '__main__':
 
     # Create a Fragnet object
-    # then authenticate and run a basic search...
+    # then authenticate (checking for success)...
     fs = FragnetSearch('http://fragnet.squonk.it:8080',
                        fragnet_username, fragnet_password)
-    fs.authenticate()
-    fs.search_neighbourhood('c1ccc(Nc2nc3ccccc3o2)cc1', 3, 1, 2, 10,
-                            ['LOGP', 'SIM_RDKIT_TANIMOTO'])
+    success = fs.authenticate()
+    if not success:
+        print('ERROR: Authentication failed')
+        print('       Please check your host, username and password')
+        sys.exit(1)
+
+    # Now run a basic search.
+    # The response code from the server is followed by the JSON content
+    # The JSON value is 'None' if there is no JSON content.
+    hac = 3
+    rac = 1
+    hops = 2
+    limit = 10
+    calculations = ['LOGP', 'SIM_RDKIT_TANIMOTO']
+    status, json = fs.search_neighbourhood('c1ccc(Nc2nc3ccccc3o2)cc1',
+                                           hac, rac, hops, limit, calculations)
+    pp.pprint(status)
+    pp.pprint(json)
