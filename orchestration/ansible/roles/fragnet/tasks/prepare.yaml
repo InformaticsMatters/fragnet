@@ -44,7 +44,6 @@
   - "{{ graph_loader_directory }}"
   - "{{ graph_db_directory }}"
   - "{{ graph_log_directory }}"
-  - "{{ ansible_env.HOME }}/build"
   - "{{ ansible_env.HOME }}/fragnet"
 
 - name: Install pip
@@ -77,32 +76,3 @@
     key: "{{ lookup('file', item) }}"
   with_fileglob:
   - public_keys/*
-
-# Copy material for our own build of the Graph image.
-# We use neo4j but patch the entry point and add the caching tools
-# and then build the image on the node.
-
-- name: Copy graph build files
-  copy:
-    src: "{{ item }}"
-    dest: "{{ ansible_env.HOME }}/build/"
-  loop:
-  - graph/Dockerfile
-  - graph/docker-entrypoint.sh
-
-- name: Get graph algorithms
-  get_url:
-    url: "{{ a_host }}/{{ graph_a_version }}/graph-algorithms-algo-{{ graph_a_version }}.jar"
-    dest: "{{ ansible_env.HOME }}/build/"
-  vars:
-    a_host: https://github.com/neo4j-contrib/neo4j-graph-algorithms/releases/download
-
-- name: Build the graph image (locally)
-  docker_image:
-    path: "{{ ansible_env.HOME }}/build/"
-    name: informaticsmatters/neo4j
-    tag: stable
-    force: yes
-    buildargs:
-      a_version: "{{ graph_a_version }}"
-  become: yes
