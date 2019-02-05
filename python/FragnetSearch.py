@@ -20,6 +20,7 @@ import datetime
 import os
 import pprint
 import sys
+import time
 import urllib
 
 from collections import namedtuple
@@ -83,7 +84,7 @@ class FragnetSearch:
 
     # The minimum remaining life of a token (or refresh token) (in seconds)
     # before an automatic refresh is triggered.
-    TOKEN_REFRESH_DEADLINE_S = datetime.timedelta(seconds=60)
+    TOKEN_REFRESH_DEADLINE_S = datetime.timedelta(seconds=45)
 
     def __init__(self, fragnet_host, username, password):
         """Initialises the FragnetSearch module.
@@ -157,7 +158,7 @@ class FragnetSearch:
         # OK if we get here...
         return True
 
-    def _get_token(self):
+    def _get_new_token(self):
         """Gets a (new) API access token.
         """
         self.logger.debug('Getting a new access token...')
@@ -184,7 +185,7 @@ class FragnetSearch:
         self.logger.debug('Got token.')
         return self._extract_tokens(resp.json())
 
-    def _refresh_token(self):
+    def _refresh_existing_token(self):
         """Refreshes an (existing) API access token.
         """
         self.logger.debug('Refreshing the existing access token...')
@@ -242,12 +243,12 @@ class FragnetSearch:
         if remaining_refresh_time >= FragnetSearch.TOKEN_REFRESH_DEADLINE_S:
             # We should be able to refresh the existing token...
             self.logger.debug('Token too old, refreshing...')
-            status = self._refresh_token()
+            status = self._refresh_existing_token()
         else:
             # The refresh token is too old,
             # we need to get a new token...
             self.logger.debug('Refresh token too old, getting a new token...')
-            status = self._get_token()
+            status = self._get_new_token()
 
         # Return status (success or failure)
         if status:
@@ -264,7 +265,7 @@ class FragnetSearch:
         """
         self.logger.debug('Authenticating...')
 
-        status = self._get_token()
+        status = self._get_new_token()
         if not status:
             raise FragnetSearchException('Unsuccessful Authentication')
 
@@ -339,7 +340,7 @@ class FragnetSearch:
             params['calcs'] = ','.join(calculations)
 
         # Make the request...
-        self.logger.debug('Calling search_neighbourhood...')
+        self.logger.debug('Calling search/neighbourhood for %s...', smiles)
         try:
             resp = requests.get(search_uri,
                                 params=params,
@@ -348,13 +349,13 @@ class FragnetSearch:
         except requests.exceptions.ConnectTimeout:
             return SearchResult(FragnetSearch.INTERNAL_ERROR_CODE,
                                 'RequestTimeout', None)
-        self.logger.debug('Returned from search_neighbourhood.')
 
         # Try to extract the JSON content
         # and return it and the status code.
         content = None
         try:
             content = resp.json()
+            self.logger.debug('Returned from search with content.')
         except ValueError:
             # No json content.
             # Nothing to do - content is already 'None'
@@ -362,6 +363,10 @@ class FragnetSearch:
             pass
 
         return SearchResult(resp.status_code, 'Success', content)
+
+# -----------------------------------------------------------------------------
+# MAIN
+# -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
 

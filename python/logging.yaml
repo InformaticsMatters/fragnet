@@ -1,4 +1,5 @@
 ---
+
 version: 1
 disable_existing_loggers: False
 formatters:
@@ -8,7 +9,6 @@ formatters:
 handlers:
   console:
     class: logging.StreamHandler
-    level: INFO
     formatter: simple
     stream: ext://sys.stdout
 
