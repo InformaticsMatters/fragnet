@@ -134,17 +134,22 @@ class FragnetSearch:
         if 'refresh_token' not in json:
             self.logger.error('refresh_token is not in the json')
             return False
+
+        # The refresh token may not have an expiry...
         if 'refresh_expires_in' not in json:
-            self.logger.error('refresh_expires_in is not in the json')
-            return False
+            self.logger.debug('refresh_expires_in is not in the json')
 
         time_now = datetime.datetime.now()
         self._access_token =json['access_token']
         self._access_token_expiry = time_now + \
             datetime.timedelta(seconds=json['expires_in'])
         self._refresh_token = json['refresh_token']
-        self._refresh_token_expiry = time_now + \
-            datetime.timedelta(seconds=json['refresh_expires_in'])
+        if 'refresh_expires_in' in json:
+            self._refresh_token_expiry = time_now + \
+                datetime.timedelta(seconds=json['refresh_expires_in'])
+        else:
+            self.logger.debug('Setting _refresh_expires_in to None (no expiry)...')
+            self._refresh_token_expiry = None
 
         self.logger.debug('_access_token_expiry=%s', self._access_token_expiry)
         self.logger.debug('_refresh_token_expiry=%s', self._refresh_token_expiry)
@@ -217,17 +222,24 @@ class FragnetSearch:
 
         time_now = datetime.datetime.now()
         remaining_token_time = self._access_token_expiry - time_now
-        if remaining_token_time > FragnetSearch.TOKEN_REFRESH_DEADLINE_S:
+        if remaining_token_time >= FragnetSearch.TOKEN_REFRESH_DEADLINE_S:
             # Token's got plenty of time left to live.
             # No need to refresh or get a new token.
             self.logger.debug('Token still has plenty of life remaining.')
             return True
 
-        # If the refresh token is still 'young' then we can
-        # rely on refreshing the existing token using it. Otherwise
+        # If the refresh token is still 'young' (or has no expiry time)
+        # then we can rely on refreshing the existing token using it. Otherwise
         # we should collect a whole new token...
-        remaining_refresh_time = self._refresh_token_expiry - time_now
-        if remaining_refresh_time > FragnetSearch.TOKEN_REFRESH_DEADLINE_S:
+        #
+        # We set the reaming to me to the limit (which means we'll refresh)
+        # but we replace that with any remaining time in the refresh token).
+        # So - if there is not expiry time for the refresh token then
+        # we always refresh.
+        remaining_refresh_time = FragnetSearch.TOKEN_REFRESH_DEADLINE_S
+        if self._refresh_token_expiry:
+            remaining_refresh_time = self._refresh_token_expiry - time_now
+        if remaining_refresh_time >= FragnetSearch.TOKEN_REFRESH_DEADLINE_S:
             # We should be able to refresh the existing token...
             self.logger.debug('Token too old, refreshing...')
             status = self._refresh_token()
