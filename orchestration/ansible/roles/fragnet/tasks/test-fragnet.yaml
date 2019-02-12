@@ -38,10 +38,10 @@
 - name: Run an example search
   uri:
     url: "http://{{ api }}/{{ method }}/{{ smiles|urlencode }}?\
-          {{ hac }}&\
-          {{ rac }}&\
-          {{ hops }}&\
-          {{ calcs }}"
+          hac={{ hac }}&\
+          rac={{ rac }}&\
+          hops={{ hops }}&\
+          calcs={{ calcs }}"
     headers:
       Authorization: bearer {{ fragnet_result.json.access_token }}
   vars:
