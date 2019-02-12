@@ -64,6 +64,6 @@
 - name: Check search results
   assert:
     that:
-    - search_result.json.edges|length == 23
-    - search_result.json.nodes|length == 24
-    - search_result.json.groups|length == 6
+    - search_result.json.edges|length == 251
+    - search_result.json.nodes|length == 238
+    - search_result.json.groups|length == 23
