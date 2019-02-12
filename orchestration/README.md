@@ -79,6 +79,19 @@ The playbook execution for combination "1" would be: -
         -e combination=1 \
         playbooks/fragnet/deploy.yaml 
 
+You can test the Fragnet service (assuming the data is compatible)
+using a playbook. The test will attempt to get a token (using the
+user credentials in the setenv file), run a built-in search query
+(around "c1ccc(Nc2nc3ccccc3o2)cc1") and then conclude by checking
+the query results: -
+
+    $ ansible-playbook playbooks/fragnet/test-fragnet.yaml
+
+>   The check simply verifies the number of nodes, edges and groups
+    returned by the query. It does not check the values of the
+    nodes and edges, getting the right number is enough for this simple
+    test.
+
 You can **STOP** the AWS compute instance when you're not using it.
 When you **START** it again you need to run the following to
 restart the containers (`start-graph` will wait for port 7474 before
