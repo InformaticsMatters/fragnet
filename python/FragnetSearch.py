@@ -20,7 +20,6 @@ import datetime
 import os
 import pprint
 import sys
-import time
 import urllib
 
 from collections import namedtuple
@@ -36,7 +35,7 @@ SearchResult = namedtuple('SearchResult', 'status_code message json')
 def setup_logging(default_path='logging.yaml',
                   default_level=logging.INFO,
                   env_key='FRAGNET_LOG_CFG'):
-    """Setup logging configuration
+    """Setup logging configuration.
 
     :param default_path: The path and file for logging configuration (YAML)
     :param default_level: The default logging level (A logging level)
