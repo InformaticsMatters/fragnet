@@ -1,0 +1,45 @@
+3 path problem for 4-OH biphenyl:
+MATCH p=(m:F2)-[:F2EDGE*1..2]-(n:F2) where m.smiles = 'Oc1ccc(-c2ccccc2)cc1' AND id(n) = 60105389 RETURN p
+
+╒══════════════════════════════════════════════════════════════════════╕
+│"p"                                                                   │
+╞══════════════════════════════════════════════════════════════════════╡
+│[{"osmiles":"OC1CCC(C2CCCCC2)CC1","chac":12,"hac":13,"smiles":"Oc1ccc(│
+│-c2ccccc2)cc1","cmpd_id":"MOLPORT:001-789-271"},{"label":"FG|CNC[Xe]|C│
+│NC[100Xe]|RING|Oc1ccc(-c2ccccc2)cc1[Xe]|OC1CCC(C2CCCCC2)CC1[100Xe]"},{│
+│"osmiles":"CNCC1CC(C2CCCCC2)CCC1O","chac":{"low":12.0,"high":0.0,"tran│
+│sport-class":"Integer"},"hac":{"low":16.0,"high":0.0,"transport-class"│
+│:"Integer"},"smiles":"CNCc1cc(-c2ccccc2)ccc1O"},{"osmiles":"CNCC1CC(C2│
+│CCCCC2)CCC1O","chac":{"low":12.0,"high":0.0,"transport-class":"Integer│
+│"},"hac":{"low":16.0,"high":0.0,"transport-class":"Integer"},"smiles":│
+│"CNCc1cc(-c2ccccc2)ccc1O"},{"label":"FG|O[Xe]|O[102Xe]|RING|CNCc1cc(-c│
+│2ccccc2)ccc1[Xe]|CNCC1CC(C2CCCCC2)CCC1[102Xe]"},{"osmiles":"CNCC1CCCC(│
+│C2CCCCC2)C1","chac":12,"hac":15,"smiles":"CNCc1cccc(-c2ccccc2)c1","cmp│
+│d_id":"MOLPORT:011-478-364"}]                                         │
+├──────────────────────────────────────────────────────────────────────┤
+│[{"osmiles":"OC1CCC(C2CCCCC2)CC1","chac":12,"hac":13,"smiles":"Oc1ccc(│
+│-c2ccccc2)cc1","cmpd_id":"MOLPORT:001-789-271"},{"label":"FG|CNC[Xe]|C│
+│NC[100Xe]|RING|Oc1ccc(-c2cccc([Xe])c2)cc1|OC1CCC(C2CCCC([100Xe])C2)CC1│
+│"},{"osmiles":"CNCC1CCCC(C2CCC(O)CC2)C1","chac":{"low":12.0,"high":0.0│
+│,"transport-class":"Integer"},"hac":{"low":16.0,"high":0.0,"transport-│
+│class":"Integer"},"smiles":"CNCc1cccc(-c2ccc(O)cc2)c1"},{"osmiles":"CN│
+│CC1CCCC(C2CCC(O)CC2)C1","chac":{"low":12.0,"high":0.0,"transport-class│
+│":"Integer"},"hac":{"low":16.0,"high":0.0,"transport-class":"Integer"}│
+│,"smiles":"CNCc1cccc(-c2ccc(O)cc2)c1"},{"label":"FG|O[Xe]|O[102Xe]|RIN│
+│G|CNCc1cccc(-c2ccc([Xe])cc2)c1|CNCC1CCCC(C2CCC([102Xe])CC2)C1"},{"osmi│
+│les":"CNCC1CCCC(C2CCCCC2)C1","chac":12,"hac":15,"smiles":"CNCc1cccc(-c│
+│2ccccc2)c1","cmpd_id":"MOLPORT:011-478-364"}]                         │
+├──────────────────────────────────────────────────────────────────────┤
+│[{"osmiles":"OC1CCC(C2CCCCC2)CC1","chac":12,"hac":13,"smiles":"Oc1ccc(│
+│-c2ccccc2)cc1","cmpd_id":"MOLPORT:001-789-271"},{"label":"FG|O[Xe]|O[1│
+│00Xe]|RING|[Xe]c1ccc(-c2ccccc2)cc1|[100Xe]C1CCC(C2CCCCC2)CC1"},{"osmil│
+│es":"C1CCC(C2CCCCC2)CC1","chac":{"low":12.0,"high":0.0,"transport-clas│
+│s":"Integer"},"hac":{"low":12.0,"high":0.0,"transport-class":"Integer"│
+│},"smiles":"c1ccc(-c2ccccc2)cc1","cmpd_id":"MOLPORT:001-738-537"},{"os│
+│miles":"C1CCC(C2CCCCC2)CC1","chac":{"low":12.0,"high":0.0,"transport-c│
+│lass":"Integer"},"hac":{"low":12.0,"high":0.0,"transport-class":"Integ│
+│er"},"smiles":"c1ccc(-c2ccccc2)cc1","cmpd_id":"MOLPORT:001-738-537"},{│
+│"label":"FG|CNC[Xe]|CNC[100Xe]|RING|[Xe]c1cccc(-c2ccccc2)c1|[100Xe]C1C│
+│CCC(C2CCCCC2)C1"},{"osmiles":"CNCC1CCCC(C2CCCCC2)C1","chac":12,"hac":1│
+│5,"smiles":"CNCc1cccc(-c2ccccc2)c1","cmpd_id":"MOLPORT:011-478-364"}] │
+└──────────────────────────────────────────────────────────────────────┘

@@ -125,8 +125,7 @@ Once un-deployed you will need to run the initial `deploy` playbook
 to recover the system.
 
 ### Example REST interaction
-Get your token (jq) with a FRAGNET_USERNAME, FRAGNET_PASSWORD
-and KEYCLOAK_SECRET...
+Get your token (jq) with a FRAGNET_USERNAME and FRAGNET_PASSWORD ...
 
     $ token=$(curl \
         -d "grant_type=password" \
