@@ -283,15 +283,15 @@ public class NeighbourhoodGraph extends FragmentGraph {
                 for (Long[] edgeIds : edgeIdsList) {
                     if (edgeIds.length == 1) {
                         if (edgeIds[0] > 0) {
-                            result = determineClassification(result, GroupingType.ADDITION);
-                        } else {
                             result = determineClassification(result, GroupingType.DELETION);
+                        } else {
+                            result = determineClassification(result, GroupingType.ADDITION);
                         }
                     } else if (edgeIds.length == 2) {
                         if (edgeIds[0] > 0 && edgeIds[1] > 0) {
-                            result = determineClassification(result, GroupingType.ADDITIONS);
-                        } else if (edgeIds[0] < 0 && edgeIds[1] < 0) {
                             result = determineClassification(result, GroupingType.DELETIONS);
+                        } else if (edgeIds[0] < 0 && edgeIds[1] < 0) {
+                            result = determineClassification(result, GroupingType.ADDITIONS);
                         } else {
                             // TODO - this can sometimes be better classified as SUBSTITUTE_FG and SUBSTITUTE_LINKER
                             result = determineClassification(result, GroupingType.ADDITION_DELETION);
