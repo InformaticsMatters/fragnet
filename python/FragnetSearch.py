@@ -9,13 +9,17 @@ and then use the FragnetSearch query methods, like search_neighbourhood(): -
     fs.authenticate()
     fs.search_neighbourhood(...)
 
-Authentication obtains a REST API tokenm from the Squonk server.
-The token is automatically renewed so, for the lifetime of your fs
-object you only need to authenticate once.
+Authentication obtains a REST API token from the Squonk server.
+The token is automatically renewed so, for the lifetime of your FragnetSearch
+object you should only need to authenticate once before using any
+FragnetSearch methods.
+
+Note:   We do not use the Python logging framework
+        due to an issue with Tim's MacBook.
+        Instead we use print statements and debug(), warning()
+        and error() functions.
 """
 
-import logging
-import logging.config
 import datetime
 import os
 import pprint
@@ -25,32 +29,27 @@ import urllib
 from collections import namedtuple
 
 import requests
-import yaml
 
 # The search result.
 # A namedtuple.
 SearchResult = namedtuple('SearchResult', 'status_code message json')
 
+# Set to DEBUG
+DEBUG = False
 
-def setup_logging(default_path='logging.yaml',
-                  default_level=logging.INFO,
-                  env_key='FRAGNET_LOG_CFG'):
-    """Setup logging configuration.
 
-    :param default_path: The path and file for logging configuration (YAML)
-    :param default_level: The default logging level (A logging level)
-    :param env_key: The environment variable that over-rides the default path
-    """
-    path = default_path
-    value = os.getenv(env_key, None)
-    if value:
-        path = value
-    if os.path.exists(path):
-        with open(path, 'rt') as f:
-            config = yaml.safe_load(f.read())
-        logging.config.dictConfig(config)
-    else:
-        logging.basicConfig(level=default_level)
+def debug(msg):
+    """Prints a message (if DEBUG is True)"""
+    if DEBUG:
+        print('DEBUG: {}'.format(msg))
+
+
+def warning(msg):
+    print('WARNING: {}'.format(msg))
+
+
+def error(msg):
+    print('ERROR: {}'.format(msg))
 
 
 class FragnetSearchException(Exception):
@@ -98,8 +97,6 @@ class FragnetSearch:
         :type password: ``str``
         """
 
-        self.logger = logging.getLogger('FragnetSearch')
-
         # We do nothing other then record parameters
         # to be used elsewhere in the class...
         self._username = username
@@ -111,8 +108,8 @@ class FragnetSearch:
         self._refresh_token = None
         self._refresh_token_expiry = None
 
-        self.logger.debug('fragnet=%s username=%s',
-                          self._fragnet_host, self._username)
+        debug('fragnet={} username={}'.format(self._fragnet_host,
+                                              self._username))
 
     def _extract_tokens(self, json):
         """Gets tokens from a valid json response.
@@ -126,18 +123,18 @@ class FragnetSearch:
         :param json: The JSON payload, containing tokens
         """
         if 'access_token' not in json:
-            self.logger.error('access_token is not in the json')
+            error('access_token is not in the json')
+            return False
+        if 'expires_in' not in json:
+            error('expires_in is not in the json')
             return False
         if 'refresh_token' not in json:
-            self.logger.error('refresh_token is not in the json')
-            return False
-        if 'refresh_token' not in json:
-            self.logger.error('refresh_token is not in the json')
+            error('refresh_token is not in the json')
             return False
 
         # The refresh token may not have an expiry...
         if 'refresh_expires_in' not in json:
-            self.logger.debug('refresh_expires_in is not in the json')
+            debug('refresh_expires_in is not in the json')
 
         time_now = datetime.datetime.now()
         self._access_token =json['access_token']
@@ -148,11 +145,11 @@ class FragnetSearch:
             self._refresh_token_expiry = time_now + \
                 datetime.timedelta(seconds=json['refresh_expires_in'])
         else:
-            self.logger.debug('Setting _refresh_expires_in to None (no expiry)...')
+            debug('Setting _refresh_expires_in to None (no refresh expiry)...')
             self._refresh_token_expiry = None
 
-        self.logger.debug('_access_token_expiry=%s', self._access_token_expiry)
-        self.logger.debug('_refresh_token_expiry=%s', self._refresh_token_expiry)
+        debug('_access_token_expiry={}'.format(self._access_token_expiry))
+        debug('_refresh_token_expiry={}'.format(self._refresh_token_expiry))
 
         # OK if we get here...
         return True
@@ -160,7 +157,7 @@ class FragnetSearch:
     def _get_new_token(self):
         """Gets a (new) API access token.
         """
-        self.logger.debug('Getting a new access token...')
+        debug('Getting a new access token...')
 
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         payload = {'grant_type': 'password',
@@ -173,21 +170,21 @@ class FragnetSearch:
                                  headers=headers,
                                  timeout=FragnetSearch.REQUEST_TIMOUT_S)
         except requests.exceptions.ConnectTimeout:
-            self.logger.warning('POST timeout')
+            warning('_get_new_token() POST timeout')
             return False
 
         if resp.status_code != 200:
-            self.logger.warning('resp.status_code=%d', resp.status_code)
+            warning('_get_new_token() resp.status_code={}'.format(resp.status_code))
             return False
 
         # Get the tokens from the response...
-        self.logger.debug('Got token.')
+        debug('Got token.')
         return self._extract_tokens(resp.json())
 
     def _refresh_existing_token(self):
         """Refreshes an (existing) API access token.
         """
-        self.logger.debug('Refreshing the existing access token...')
+        debug('Refreshing the existing access token...')
 
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         payload = {'grant_type': 'refresh_token',
@@ -199,15 +196,15 @@ class FragnetSearch:
                                  headers=headers,
                                  timeout=FragnetSearch.REQUEST_TIMOUT_S)
         except requests.exceptions.ConnectTimeout:
-            self.logger.warning('POST timeout')
+            warning('_refresh_existing_token() POST timeout')
             return False
 
         if resp.status_code != 200:
-            self.logger.warning('resp.status_code=%d', resp.status_code)
+            warning('_refresh_existing_token() resp.status_code={}'.format(resp.status_code))
             return False
 
         # Get the tokens from the response...
-        self.logger.debug('Refreshed token.')
+        debug('Refreshed token.')
         return self._extract_tokens(resp.json())
 
     def _check_token(self):
@@ -218,14 +215,14 @@ class FragnetSearch:
 
         :returns: False if the token could not be refreshed.
         """
-        self.logger.debug('Checking token...')
+        debug('Checking token...')
 
         time_now = datetime.datetime.now()
         remaining_token_time = self._access_token_expiry - time_now
         if remaining_token_time >= FragnetSearch.TOKEN_REFRESH_DEADLINE_S:
             # Token's got plenty of time left to live.
             # No need to refresh or get a new token.
-            self.logger.debug('Token still has plenty of life remaining.')
+            debug('Token still has plenty of life remaining.')
             return True
 
         # If the refresh token is still 'young' (or has no expiry time)
@@ -241,17 +238,17 @@ class FragnetSearch:
             remaining_refresh_time = self._refresh_token_expiry - time_now
         if remaining_refresh_time >= FragnetSearch.TOKEN_REFRESH_DEADLINE_S:
             # We should be able to refresh the existing token...
-            self.logger.debug('Token too old, refreshing...')
+            debug('Token too old, refreshing...')
             status = self._refresh_existing_token()
         else:
             # The refresh token is too old,
             # we need to get a new token...
-            self.logger.debug('Refresh token too old, getting a new token...')
+            debug('Refresh token too old, getting a new token...')
             status = self._get_new_token()
 
         # Return status (success or failure)
         if status:
-            self.logger.debug('Got new token.')
+            debug('Got new token.')
         return status
 
     def authenticate(self):
@@ -262,13 +259,13 @@ class FragnetSearch:
 
         :raises: FragnetSearchException on error
         """
-        self.logger.debug('Authenticating...')
+        debug('Authenticating...')
 
         status = self._get_new_token()
         if not status:
             raise FragnetSearchException('Unsuccessful Authentication')
 
-        self.logger.debug('Authenticated.')
+        debug('Authenticated.')
 
     def search_neighbourhood(self, smiles, hac, rac, hops, limit, calculations):
         """Runs a 'search/neighbourhood' query on the Fragnet server.
@@ -339,7 +336,7 @@ class FragnetSearch:
             params['calcs'] = ','.join(calculations)
 
         # Make the request...
-        self.logger.debug('Calling search/neighbourhood for %s...', smiles)
+        debug('Calling search/neighbourhood for {}...'.format(smiles))
         try:
             resp = requests.get(search_uri,
                                 params=params,
@@ -354,11 +351,11 @@ class FragnetSearch:
         content = None
         try:
             content = resp.json()
-            self.logger.debug('Returned from search with content.')
+            debug('Returned from search with content.')
         except ValueError:
             # No json content.
             # Nothing to do - content is already 'None'
-            self.logger.wanring('ValueError getting response json content.')
+            warning('ValueError getting response json content.')
             pass
 
         return SearchResult(resp.status_code, 'Success', content)
@@ -368,8 +365,6 @@ class FragnetSearch:
 # -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
-
-    setup_logging()
 
     fragnet_username = os.environ.get('FRAGNET_USERNAME', None)
     if not fragnet_username:
