@@ -30,6 +30,11 @@ from collections import namedtuple
 
 import requests
 
+# The version of this module.
+# Modify with every change, complying with
+# semantic 2.0.0 rules.
+__version__ = '1.0.0'
+
 # The search result.
 # A namedtuple.
 SearchResult = namedtuple('SearchResult', 'status_code message json')
