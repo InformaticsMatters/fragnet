@@ -136,14 +136,19 @@ public class SimpleNeighbourhoodQuery {
 
         System.loadLibrary("GraphMolWrap");
 
-        Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "hts"));
-//        Driver driver = GraphDatabase.driver("bolt://100.25.105.8:7687", AuthTokens.basic("neo4j", ""));
+
+//        Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "hts"));
+
+        String pw = System.getenv("FRAGNET_PASSWORD");
+        Driver driver = GraphDatabase.driver("bolt://100.25.105.8:7687", AuthTokens.basic("neo4j", pw));
+
         try (Session session = driver.session()) {
 
             SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session);
             //NeighbourhoodGraph result = query.executeNeighbourhoodQuery("c1ccc(Nc2nc3ccccc3o2)cc1", 2, 3, 1);
-//            NeighbourhoodGraph result = query.executeNeighbourhoodQuery("N(C1=NC2=CC=CC=C2O1)C1=CC=CC=C1", 2, 3, 1);
-            NeighbourhoodGraph result = query.executeNeighbourhoodQuery("Oc1ccc(-c2ccccc2)cc1", 2, 3, 1); // 4-OH biphenyl
+            //NeighbourhoodGraph result = query.executeNeighbourhoodQuery("N(C1=NC2=CC=CC=C2O1)C1=CC=CC=C1", 2, 3, 1);
+            //NeighbourhoodGraph result = query.executeNeighbourhoodQuery("Oc1ccc(-c2ccccc2)cc1", 2, 3, 1); // 4-OH biphenyl
+            NeighbourhoodGraph result = query.executeNeighbourhoodQuery("CN1C=NC2=C1C(=O)N(C)C(=O)N2C", 2, 3, 1); // caffeine
 
             result.calculate(result.getRefmol(), Calculator.Calculation.values());
 
@@ -154,7 +159,8 @@ public class SimpleNeighbourhoodQuery {
 //            });
             System.out.println("\n\n");
             ObjectMapper mapper = new ObjectMapper();
-            System.out.println(mapper.writeValueAsString(result));
+            String json = mapper.writeValueAsString(result);
+            System.out.println(json);
         } finally {
             driver.close();
         }
