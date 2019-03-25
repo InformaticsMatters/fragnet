@@ -1,0 +1,8 @@
+graph_name: hts
+
+# if the 'graph_origin' is a 'build'
+# define 'build' (a path). If it's a 'combination'
+# define combination (a number).
+
+graph_origin: build
+build: activity/senp7/v1/build-3

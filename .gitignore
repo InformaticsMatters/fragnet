@@ -11,3 +11,4 @@ orchestration/**/*.tfstate.lock.info
 orchestration/**/.terraform
 orchestration/ansible/**/*.retry
 orchestration/ansible/inventory
+orchestration/ansible/parameters

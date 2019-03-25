@@ -4,11 +4,6 @@
 
 # Has the user defined suitable key variables?
 
-- name: Assert combination
-  fail:
-    msg: "You must provide a 'combination' value"
-  when: not combination is defined
-
 - name: Assert keycloak variables
   fail:
     msg: "You must provide 'keycloak' variables"
@@ -20,6 +15,17 @@
   when: graph_password == ''
 
 # Ready to go...
+
+# Extract key database information
+# based on what's being deployed...
+
+- name: Set database facts
+  set_fact:
+    graph_loader_path: "{{ item.value.graph_loader_directory }}"
+    graph_db_path: "{{ item.value.graph_db_directory }}"
+    graph_log_path:  "{{ item.value.graph_log_directory }}"
+  loop: "{{ lookup('dict', graph_directories) }}"
+  when: graph_name in item.key
 
 # Preparation script for the graph node.
 # Here we check the binary tools, directories, files etc.
@@ -41,9 +47,9 @@
     mode: 0777
   become: yes
   loop:
-  - "{{ graph_loader_directory }}"
-  - "{{ graph_db_directory }}"
-  - "{{ graph_log_directory }}"
+  - "{{ graph_loader_path }}"
+  - "{{ graph_db_path }}"
+  - "{{ graph_log_path }}"
   - "{{ ansible_env.HOME }}/fragnet"
 
 - name: Install pip

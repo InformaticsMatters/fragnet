@@ -2,25 +2,25 @@
 
 # Gets graph data from the S3 bucket named in the 's3_fragnet_bucket' variable.
 #
-# The origin of the data will be defined using a "combination" reference,
-# essentially a sub-directory of the bucket's "combination" directory.
-# The combination is expected to contain all the nodes, relationships and
+# The origin of the data will be defined using a "build" reference,
+# essentially a sub-directory of the bucket's "build" directory.
+# The build is expected to contain all the nodes, relationships and
 # headers along with a "load-neo4j.sh" (and optional index-neo4j.sh) script -
 # i.e. the *full set of import files*.
 
-- name: Assert combination
+- name: Assert build
   fail:
-    msg: "You must provide a 'combination' value"
-  when: not combination is defined
+    msg: "You must provide a 'build' value"
+  when: not build is defined
 
 - name: Display origin
   debug:
-    msg: "{{ s3_fragnet_bucket }}/combination/{{ combination }}"
+    msg: "{{ s3_fragnet_bucket }}/build/{{ build }}"
 
-- name: Get combination
+- name: Get build
   shell: aws s3 sync s3://{{ origin }} {{ graph_loader_path }}
   vars:
-    origin: "{{ s3_fragnet_bucket }}/combination/{{ combination }}"
+    origin: "{{ s3_fragnet_bucket }}/build/{{ build }}"
   environment:
     AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
     AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"

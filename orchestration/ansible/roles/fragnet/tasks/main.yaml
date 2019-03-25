@@ -3,6 +3,11 @@
 # Just run these plays...
 
 - import_tasks: prepare.yaml
+
 - import_tasks: get-combination.yaml
+  when: graph_origin == 'combination'
+- import_tasks: get-build.yaml
+  when: graph_origin == 'build'
+
 - import_tasks: start-graph.yaml
 - import_tasks: start-fragnet-search.yaml

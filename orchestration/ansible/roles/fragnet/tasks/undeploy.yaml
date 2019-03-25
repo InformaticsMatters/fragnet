@@ -13,6 +13,6 @@
     state: absent
   become: yes
   loop:
-  - "{{ graph_loader_directory }}"
-  - "{{ graph_db_directory }}"
-  - "{{ graph_log_directory }}"
+  - "{{ graph_loader_path }}"
+  - "{{ graph_db_path }}"
+  - "{{ graph_log_path }}"

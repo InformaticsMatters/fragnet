@@ -69,15 +69,17 @@ supported by a corresponding *Role* task.
 -   start (the containers)
 -   reset (stop and reset the containers - i.e. remove DB)
 
+The plays rel;y on a number of parameters, conveniently replicated
+in the `parameters.template` file. Copy this file as `parameters`
+ans edit accordingly for use in the playbooks...
+
 ### The 'deploy' playbook
 Configures the graph-db node with a chosen "combination".
 The playbook execution for combination "1" would be: -
 
     $ source setenv.sh
     $ cd ansible
-    $ ansible-playbook \
-        -e combination=1 \
-        playbooks/fragnet/deploy.yaml 
+    $ ansible-playbook -e '@parameters' playbooks/fragnet/deploy.yaml 
 
 You can test the Fragnet service (assuming the data is compatible)
 using a playbook. The test will attempt to get a token (using the
@@ -97,12 +99,12 @@ When you **START** it again you need to run the following to
 restart the containers (`start-graph` will wait for port 7474 before
 continuing): -
 
-    $ ansible-playbook playbooks/fragnet/start-graph.yaml
+    $ ansible-playbook -e '@parameters' playbooks/fragnet/start-graph.yaml
     $ ansible-playbook playbooks/fragnet/start-fragnet-search.yaml
 
 Once deployed you can _test_ the Fragnet server's basic
-search capabilities with the `test-fragnet` playbook,
-which basically just checks the query described
+search capabilities (if it's the basic molport DB) with the `test-fragnet`
+playbook, which basically just checks the query described
 in the curl/jq-based **Example REST interaction** section below: -
 
     $ ansible-playbook playbooks/fragnet/test-fragnet.yaml
@@ -115,7 +117,7 @@ Stops the running containers.
 ### The 'start' playbooks
 Starts the (stopped) containers.
 
-    $ ansible-playbook playbooks/fragnet/start-fragnet-search.yaml 
+    $ ansible-playbook -e '@parameters' playbooks/fragnet/start-fragnet-search.yaml 
 
 ### The 'undeploy' playbook
 Stops the graph database and fragnet search and removes the graph

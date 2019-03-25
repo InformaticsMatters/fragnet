@@ -38,23 +38,34 @@ s3_fragnet_bucket: im-fragnet
 # Graph (neo4j) variables...
 # -----
 
-# The default (neo4j) password
-graph_password: "{{ lookup('env', 'NEO4J_PASSWORD') }}"
 # The graph loader, database (graph) and log directories.
 # The loader is where the graph combination files are downloaded to
 # This also acts as the neo4j volume mount.
-graph_loader_directory: /neo4j/loader
-graph_db_directory: /neo4j/graph
-graph_log_directory: /neo4j/log
+graph_name: molport
+graph_directories:
+  molport:
+    graph_loader_directory: /neo4j/loader
+    graph_db_directory: /neo4j/graph
+    graph_log_directory: /neo4j/log
+  hts:
+    graph_loader_directory: /neo4j/loader-hts
+    graph_db_directory: /neo4j/graph-hts
+    graph_log_directory: /neo4j/log-hts
+
+# The graph origin type (it's either a 'combination' or a 'build')
+graph_origin: combination
+
+# The default (neo4j) password
+graph_password: "{{ lookup('env', 'NEO4J_PASSWORD') }}"
 # The import/loader script
 graph_loader_script: load-neo4j.sh
 # THhe InformaticsMatters Graph version
 graph_version: 3.5.2
 # Do we wait for the graph DB before continuing?
-wait_for_graph: no
-# And the time to wait (2 minutes?).
+wait_for_graph: yes
+# And the time to wait?
 # This is used when the DB restarts, not during the initial import.
-seconds_to_wait_for_graph: 120
+minutes_to_wait_for_graph: 60
 
 # Fragnet application variables...
 # -------
