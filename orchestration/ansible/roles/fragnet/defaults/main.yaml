@@ -63,9 +63,11 @@ graph_loader_script: load-neo4j.sh
 graph_version: 3.5.2
 # Do we wait for the graph DB before continuing?
 wait_for_graph: yes
-# And the time to wait?
-# This is used when the DB restarts, not during the initial import.
-minutes_to_wait_for_graph: 60
+# And the time to wait for the database?
+# Here, this is the time for the neo47 port (7474) to become available.
+# On first deployment this can be significant, on subsequent
+# restarts it's usually fast (less than a minute).
+minutes_to_wait_for_graph: 120
 
 # Fragnet application variables...
 # -------

@@ -43,14 +43,14 @@
 # The graph DB can take a lot of time to initialise
 # so this step can be avoided by clearing 'wait_for_graph'.
 #
-# If you don't wait you will still need to wait to use the DB
-# until neo has finished initialising.
+# If you don't wait here you will still need to wait
+# for the database port before it can actually be used.
 
 - name: Wait for graph
   wait_for:
     host: "{{ inventory_hostname }}"
     port: 7474
-    delay: 30
+    delay: 40
     sleep: 20
     timeout: "{{ minutes_to_wait_for_graph|int * 60 }}"
   when: wait_for_graph
