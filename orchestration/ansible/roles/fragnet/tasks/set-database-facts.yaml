@@ -1,0 +1,17 @@
+---
+
+# Extract key database information
+# based on what's being deployed...
+
+- name: Assert key variables
+  fail:
+    msg: "You must provide a graph_name"
+  when: graph_name == ''
+
+- name: Set database facts
+  set_fact:
+    graph_loader_path: "{{ item.value.graph_loader_directory }}"
+    graph_db_path: "{{ item.value.graph_db_directory }}"
+    graph_log_path:  "{{ item.value.graph_log_directory }}"
+  loop: "{{ lookup('dict', graph_directories) }}"
+  when: graph_name in item.key

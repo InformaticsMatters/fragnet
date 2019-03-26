@@ -24,7 +24,7 @@
 
 - name: Get an API token
   uri:
-    url: http:alms/squonk/protocol/openid-connect/token
+    url: https://squonk.it/auth/realms/squonk/protocol/openid-connect/token
     body: "grant_type=password&\
           client_id=fragnet-search&\
           username={{ fragnet_username }}&\

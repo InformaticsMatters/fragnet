@@ -7,6 +7,8 @@
     msg: "You must provide a neo4j password"
   when: graph_password == ''
 
+- include_tasks: set-database-facts.yaml
+
 # Launches the Graph DB (neo4j in this case)
 # using the loader directory as an input.
 # The graph DB is built locally on the cluster

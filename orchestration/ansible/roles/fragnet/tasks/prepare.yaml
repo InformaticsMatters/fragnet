@@ -16,16 +16,7 @@
 
 # Ready to go...
 
-# Extract key database information
-# based on what's being deployed...
-
-- name: Set database facts
-  set_fact:
-    graph_loader_path: "{{ item.value.graph_loader_directory }}"
-    graph_db_path: "{{ item.value.graph_db_directory }}"
-    graph_log_path:  "{{ item.value.graph_log_directory }}"
-  loop: "{{ lookup('dict', graph_directories) }}"
-  when: graph_name in item.key
+- include_tasks: set-database-facts.yaml
 
 # Preparation script for the graph node.
 # Here we check the binary tools, directories, files etc.
