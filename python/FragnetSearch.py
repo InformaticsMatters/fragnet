@@ -71,7 +71,7 @@ class FragnetSearch:
     """
 
     SUPPORTED_CALCULATIONS = ['LOGP',
-                              'TPSA ',
+                              'TPSA',
                               'SIM_RDKIT_TANIMOTO',
                               'SIM_MORGAN2_TANIMOTO',
                               'SIM_MORGAN3_TANIMOTO']
