@@ -4,7 +4,7 @@
 
 - name: Assert keycloak variables
   fail:
-    msg: "You must provide a neo4j password"
+    msg: You must provide a neo4j password"
   when: graph_password == ''
 
 - include_tasks: set-database-facts.yaml

@@ -4,12 +4,12 @@
 
 - name: Assert keycloak variables
   fail:
-    msg: "You must provide 'keycloak' variables"
+    msg: You must provide 'keycloak' variables
   when: keycloak_server_url == ''
 
 - name: Assert keycloak variables
   fail:
-    msg: "You must provide a neo4j password"
+    msg: You must provide a neo4j password
   when: graph_password == ''
 
 # Start the fragnet-search container

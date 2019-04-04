@@ -3,9 +3,8 @@ This directory contains early Terraform and Ansible files.
 
 You will need: -
 
+- Python 3
 - Terraform
-- Ansible 2.6.3 or better
-
 
 ## The Squonk Keycloak Server
 The Squonk Keycloak server needs: -
@@ -16,10 +15,18 @@ The Squonk Keycloak server needs: -
     need the cluster IP discussed below)
 1.  The client's *Service Accounts Enabled* and *Direct Access Grants Enabled*
     should be `ON`
-1.  You will also need to a 'fragnet-search' *Role* and users in it
+1.  You will also need to add a 'fragnet-search' *Role* and users in it
 1.  You will need to put the Keycloak Public Key and client secret
     into your `setenv.sh` (see below)
 
+## Python requirements
+Ideally work from a **Conda** or Python **Virtual Environment** using the
+latest Python 3. From your environment you will need to install
+requirements as listed in `orchestration/requirements.txt`: -
+
+    $ cd orchestration
+    $ pip install -r requirements.txt
+    
 ## Terraform
 To create the cluster (and write the ansible inventory file): -
 
@@ -40,7 +47,7 @@ To destroy the cluster, return to the Terraform AWS directory and run: -
     IP address of the node (which will be running the (fragnet-search utility)
     to the SKeycloak server.
 
-## Ansible
+## Environment
 >   If you have not used terraform to create the cluster you will need to
     adjust the inventory file to identify the required hosts for your
     deployment. Copy the template as `inventory` and replace the `${}` values.
@@ -60,7 +67,7 @@ created hosts. You just need to add the key used by terraform. i.e. :-
     $ eval $(ssh-agent)
     $ ssh-add ~/.ssh/abc-im
 
-### The playbooks
+## The playbooks
 Playbooks are contained in the `playbooks` sub-directory with each play
 supported by a corresponding *Role* task. 
 
@@ -69,9 +76,9 @@ supported by a corresponding *Role* task.
 -   start (the containers)
 -   reset (stop and reset the containers - i.e. remove DB)
 
-The plays rel;y on a number of parameters, conveniently replicated
+The plays rely on a number of parameters, conveniently replicated
 in the `parameters.template` file. Copy this file as `parameters`
-ans edit accordingly for use in the playbooks...
+ans edit accordingly for use in the playbooks.
 
 ### The 'deploy' playbook
 Configures the graph-db node with a chosen "combination".
@@ -117,7 +124,7 @@ Stops the running containers.
 ### The 'start' playbooks
 Starts the (stopped) containers.
 
-    $ ansible-playbook -e '@parameters' playbooks/fragnet/start-fragnet-search.yaml 
+    $ ansible-playbook playbooks/fragnet/start-fragnet-search.yaml 
 
 ### The 'undeploy' playbook
 Stops the graph database and fragnet search and removes the graph

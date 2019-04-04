@@ -4,7 +4,7 @@
 
 - name: Assert Fragnet variables
   fail:
-    msg: "You must define a FRAGNET_USERNAME and FRAGNET_PASSWORD"
+    msg: You must define a FRAGNET_USERNAME and FRAGNET_PASSWORD
   when: fragnet_username == '' or fragnet_password == ''
 
 # A series of tasks to test the Fragnet service.
