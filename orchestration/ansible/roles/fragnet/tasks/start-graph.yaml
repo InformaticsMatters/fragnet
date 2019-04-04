@@ -39,7 +39,7 @@
     - "{{ graph_loader_path }}:/data-loader:Z"
     - "{{ graph_db_path }}:/neo4j/graph:Z"
     - "{{ graph_log_path }}:/neo4j/log:Z"
-    restart_policy: always
+    restart_policy: "{{ graph_restart_policy }}"
   become: yes
 
 # Optionally wait for the graph database.

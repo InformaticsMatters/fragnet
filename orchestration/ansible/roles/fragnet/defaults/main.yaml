@@ -37,6 +37,8 @@ wait_for_graph: yes
 # On first deployment this can be significant, on subsequent
 # restarts it's usually fast (less than a minute).
 minutes_to_wait_for_graph: 120
+# The container restart policy for the Graph database...
+graph_restart_policy: always
 
 # Fragnet application variables...
 # -------
@@ -50,6 +52,8 @@ fragnet_port: 8080
 # A username and password (generally for tests)
 fragnet_username: "{{ lookup('env', 'FRAGNET_USERNAME') }}"
 fragnet_password: "{{ lookup('env', 'FRAGNET_PASSWORD') }}"
+# The container restart policy for the Fragnet server...
+fragnet_restart_policy: always
 
 # Keycloak variables...
 # --------
