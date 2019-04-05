@@ -54,6 +54,13 @@
     calcs: LOGP,SIM_RDKIT_TANIMOTO
   register: search_result
 
+- name: Assert sane search result
+  assert:
+    that:
+    - search_result.json.edges is defined
+    - search_result.json.nodes is defined
+    - search_result.json.groups is defined
+
 - name: Echo search results
   debug:
     msg: >-

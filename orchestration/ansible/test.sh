@@ -5,4 +5,4 @@
 
 set -e
 
-cd ansible; ansible-playbook -e '@parameters' playbooks/fragnet/start-instances.yaml; cd ..
+ansible-playbook -e '@parameters' playbooks/fragnet/test-fragnet.yaml

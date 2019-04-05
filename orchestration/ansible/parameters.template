@@ -7,7 +7,7 @@
 graph_name: molport
 # The graph origin type (it's either a 'combination' or a 'build')
 # along with an identity, which is a number for a combination type or
-# a sub-path like 'activity/senp7/v1/build-3' for a build type.
+# a sub-path like 'activity/senp7/v1/build-2' for a build type.
 graph_origin_type: combination
 graph_origin_id: 1
 
@@ -29,7 +29,7 @@ graph_set:
     graph_loader_directory: /neo4j/loader
     graph_db_directory: /neo4j/graph
     graph_log_directory: /neo4j/log
-  hts:
+  senp7:
     graph_loader_directory: /neo4j/loader-hts
     graph_db_directory: /neo4j/graph-hts
     graph_log_directory: /neo4j/log-hts

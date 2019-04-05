@@ -125,13 +125,33 @@ Once un-deployed you will need to run the initial `deploy` playbook
 to recover the system.
 
 ## Handy shell-scripts
-Super-simple shell-scripts (in the `orchestrtaor` directory) can be used
-to quickly `deploy`, `stop` and `start` the service: -
+Super-simple shell-scripts can be used to quickly `deploy`,
+`stop` and `start` the service: -
 
     $ ./deploy.sh
     $ ./stop.sh
     $ ./start.sh
-    
+
+## Deploying a new database
+You **must** stop the existing containers before you do this. You cannot
+deploy a 2nd database while the graph server is serving one. So: -
+
+    $ ansible-playbook playbooks/fragnet/stop-containers.yaml 
+
+>   This is _not_ the stop play, whcih stops the server.
+    This playbook stops the containers.
+
+Then you can edit your `parameters` file to add a new `graph_set` and then
+deploy: -
+
+    [edit your 'parameters' file]
+    $ ./deploy.sh
+
+>   The database is deployed with the default user (`neo4j`) and password
+    (`neo4j`). Before you go any further login to the server at
+    `http://${graph_host}:7474` and login and then change the password
+    using your chosen NEO4J_PASSWORD so it can be used.
+         
 ## Example REST interaction
 Get your token (jq) with a FRAGNET_USERNAME and FRAGNET_PASSWORD ...
 

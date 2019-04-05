@@ -4,6 +4,7 @@
 **/*.iml
 **/build
 **/out
+**/*.swp
 
 orchestration/setenv.sh
 orchestration/**/*.tfstate

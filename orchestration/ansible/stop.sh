@@ -5,4 +5,4 @@
 
 set -e
 
-cd ansible; ansible-playbook playbooks/fragnet/stop-instances.yaml; cd ..
+ansible-playbook playbooks/fragnet/stop-instances.yaml

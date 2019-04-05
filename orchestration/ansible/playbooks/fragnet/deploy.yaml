@@ -9,6 +9,19 @@
   gather_facts: no
 
   tasks:
+
+  # Could be destructive/time-consuming.
+  # Is the user sure?
+
+  - name: Deploy {{ graph_name }}?
+    pause:
+      prompt: |-
+        Are you sure you want to deploy the {{ graph_name }} databse?
+        Press return to continue.
+        Press Ctrl+c and then "a" if you've changed your mind
+
+  # Let's go...
+
   - name: Run the Role 'pre-flight check' Tasks
     include_role:
       name: fragnet
