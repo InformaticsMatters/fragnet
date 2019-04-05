@@ -1,5 +1,11 @@
 ---
 
+- name: Wait for Connection
+  wait_for_connection:
+
+- name: Gather facts
+  setup:
+
 # Just run these plays...
 
 - import_tasks: prepare.yaml

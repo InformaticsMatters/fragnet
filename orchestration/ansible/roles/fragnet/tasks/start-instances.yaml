@@ -1,0 +1,12 @@
+---
+
+# Start the EC2 Fragnet server(s)
+
+- name: Start Fragnet Server Instances
+  local_action:
+    module: ec2
+    region: "{{ fragnet_server_region }}"
+    state: running
+    instance_ids:
+    - "{{ fragnet_server_id }}"
+    wait: yes

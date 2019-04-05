@@ -1,10 +1,5 @@
 ---
 
-# Deploy and start the Fragnet Graph database.
-#
-# This assumes the fragnet_server_id EC2 service instance
-# exists in the fragnet_server_region region.
-
 - hosts: localhost
   gather_facts: no
 
@@ -17,9 +12,3 @@
     include_role:
       name: fragnet
       tasks_from: start-instances.yaml
-
-- hosts: graph
-  gather_facts: no
-
-  roles:
-  - fragnet

@@ -59,7 +59,7 @@ public class FragnetRouteBuilder extends RouteBuilder implements AutoCloseable {
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
     private final File queryLogFile;
 
-    private Driver driver = GraphDatabase.driver(NEO4J_URL, AuthTokens.basic(NEO4J_USER, NEO4J_PASSWORD));
+    private Driver driver = null;
 
     public FragnetRouteBuilder() {
         this(true);
@@ -157,6 +157,13 @@ public class FragnetRouteBuilder extends RouteBuilder implements AutoCloseable {
 //            System.out.println(k + " -> " +v);
 //        });
 
+        // If we have no database connection, then let's try and get one...
+        if (driver == null) {
+            driver = GraphDatabase.
+                driver(NEO4J_URL,
+                       AuthTokens.basic(NEO4J_USER, NEO4J_PASSWORD));
+        }
+
         long t0 = new Date().getTime();
         String username = getUsername(exch);
 
@@ -221,6 +228,7 @@ public class FragnetRouteBuilder extends RouteBuilder implements AutoCloseable {
     @Override
     public void close() throws Exception {
         driver.close();
+        driver = null;
     }
 
     private void writeToQueryLog(String user, String searchType, long executionTime, int nodes, int edges, int groups) {

@@ -16,7 +16,7 @@
 
 aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
 aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
-aws_region: "{{ lookup('env', 'AWS_DEFAULT_REGION') }}"
+aws_region: "{{ lookup('env', 'AWS_DEFAULT_REGION') | default('eu-west-1', true) }}"
 
 # The Fragnet bucket (where the graph data is located)
 s3_fragnet_bucket: im-fragnet
@@ -28,7 +28,7 @@ s3_fragnet_bucket: im-fragnet
 graph_password: "{{ lookup('env', 'NEO4J_PASSWORD') }}"
 # The import/loader script
 graph_loader_script: load-neo4j.sh
-# THhe InformaticsMatters Graph version
+# The InformaticsMatters Graph container image version
 graph_version: 3.5.2
 # Do we wait for the graph DB before continuing?
 wait_for_graph: yes
@@ -44,7 +44,7 @@ graph_restart_policy: always
 # -------
 
 # The Docker image tag for the 'squonk/fragnet-search' image.
-fragnet_tag: latest
+fragnet_tag: 0.1.0
 # The port to expose the Fragnet service on.
 # Internally the port is expected to be on 8080,
 # this is the port Fragnet is mapped to on the host.
@@ -65,3 +65,8 @@ fragnet_restart_policy: always
 keycloak_server_url: "{{ lookup('env', 'KEYCLOAK_SERVER_URL') }}"
 keycloak_public_key: "{{ lookup('env', 'KEYCLOAK_PUBLIC_KEY') }}"
 keycloak_secret: "{{ lookup('env', 'KEYCLOAK_SECRET') }}"
+
+# AWS EC2 variables
+# -------
+fragnet_server_id: i-007e2d377aef7be36
+fragnet_server_region: us-east-1

@@ -1,5 +1,12 @@
 ---
 
+- name: Delete Fragnet?
+  pause:
+    prompt: |-
+      Delete the Fragnet deployment?
+      Press return to continue.
+      Press Ctrl+c and then "a" if you've changed your mind
+
 # Tasks to stop and reset the graph node.
 # This is simple, it stops the container
 # and removes the expected directories.
