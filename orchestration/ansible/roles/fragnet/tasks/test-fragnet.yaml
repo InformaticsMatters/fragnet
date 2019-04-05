@@ -4,7 +4,7 @@
 
 - name: Assert Fragnet variables
   fail:
-    msg: "You must define a FRAGNET_USERNAME and FRAGNET_PASSWORD"
+    msg: You must define a FRAGNET_USERNAME and FRAGNET_PASSWORD
   when: fragnet_username == '' or fragnet_password == ''
 
 # A series of tasks to test the Fragnet service.
@@ -53,6 +53,13 @@
     hops: 2
     calcs: LOGP,SIM_RDKIT_TANIMOTO
   register: search_result
+
+- name: Assert sane search result
+  assert:
+    that:
+    - search_result.json.edges is defined
+    - search_result.json.nodes is defined
+    - search_result.json.groups is defined
 
 - name: Echo search results
   debug:

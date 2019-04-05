@@ -1,0 +1,14 @@
+---
+
+- hosts: localhost
+  gather_facts: no
+
+  tasks:
+  - name: Run the Role 'pre-flight check' Tasks
+    include_role:
+      name: fragnet
+      tasks_from: pre-flight-check.yaml
+  - name: Run the Role 'start instances' Tasks
+    include_role:
+      name: fragnet
+      tasks_from: start-instances.yaml

@@ -4,12 +4,12 @@
 
 - name: Assert keycloak variables
   fail:
-    msg: "You must provide 'keycloak' variables"
+    msg: You must provide 'keycloak' variables
   when: keycloak_server_url == ''
 
 - name: Assert keycloak variables
   fail:
-    msg: "You must provide a neo4j password"
+    msg: You must provide a neo4j password
   when: graph_password == ''
 
 # Start the fragnet-search container
@@ -50,4 +50,5 @@
     - "./fragnet/keycloak.json:/usr/local/tomcat/webapps/fragnet-search/WEB-INF/keycloak.json:ro,Z"
     - "./fragnet/web.xml:/usr/local/tomcat/webapps/fragnet-search/WEB-INF/web.xml:ro,Z"
     - "./fragnet/context.xml:/usr/local/tomcat/webapps/fragnet-search/META-INF/context.xml:ro,Z"
+    restart_policy: "{{ fragnet_restart_policy }}"
   become: yes

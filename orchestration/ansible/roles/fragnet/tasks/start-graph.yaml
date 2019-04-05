@@ -4,7 +4,7 @@
 
 - name: Assert keycloak variables
   fail:
-    msg: "You must provide a neo4j password"
+    msg: You must provide a neo4j password
   when: graph_password == ''
 
 - include_tasks: set-database-facts.yaml
@@ -39,6 +39,7 @@
     - "{{ graph_loader_path }}:/data-loader:Z"
     - "{{ graph_db_path }}:/neo4j/graph:Z"
     - "{{ graph_log_path }}:/neo4j/log:Z"
+    restart_policy: "{{ graph_restart_policy }}"
   become: yes
 
 # Optionally wait for the graph database.
@@ -52,7 +53,7 @@
   wait_for:
     host: "{{ inventory_hostname }}"
     port: 7474
-    delay: 40
+    delay: 20
     sleep: 20
     timeout: "{{ minutes_to_wait_for_graph|int * 60 }}"
   when: wait_for_graph

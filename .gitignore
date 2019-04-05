@@ -1,8 +1,10 @@
 .idea
 .gradle
+**/.DS_Store
 **/*.iml
 **/build
 **/out
+**/*.swp
 
 orchestration/setenv.sh
 orchestration/**/*.tfstate

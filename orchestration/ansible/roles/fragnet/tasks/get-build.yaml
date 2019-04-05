@@ -10,17 +10,19 @@
 
 - name: Assert build
   fail:
-    msg: "You must provide a 'build' value"
-  when: not build is defined
+    msg: You must provide a 'graph_origin_id' value
+  when:
+  - not graph_origin_id is defined
+  - graph_origin_id|length == 0
 
 - name: Display origin
   debug:
-    msg: "{{ s3_fragnet_bucket }}/build/{{ build }}"
+    msg: "{{ s3_fragnet_bucket }}/build/{{ graph_origin_id }}"
 
 - name: Get build
   shell: aws s3 sync s3://{{ origin }} {{ graph_loader_path }}
   vars:
-    origin: "{{ s3_fragnet_bucket }}/build/{{ build }}"
+    origin: "{{ s3_fragnet_bucket }}/build/{{ graph_origin_id }}"
   environment:
     AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
     AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"

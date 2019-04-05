@@ -1,0 +1,36 @@
+---
+
+# Pre-execution checks.
+# These need to be satisfied in order to run the plays.
+
+# Has the user defined suitable key variables?
+
+- name: Assert keycloak variables
+  fail:
+    msg: "{{ msg.split('\n') }}"
+  vars:
+    msg: |-
+      You must provide keycloak variables
+      Have you created a 'setenv.sh' in the parent directroy?
+      Have you sourced it with 'source ../setenv.sh'?
+  when: keycloak_server_url == ''
+
+- name: Assert graph password
+  fail:
+    msg: "{{ msg.split('\n') }}"
+  vars:
+    msg: |-
+      The graph_password is not set
+      Have you set NEO4J_PASSWORD it in your setenv.sh?
+  when: graph_password == ''
+
+- name: Assert AWS credentials
+  fail:
+    msg: "{{ msg.split('\n') }}"
+  vars:
+    msg: |-
+      The AWS credentials are not set
+      Have you set the AWS values in your setenv.sh?
+  when:
+  - aws_access_key == ''
+  - aws_secret_key == ''

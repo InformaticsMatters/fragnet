@@ -1,19 +1,5 @@
 ---
 
-# The user is required to define the graph build "combination"
-# on the command-line forcing the user to define it before the Role
-# can progress, e.g. with something like "-e combination=1".
-#
-# The combination is the combination build that is
-# expected to reside in the 's3_fragnet_bucket' combination directory.
-# The combination is a tag that is expected to be in the combination catalogue,
-# a tab-separated text file in the 's3_fragnet_bucket' directory.
-#
-# All files in the S3 bucket for the combination are downloaded
-# to the graph database ready for import.
-
-# -----------------------------------------------------------------------------
-
 # AWS variables...
 # ---
 
@@ -30,36 +16,19 @@
 
 aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
 aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
-aws_region: "{{ lookup('env', 'AWS_DEFAULT_REGION') }}"
+aws_region: "{{ lookup('env', 'AWS_DEFAULT_REGION') | default('eu-west-1', true) }}"
 
-# The Fragnet bucket (where the graph "combinations" are located)
+# The Fragnet bucket (where the graph data is located)
 s3_fragnet_bucket: im-fragnet
 
 # Graph (neo4j) variables...
 # -----
 
-# The graph loader, database (graph) and log directories.
-# The loader is where the graph combination files are downloaded to
-# This also acts as the neo4j volume mount.
-graph_name: molport
-graph_directories:
-  molport:
-    graph_loader_directory: /neo4j/loader
-    graph_db_directory: /neo4j/graph
-    graph_log_directory: /neo4j/log
-  hts:
-    graph_loader_directory: /neo4j/loader-hts
-    graph_db_directory: /neo4j/graph-hts
-    graph_log_directory: /neo4j/log-hts
-
-# The graph origin type (it's either a 'combination' or a 'build')
-graph_origin: combination
-
 # The default (neo4j) password
 graph_password: "{{ lookup('env', 'NEO4J_PASSWORD') }}"
 # The import/loader script
 graph_loader_script: load-neo4j.sh
-# THhe InformaticsMatters Graph version
+# The InformaticsMatters Graph container image version
 graph_version: 3.5.2
 # Do we wait for the graph DB before continuing?
 wait_for_graph: yes
@@ -68,12 +37,14 @@ wait_for_graph: yes
 # On first deployment this can be significant, on subsequent
 # restarts it's usually fast (less than a minute).
 minutes_to_wait_for_graph: 120
+# The container restart policy for the Graph database...
+graph_restart_policy: always
 
 # Fragnet application variables...
 # -------
 
 # The Docker image tag for the 'squonk/fragnet-search' image.
-fragnet_tag: latest
+fragnet_tag: 0.1.0
 # The port to expose the Fragnet service on.
 # Internally the port is expected to be on 8080,
 # this is the port Fragnet is mapped to on the host.
@@ -81,6 +52,8 @@ fragnet_port: 8080
 # A username and password (generally for tests)
 fragnet_username: "{{ lookup('env', 'FRAGNET_USERNAME') }}"
 fragnet_password: "{{ lookup('env', 'FRAGNET_PASSWORD') }}"
+# The container restart policy for the Fragnet server...
+fragnet_restart_policy: always
 
 # Keycloak variables...
 # --------
@@ -92,3 +65,8 @@ fragnet_password: "{{ lookup('env', 'FRAGNET_PASSWORD') }}"
 keycloak_server_url: "{{ lookup('env', 'KEYCLOAK_SERVER_URL') }}"
 keycloak_public_key: "{{ lookup('env', 'KEYCLOAK_PUBLIC_KEY') }}"
 keycloak_secret: "{{ lookup('env', 'KEYCLOAK_SECRET') }}"
+
+# AWS EC2 variables
+# -------
+fragnet_server_id: i-007e2d377aef7be36
+fragnet_server_region: us-east-1

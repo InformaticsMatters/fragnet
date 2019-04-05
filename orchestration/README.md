@@ -3,9 +3,8 @@ This directory contains early Terraform and Ansible files.
 
 You will need: -
 
+- Python 3 (ideally a virtual/conda environment)
 - Terraform
-- Ansible 2.6.3 or better
-
 
 ## The Squonk Keycloak Server
 The Squonk Keycloak server needs: -
@@ -16,11 +15,19 @@ The Squonk Keycloak server needs: -
     need the cluster IP discussed below)
 1.  The client's *Service Accounts Enabled* and *Direct Access Grants Enabled*
     should be `ON`
-1.  You will also need to a 'fragnet-search' *Role* and users in it
+1.  You will also need to add a 'fragnet-search' *Role* and users in it
 1.  You will need to put the Keycloak Public Key and client secret
     into your `setenv.sh` (see below)
 
-## Terraform
+## Python requirements
+Ideally work from a **Conda** or Python **Virtual Environment** using the
+latest Python 3. From your environment you will need to install
+requirements as listed in `orchestration/requirements.txt`: -
+
+    $ cd orchestration
+    $ pip install -r requirements.txt
+    
+## Terraform (hardware provisioning)
 To create the cluster (and write the ansible inventory file): -
 
     $ cd terraform/aws
@@ -40,7 +47,7 @@ To destroy the cluster, return to the Terraform AWS directory and run: -
     IP address of the node (which will be running the (fragnet-search utility)
     to the SKeycloak server.
 
-## Ansible
+## Ansible (configuration)
 >   If you have not used terraform to create the cluster you will need to
     adjust the inventory file to identify the required hosts for your
     deployment. Copy the template as `inventory` and replace the `${}` values.
@@ -60,18 +67,17 @@ created hosts. You just need to add the key used by terraform. i.e. :-
     $ eval $(ssh-agent)
     $ ssh-add ~/.ssh/abc-im
 
-### The playbooks
+## The playbooks
 Playbooks are contained in the `playbooks` sub-directory with each play
-supported by a corresponding *Role* task. 
+supported by a corresponding *Role* task. There are lots of them.
 
 -   deploy
--   stop (the containers)
--   start (the containers)
--   reset (stop and reset the containers - i.e. remove DB)
+-   stop-instances (the server)
+-   start-instances (the server)
 
-The plays rel;y on a number of parameters, conveniently replicated
+The plays rely on a number of parameters, conveniently replicated
 in the `parameters.template` file. Copy this file as `parameters`
-ans edit accordingly for use in the playbooks...
+ans edit accordingly for use in the playbooks.
 
 ### The 'deploy' playbook
 Configures the graph-db node with a chosen "combination".
@@ -94,14 +100,6 @@ the query results: -
     nodes and edges, getting the right number is enough for this simple
     test.
 
-You can **STOP** the AWS compute instance when you're not using it.
-When you **START** it again you need to run the following to
-restart the containers (`start-graph` will wait for port 7474 before
-continuing): -
-
-    $ ansible-playbook -e '@parameters' playbooks/fragnet/start-graph.yaml
-    $ ansible-playbook playbooks/fragnet/start-fragnet-search.yaml
-
 Once deployed you can _test_ the Fragnet server's basic
 search capabilities (if it's the basic molport DB) with the `test-fragnet`
 playbook, which basically just checks the query described
@@ -112,12 +110,12 @@ in the curl/jq-based **Example REST interaction** section below: -
 ### The 'stop' playbooks
 Stops the running containers.
 
-    $ ansible-playbook playbooks/fragnet/stop-fragnet-search.yaml 
+    $ ansible-playbook playbooks/fragnet/stop-containers.yaml 
 
 ### The 'start' playbooks
 Starts the (stopped) containers.
 
-    $ ansible-playbook -e '@parameters' playbooks/fragnet/start-fragnet-search.yaml 
+    $ ansible-playbook playbooks/fragnet/start-containers.yaml 
 
 ### The 'undeploy' playbook
 Stops the graph database and fragnet search and removes the graph
@@ -126,7 +124,35 @@ database (not the import files) and its logs.
 Once un-deployed you will need to run the initial `deploy` playbook
 to recover the system.
 
-### Example REST interaction
+## Handy shell-scripts
+Super-simple shell-scripts can be used to quickly `deploy`,
+`stop` and `start` the service: -
+
+    $ ./deploy.sh
+    $ ./stop.sh
+    $ ./start.sh
+
+## Deploying a new database
+You **must** stop the existing containers before you do this. You cannot
+deploy a 2nd database while the graph server is serving one. So: -
+
+    $ ansible-playbook playbooks/fragnet/stop-containers.yaml 
+
+>   This is _not_ the stop play, whcih stops the server.
+    This playbook stops the containers.
+
+Then you can edit your `parameters` file to add a new `graph_set` and then
+deploy: -
+
+    [edit your 'parameters' file]
+    $ ./deploy.sh
+
+>   The database is deployed with the default user (`neo4j`) and password
+    (`neo4j`). Before you go any further login to the server at
+    `http://${graph_host}:7474` and login and then change the password
+    using your chosen NEO4J_PASSWORD so it can be used.
+         
+## Example REST interaction
 Get your token (jq) with a FRAGNET_USERNAME and FRAGNET_PASSWORD ...
 
     $ token=$(curl \
@@ -137,13 +163,12 @@ Get your token (jq) with a FRAGNET_USERNAME and FRAGNET_PASSWORD ...
         https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
         | jq -r '.access_token')
 
-
 And then curl the FRAGNET_HOST...
 
     $ curl -LH "Authorization: bearer $token" \
         "http://${FRAGNET_HOST}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 
-### Example graph query
+## Example graph query
 
     MATCH (c:MolPort)-->(m:F2)-->(a:Available)
         WHERE m.smiles = 'NC1CCCNC1' RETURN c,m,a LIMIT 10

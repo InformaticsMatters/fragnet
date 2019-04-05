@@ -1,8 +1,35 @@
-graph_name: hts
+---
 
-# if the 'graph_origin' is a 'build'
-# define 'build' (a path). If it's a 'combination'
-# define combination (a number).
+# Fragnet control variables.
 
-graph_origin: build
-build: activity/senp7/v1/build-3
+# The graph to install.
+# This has to be a key in the 'graph_set'
+graph_name: molport
+# The graph origin type (it's either a 'combination' or a 'build')
+# along with an identity, which is a number for a combination type or
+# a sub-path like 'activity/senp7/v1/build-2' for a build type.
+graph_origin_type: combination
+graph_origin_id: 1
+
+# The graph set consisting of named graphs listing the
+# desired loader, database (graph) and log directories
+# for each graph we can deploy.
+#
+# - The host loader directory is where the graph
+#   combination files are downloaded to and is different
+#   for each database
+# - The host db directory is the server directory that will be
+#   mounted into the graph DB container to house
+#   the compiled database, this is different for each db.
+# - The host log directory mounted  for the graph database.
+#   This can be shared.
+#
+graph_set:
+  molport:
+    graph_loader_directory: /neo4j/loader
+    graph_db_directory: /neo4j/graph
+    graph_log_directory: /neo4j/log
+  senp7:
+    graph_loader_directory: /neo4j/loader-hts
+    graph_db_directory: /neo4j/graph-hts
+    graph_log_directory: /neo4j/log-hts

@@ -1,21 +1,5 @@
 ---
 
-# Pre-flight checks...
-
-# Has the user defined suitable key variables?
-
-- name: Assert keycloak variables
-  fail:
-    msg: "You must provide 'keycloak' variables"
-  when: keycloak_server_url == ''
-
-- name: Assert keycloak variables
-  fail:
-    msg: "You must provide a neo4j password"
-  when: graph_password == ''
-
-# Ready to go...
-
 - include_tasks: set-database-facts.yaml
 
 # Preparation script for the graph node.

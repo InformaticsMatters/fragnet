@@ -1,17 +1,38 @@
 ---
 
-# Install the ACME Controller for OpenShift.
-# This automatically provision certificates using ACME protocol
-# and manage their lifecycle.
+# Deploy and start the Fragnet Graph database.
 #
-# The playbook can be assured that the following variables will have
-# been provided by the OKD Orchestrator: -
-#
-# - okd_api_hostname
-# - okd_admin
-# - okd_admin_password
+# This assumes the fragnet_server_id EC2 service instance
+# exists in the fragnet_server_region region.
+
+- hosts: localhost
+  gather_facts: no
+
+  tasks:
+
+  # Could be destructive/time-consuming.
+  # Is the user sure?
+
+  - name: Deploy {{ graph_name }}?
+    pause:
+      prompt: |-
+        Are you sure you want to deploy the {{ graph_name }} databse?
+        Press return to continue.
+        Press Ctrl+c and then "a" if you've changed your mind
+
+  # Let's go...
+
+  - name: Run the Role 'pre-flight check' Tasks
+    include_role:
+      name: fragnet
+      tasks_from: pre-flight-check.yaml
+  - name: Run the Role 'start instances' Tasks
+    include_role:
+      name: fragnet
+      tasks_from: start-instances.yaml
 
 - hosts: graph
+  gather_facts: no
 
   roles:
   - fragnet
