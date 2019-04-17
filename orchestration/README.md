@@ -80,32 +80,36 @@ in the `parameters.template` file. Copy this file as `parameters`
 ans edit accordingly for use in the playbooks.
 
 ### The 'deploy' playbook
-Configures the graph-db node with a chosen "combination".
-The playbook execution for combination "1" would be: -
+>   **Know your disk requirements before deploying!**
+
+>   Before deploying a new graph set you **MUST** make sure there's
+    space on the volumes that will host your directories. You will need
+    to accommodate the import data, the generates graph data and the
+    graph database logs. At the time of writing **molport_build_3**
+    required at least 250GiB of file space (25GiB of input data and
+    221GiB of generated graph data).
+
+The **deploy** playbook configures the graph-db node with a chosen
+"combination" (or "build"). You define the graph you want to deploy using
+a copy of the parameter template file.
 
     $ source setenv.sh
     $ cd ansible
+    $ cp parameters.template parameters
+    [edit your 'parameters' file]
     $ ansible-playbook -e '@parameters' playbooks/fragnet/deploy.yaml 
 
-You can test the Fragnet service (assuming the data is compatible)
+You can test the Fragnet service **molport** deployment
 using a playbook. The test will attempt to get a token (using the
 user credentials in the setenv file), run a built-in search query
 (around "c1ccc(Nc2nc3ccccc3o2)cc1") and then conclude by checking
-the query results: -
+an example query's results: -
 
     $ ansible-playbook playbooks/fragnet/test-fragnet.yaml
 
 >   The check simply verifies the number of nodes, edges and groups
-    returned by the query. It does not check the values of the
-    nodes and edges, getting the right number is enough for this simple
-    test.
-
-Once deployed you can _test_ the Fragnet server's basic
-search capabilities (if it's the basic molport DB) with the `test-fragnet`
-playbook, which basically just checks the query described
-in the curl/jq-based **Example REST interaction** section below: -
-
-    $ ansible-playbook playbooks/fragnet/test-fragnet.yaml
+    returned by the query. It does not check the values of the nodes and edges,
+    getting the right number is enough for this simple test.
 
 ### The 'stop' playbooks
 Stops the running containers.
@@ -125,8 +129,8 @@ Once un-deployed you will need to run the initial `deploy` playbook
 to recover the system.
 
 ## Handy shell-scripts
-Super-simple shell-scripts can be used to quickly `deploy`,
-`stop` and `start` the service: -
+Super-simple shell-scripts can be used to quickly execute the most common
+tasks like `deploy`, `stop` and `start`: -
 
     $ ./deploy.sh
     $ ./stop.sh
@@ -138,7 +142,7 @@ deploy a 2nd database while the graph server is serving one. So: -
 
     $ ansible-playbook playbooks/fragnet/stop-containers.yaml 
 
->   This is _not_ the stop play, whcih stops the server.
+>   This is _not_ the stop play, which stops the server.
     This playbook stops the containers.
 
 Then you can edit your `parameters` file to add a new `graph_set` and then
