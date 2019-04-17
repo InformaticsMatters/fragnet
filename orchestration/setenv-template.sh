@@ -2,8 +2,8 @@
 # then 'source setenv.sh' before orchestrating.
 
 # AWS credentials
-AWS_ACCESS_KEY_ID="SetMe"
-AWS_SECRET_ACCESS_KEY="SetMe"
+export AWS_ACCESS_KEY_ID="SetMe"
+export AWS_SECRET_ACCESS_KEY="SetMe"
 
 # the location of the Keycloak server. e.g. "https://squonk.it/auth"
 export KEYCLOAK_SERVER_URL="SetMe"

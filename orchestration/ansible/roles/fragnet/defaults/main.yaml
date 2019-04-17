@@ -36,7 +36,8 @@ wait_for_graph: yes
 # Here, this is the time for the neo47 port (7474) to become available.
 # On first deployment this can be significant, on subsequent
 # restarts it's usually fast (less than a minute).
-minutes_to_wait_for_graph: 120
+# A period of 360 minutes is 6 hours.
+minutes_to_wait_for_graph: 360
 # The container restart policy for the Graph database...
 graph_restart_policy: always
 

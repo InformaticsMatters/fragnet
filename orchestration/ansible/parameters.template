@@ -29,7 +29,11 @@ graph_set:
     graph_loader_directory: /neo4j/loader
     graph_db_directory: /neo4j/graph
     graph_log_directory: /neo4j/log
+  molport_build_3:
+    graph_loader_directory: /graph/molport-build-3/loader
+    graph_db_directory: /graph/molport-build-3/graph
+    graph_log_directory: /graph/molport-build-3/log
   senp7:
-    graph_loader_directory: /neo4j/loader-hts
-    graph_db_directory: /neo4j/graph-hts
-    graph_log_directory: /neo4j/log-hts
+    graph_loader_directory: /neo4j/loader-senp7
+    graph_db_directory: /neo4j/graph-senp7
+    graph_log_directory: /neo4j/log-senp7
