@@ -1,5 +1,8 @@
 # Fragnet Search
 
+__IMPORTANT: this is old documentation for the v1 API which may be discontinued at some stage.
+See [README.md]() for the current version.__
+
 This module provides REST web services for searching the fragment network graph database.
 
 The aim is to provide strongly opinionated searches against specific types of dataset and provide a common object model
@@ -10,24 +13,14 @@ Currently this work is at an early stage and much more is planned.
 
 ## API versions
 
-The APIs are versioned. Currently `v2` is in use, but the older `v1` is still supported. See [README_v1.md]() for details.
+The APIs are versioned. Currently `v1` is in use, but `v2` will be worked on soon.
 The API version is included in the API URL endpoints and is implemented using classes in version specific packages.
-
-### v1 -> v2 changes
-Significant changes:
-
-* Handle updated labels in the database (MOL -> Mol and F2EDGE -> FRAG)
-* Handle supplier information as part of neighbourhood search
-* Endpoint to return suppliers that are present
-* Don't include query structure in results
 
 ## Search types
 
 The current search types that are supported are:
 
 1. Molecule neighbourhood search - find the local graph network surrounding a specific molecule.
-1. Supplier search - find the different suppliers that are in the database. Other searches can be
-restricted to specific suppliers.
 
 Planned searches are:
 
@@ -36,25 +29,24 @@ Planned searches are:
 
 ### Molecule neighbourhood search
 
-This is available from the `fragnet-search/rest/v2/search/neighbourhood/{smiles}` endpoint.
+This is available from the `fragnet-search/rest/v1/search/neighbourhood/{smiles}` endpoint.
 
 Parameters:
 
-| Name       | Type  | Required | Description |
-|------------|-------|----------|-------------|
-| smiles     | URL   | Yes      | The smiles string for the molecule to look for. See below for requirements about standardisation and canonicalisation. |
-| hac        | Query | No       | The difference in heavy atom count compared to the query that is allowed it the result molecules. |
-| rac        | Query | No       | The difference in ring atom count compared to the query that is allowed it the result molecules. |
-| hops       | Query | No       | The number of graph edges to traverse from the query molecule. Must be 1 or 2. Default is 1. |
-| calcs      | Query | No       | Comma separated list of the calculations to be performed on the resulting molecules. See below for details. |
-| suppliers  | Query | No       | Comma separated list of suppliers to restrict results to. |
-| limit      | Query | No       | The maximum number of paths to return from the graph query. Default is 1000 and this is usually more than enough. Values greater than 5000 are not permitted. | 
+| Name   | Type  | Required | Description |
+|--------|-------|----------|-------------|
+| smiles | URL   | Yes      | The smiles string for the molecule to look for. See below for requirements about standardisation and canonicalisation. |
+| hac    | Query | No       | The difference in heavy atom count compared to the query that is allowed it the result molecules. |
+| rac    | Query | No       | The difference in ring atom count compared to the query that is allowed it the result molecules. |
+| hops   | Query | No       | The number of graph edges to traverse from the query molecule. Must be 1 or 2. Default is 1. |
+| calcs  | Query | No       | Comma separated list of the calculations to be performed on the resulting molecules. See below for details. |
+| limit  | Query | No       | The maximum number of paths to return from the graph query. Default is 1000 and this is usually more than enough. Values greater than 5000 are not permitted. | 
 
 An example query run with [curl], where the Fragnet server address is
 set in the `FRAGNET_SERVER` environment variable (e.g. to 'http://localhost:8080'), might look like this:
 
 ```
-curl "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO&suppliers=MolPort"
+curl "${FRAGNET_SERVER}/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ``` 
 Note that the query molecule is specified as smiles and must by URL encoded.
 
@@ -102,7 +94,7 @@ this property. e.g. `calcs=LOGP,SIM_RDKIT_TANIMOTO`
 
 ### Authentication
 
-#### Linux or Mac
+#### Linux for Mac
 
 In the Squonk production environment access to the search service will require authentication.
 To achieve this you will need to:
@@ -124,7 +116,7 @@ You can use `echo $token` to make sure you have obtained a token.
 
 To perform step 4 you will need to do something like this:
 ```
-curl -LH "Authorization: bearer $token" "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+curl -LH "Authorization: bearer $token" "${FRAGNET_SERVER}/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ```
 Notice how the token is sent with the request.
 
@@ -151,23 +143,17 @@ echo %token%
 4. Use it like this:
 
 ```
-curl -LH "Authorization: bearer %token%" "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+curl -LH "Authorization: bearer %token%" "${FRAGNET_SERVER}/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ```
 
 ## Result Details
 
 Results are returned in JSON format.
 
-### Supplier results
-
-This is a simple JSON array of supplier names. e.g. `["MolPort","eMolecules"]`.
-If restricting searches to specific suppliers then specify the `suppliers` query parameter and give it the value
-of a comma separated list of suppliers. These must be specified __exactly__ as found in the result of this query. 
-
 ### Fragment Graph results.
 
 This is a JSON serialised form of the 
-[org.squonk.fragnet.search.model.v2.FragmentGraph](src/main/java/org/squonk/fragnet/search/model/v2/FragmentGraph.java)
+[org.squonk.fragnet.search.model.v1.FragmentGraph](src/main/java/org/squonk/fragnet/search/model/v1/FragmentGraph.java)
 Java class.
 
 This has the following top level properties describing the query:
@@ -181,7 +167,7 @@ This has the following top level properties describing the query:
 The Nodes and Edges are present as top level properties.
 
 Nodes are present as the **nodes** property which is an array of JSON serialised
-[org.squonk.fragnet.search.model.v2.MoleculeNode](src/main/java/org/squonk/fragnet/search/model/v2/MoleculeNode.java) instances
+[org.squonk.fragnet.search.model.v1.MoleculeNode](src/main/java/org/squonk/fragnet/search/model/v1/MoleculeNode.java) instances
 which provide the following properties: 
 
 * **id** - a unique ID for the node. Only to be used internally. The ID for a particular molecule will change between different databases. 
@@ -193,7 +179,7 @@ part of the fragment network but links into it through its **NET_MOL** non-isome
 * **props** - a map of properties such as `hac` and any calculations that were requested.
 
 Edges are present as the `edges` property which is an array of JSON serialised
-[org.squonk.fragnet.search.model.v2.MoleculeEdge](src/main/java/org/squonk/fragnet/search/model/v2/MoleculeEdge.java) instances
+[org.squonk.fragnet.search.model.v1.MoleculeEdge](src/main/java/org/squonk/fragnet/search/model/v1/MoleculeEdge.java) instances
 which provide the following properties:
 
 * **id** - a unique ID for the edge. Only to be used internally. The ID for a particular molecule will change between different databases. 
@@ -209,8 +195,8 @@ For longer term persistence use the SMILES string of the node.
 An example results file can be found [here](neighbourhood-search.json).
 
 This is a JSON serialised form of the 
-[org.squonk.fragnet.search.model.v2.NeighbourhoodGraph](src/main/java/org/squonk/fragnet/search/model/v2/NeighbourhoodGraph.java)
-Java class which extends from the `org.squonk.fragnet.search.model.v2.FragmentGraph` class described above.
+[org.squonk.fragnet.search.model.v1.NeighbourhoodGraph](src/main/java/org/squonk/fragnet/search/model/v1/NeighbourhoodGraph.java)
+Java class which extends from the `org.squonk.fragnet.search.model.v1.FragmentGraph` class described above.
 Correspondingly it contains all the properties of the Fragment Graph plus these additional ones that handle the
 grouping of the result molecules based on the type of change. This is as described in the Astex paper, but extended
 slightly to better handle the fact that traversing 2 edges can allow multiple paths between the query molecule and a result
@@ -222,7 +208,7 @@ Additional properties are:
 * **refmol** - the query smiles that formed the basis of the search
 * **groups** - an array of groupings of the nodes according to the type of change.
 
-Each **group** is a JSON serialised `org.squonk.fragnet.search.model.v2.NeighbourhoodGraph.Group`
+Each **group** is a JSON serialised `org.squonk.fragnet.search.model.v1.NeighbourhoodGraph.Group`
 instance (this is an inner class of `NeighbourhoodGraph`) and has properties for:
 
 * **key** - a generated key for the group based on the traversal path

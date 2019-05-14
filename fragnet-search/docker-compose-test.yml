@@ -1,0 +1,37 @@
+version: '3.1'
+services:
+
+  # This is a test container with a small amount of data (1000 molecules).
+  # Loading this data takes a few seconds. After loading you can connect to the database
+  # at http://localhost:7474/browser/
+  # You might want to add the following indexes, but for such a small amount of data it may
+  # have little impact:
+  # CREATE INDEX ON :VENDOR(cmpd_id);
+  # CREATE INDEX ON :F2(smiles);
+  #
+  neo4j:
+    image: informaticsmatters/fragnet-test:3.5
+    environment:
+      NEO4J_dbms_memory_pagecache_size: 2g
+      NEO4J_dbms_memory_heap_initial__size: 2g
+      NEO4J_dbms_memory_heap_max__size: 2g
+      NEO4J_AUTH: neo4j/test123
+    ports:
+    - "7474:7474"
+    - "7687:7687"
+
+  # This container runs the REST API that queries the test database.
+  # Some useful queries are:
+  # export FRAGNET_SERVER=http://localhost
+  # curl $FRAGNET_SERVER/fragnet-search/rest/v2/search/suppliers
+  # curl $FRAGNET_SERVER/fragnet-search/rest/ping
+  # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/neighbourhood/c1ccccc1?hac=10&rac=3&hops=2"
+
+  fragnet-search:
+    image: squonk/fragnet-search:latest
+    environment:
+      NEO4J_PASSWORD: test123
+    ports:
+    - "80:8080"
+    depends_on:
+      - neo4j

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.squonk.fragnet.search.model;
+package org.squonk.fragnet.search.model.v2;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,11 +22,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.RDKit.ExplicitBitVect;
 import org.RDKit.RWMol;
 import org.RDKit.SparseIntVectu32;
-import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Path;
 import org.neo4j.driver.v1.types.Relationship;
 import org.squonk.fragnet.chem.Calculator;
+import org.squonk.fragnet.search.FragmentUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -34,19 +34,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
+/**
+ * Represents the a fragment graph, a directed acyclic graph of molecules and their fragments that is the result
+ * of a query against the fragment network.
+ * The key parts of this are the nodes (molecules and fragments) and the edges (connections between the nodes).
+ */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"query", "parameters", "resultAvailableAfter", "processingTime", "calculationTime", "nodes", "edges"})
+@JsonPropertyOrder({"apiVersion","query", "parameters", "resultAvailableAfter", "processingTime", "calculationTime", "nodes", "edges"})
 public class FragmentGraph {
 
     private static final Logger LOG = Logger.getLogger(FragmentGraph.class.getName());
+    private static final String API_VERSION = "v2";
 
+    protected final Map<Long, MoleculeNode> nodes = new LinkedHashMap<>();
+    protected final Map<Long, MoleculeEdge> edges = new LinkedHashMap<>();
     private String query;
-    private Map<String, Object> parameters;
+    private final Map<String, Object> parameters = new LinkedHashMap<>();
     private Long resultAvailableAfter;
     private Long processingTime;
     private Long calculationTime;
-    protected Map<Long, MoleculeNode> nodes = new LinkedHashMap<>();
-    protected Map<Long, MoleculeEdge> edges = new LinkedHashMap<>();
+
 
     public FragmentGraph() {
 
@@ -57,9 +64,21 @@ public class FragmentGraph {
             @JsonProperty("edges") Collection<MoleculeEdge> edges,
             @JsonProperty("query") String query,
             @JsonProperty("parameters") Map<String, Object> parameters,
-            @JsonProperty("resultAvailableAfter") Long resultAvailableAfter) {
+            @JsonProperty("resultAvailableAfter") Long resultAvailableAfter,
+            @JsonProperty("processingTime") Long processingTime,
+            @JsonProperty("calculationTime") Long calculationTime
+            ) {
         nodes.forEach((n) -> this.nodes.put(n.getId(), n));
         edges.forEach((e) -> this.edges.put(e.getId(), e));
+        this.query = query;
+        setParameters(parameters);
+        this.resultAvailableAfter = resultAvailableAfter;
+        this.processingTime = processingTime;
+        this.calculationTime = calculationTime;
+    }
+
+    public String getApiVersion() {
+        return API_VERSION;
     }
 
     public int numNodes() {
@@ -83,7 +102,9 @@ public class FragmentGraph {
     }
 
     public void setParameters(Map<String, Object> parameters) {
-        this.parameters = parameters;
+        if (parameters != null) {
+            this.parameters.putAll(parameters);
+        }
     }
 
     public Long getResultAvailableAfter() {

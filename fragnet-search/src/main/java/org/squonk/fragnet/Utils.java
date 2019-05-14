@@ -15,16 +15,20 @@
  */
 package org.squonk.fragnet;
 
-import org.jboss.weld.exceptions.IllegalStateException;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileLock;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class Utils {
 
     private static final Logger LOG = Logger.getLogger(Utils.class.getName());
+    private static DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
     /**
      * Get a value that might be configured externally. Looks first for a system property
@@ -38,14 +42,22 @@ public class Utils {
      * @param defaultValue The value to fall back to.
      * @return The configured value
      */
-    public static String getConfiguration(String name, String defaultValue)
-        throws IllegalStateException {
+    public static String getConfiguration(String name, String defaultValue) throws IllegalStateException {
+
+        LOG.fine("Looking for " + name);
+
+        //Map<String,String> env = System.getenv();
+        //env.entrySet().forEach((e) -> LOG.info("ENV " + e.getKey() + " -> " + e.getValue()));
+        //String value = env.get(name);
+        //LOG.info("FOUND ENV " + value);
 
         String s = System.getProperty(name);
+        LOG.finer("Found prop " + s);
         if (s != null && s.length() > 0) {
             return s;
         }
         s = System.getenv(name);
+        LOG.finer("Found env " + s);
         if (s != null && s.length() > 0) {
             return s;
         }
@@ -55,14 +67,52 @@ public class Utils {
             throw new IllegalStateException("Nothing found for '" + name + "'");
         }
         return defaultValue;
+    }
 
+    public static DateFormat getDateFormat() {
+        return DATE_FORMAT;
+    }
+
+    /** Get the current time using the declared DateFormats
+     *
+     * @return
+     */
+    public static String getCurrentTime() {
+        return DATE_FORMAT.format(new Date());
+    }
+
+    public static File createLogfile(String filename) {
+
+        File queryLogFile = null;
+        String home = System.getProperty("user.home");
+        if (home != null) {
+            File file = new File(home, filename);
+            if (Utils.createFileIfNotPresent(file) == 1) {
+                try {
+                    // test we can write to it
+                    try (FileOutputStream fos = new FileOutputStream(file)) {
+                        String msg = "Query log created on " + Utils.getCurrentTime() + "\n";
+                        fos.write(msg.getBytes());
+                    }
+                } catch (Exception e) {
+                    LOG.warning("Failed to create query log file for writing");
+                    file = null;
+                }
+            }
+            queryLogFile = file;
+            LOG.info("Writing query log to " + file.getPath());
+
+        } else {
+            LOG.warning("No home dir found. Cannot create " + filename);
+        }
+        return queryLogFile;
     }
 
     public static void appendToFile(File file, String text) throws IOException {
         if (createFileIfNotPresent(file) >= 0) {
             FileOutputStream fos = new FileOutputStream(file, true);
             try {
-                java.nio.channels.FileLock lock = fos.getChannel().lock();
+                FileLock lock = fos.getChannel().lock();
                 try {
                     fos.write(text.getBytes());
                 } finally {

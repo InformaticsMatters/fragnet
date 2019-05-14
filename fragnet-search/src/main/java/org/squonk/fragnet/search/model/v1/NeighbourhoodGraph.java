@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.squonk.fragnet.search.model;
+package org.squonk.fragnet.search.model.v1;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Path;
 import org.neo4j.driver.v1.types.Relationship;
+import org.squonk.fragnet.search.FragmentUtils;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
  * and will contain one or more nodes. Each group thus represents a transform 'vector' and can involve one or two edges.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"query", "parameters", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "nodes", "edges", "groups"})
+@JsonPropertyOrder({"apiVersion","query", "parameters", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "nodes", "edges", "groups"})
 public class NeighbourhoodGraph extends FragmentGraph {
 
     private static final Logger LOG = Logger.getLogger(NeighbourhoodGraph.class.getName());

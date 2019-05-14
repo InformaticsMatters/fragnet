@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.squonk.fragnet.search.model;
+package org.squonk.fragnet.search;
 
 import org.neo4j.driver.v1.types.MapAccessor;
 import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Path;
 import org.neo4j.driver.v1.types.Relationship;
+import org.squonk.fragnet.search.model.v1.MoleculeEdge;
+import org.squonk.fragnet.search.model.v1.MoleculeNode;
 
 public class FragmentUtils {
 

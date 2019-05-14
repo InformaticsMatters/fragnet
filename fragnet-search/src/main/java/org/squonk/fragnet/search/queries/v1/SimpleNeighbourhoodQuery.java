@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.squonk.fragnet.search.queries;
+package org.squonk.fragnet.search.queries.v1;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,39 +21,39 @@ import org.neo4j.driver.v1.*;
 import org.neo4j.driver.v1.types.Path;
 import org.squonk.fragnet.chem.Calculator;
 import org.squonk.fragnet.chem.MolStandardize;
-import org.squonk.fragnet.search.model.FragmentGraph;
-import org.squonk.fragnet.search.model.NeighbourhoodGraph;
+import org.squonk.fragnet.search.model.v1.NeighbourhoodGraph;
+import org.squonk.fragnet.search.queries.AbstractSimpleNeighbourhoodQuery;
+import org.squonk.fragnet.search.queries.QueryAndParams;
 
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static org.neo4j.driver.v1.Values.parameters;
 
-public class SimpleNeighbourhoodQuery {
+/**
+ * v1 API Query for fragment network neighbours
+ *
+ */
+public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
 
     private static final Logger LOG = Logger.getLogger(SimpleNeighbourhoodQuery.class.getName());
 
-    private final Session session;
-    private int limit = 1000;
-
     public SimpleNeighbourhoodQuery(Session session) {
-        this.session = session;
-    }
-
-    public int getLimit() {
-        return limit;
-    }
-
-    public void setLimit(int limit) {
-        this.limit = limit;
+        super(session);
     }
 
     // example smiles c1ccc(Nc2nc3ccccc3o2)cc1
     private final String NEIGHBOURHOOD_QUERY = "MATCH p=(m:F2)-[:F2EDGE%s]-(e:MOL)\n" +
             "WHERE m.smiles=$smiles %s\nRETURN p LIMIT $limit";
+
+    protected String getQueryTemplate() {
+        return NEIGHBOURHOOD_QUERY;
+    }
 
     /** Execute a query for the neighbourhood around a particular molecule in the fragment network.
      *
@@ -67,6 +67,18 @@ public class SimpleNeighbourhoodQuery {
 
         String stdSmiles = MolStandardize.prepareMol(smiles);
 
+        QueryAndParams qandp = generateCypherQuery(stdSmiles, hops, hac, rac);
+
+        NeighbourhoodGraph graph = getSession().writeTransaction((tx) -> {
+            LOG.info("Executing Query: " + qandp.getQuery());
+            StatementResult result = tx.run(qandp.getQuery(), parameters(qandp.getParams().toArray()));
+            return handleResult(result, stdSmiles);
+        });
+        return graph;
+    }
+
+    private QueryAndParams generateCypherQuery(String stdSmiles, Integer hops, Integer hac, Integer rac) {
+
         if (hops == null) {
             hops = 1;
         }
@@ -75,7 +87,7 @@ public class SimpleNeighbourhoodQuery {
         params.add("smiles");
         params.add(stdSmiles);
         params.add("limit");
-        params.add(limit);
+        params.add(getLimit());
 
         String filter = "";
 
@@ -92,23 +104,19 @@ public class SimpleNeighbourhoodQuery {
         }
 
         String q;
+        String queryTemplate = getQueryTemplate();
         if (hops == 1) {
-            q = String.format(NEIGHBOURHOOD_QUERY, "", filter);
+            q = String.format(queryTemplate, "", filter);
         } else if (hops == 2) {
-            q = String.format(NEIGHBOURHOOD_QUERY, "*1..2", filter);
+            q = String.format(queryTemplate, "*1..2", filter);
         } else {
             throw new IllegalArgumentException("Hops must be 1 or 2");
         }
 
-        NeighbourhoodGraph graph = session.writeTransaction((tx) -> {
-            LOG.info("Executing Query: " + q);
-            StatementResult result = tx.run(q, parameters(params.toArray()));
-            return handleResult(result, stdSmiles);
-        });
-        return graph;
+        return new QueryAndParams(q, params);
     }
 
-    private NeighbourhoodGraph handleResult(@NotNull StatementResult result, @NotNull String querySmiles) {
+    protected NeighbourhoodGraph handleResult(@NotNull StatementResult result, @NotNull String querySmiles) {
 
         NeighbourhoodGraph graph = new NeighbourhoodGraph(querySmiles);
         long t0 = new Date().getTime();
@@ -131,6 +139,7 @@ public class SimpleNeighbourhoodQuery {
 
         return graph;
     }
+
 
     public static void main(String... args) throws Exception {
 
