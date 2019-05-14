@@ -40,8 +40,11 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
 
     private static final Logger LOG = Logger.getLogger(SimpleNeighbourhoodQuery.class.getName());
 
-    public SimpleNeighbourhoodQuery(Session session) {
+    private final Map<String,String> supplierMappings;
+
+    public SimpleNeighbourhoodQuery(Session session, Map<String,String> supplierMappings) {
         super(session);
+        this.supplierMappings = supplierMappings;
     }
 
     /** Query has 3 values that are substituted
@@ -56,11 +59,6 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
      */
     private final String NEIGHBOURHOOD_QUERY = "MATCH p=(m:F2)-[:FRAG%s]-(e:Mol%s)\n" +
             "WHERE m.smiles=$smiles AND e.smiles <> $smiles%s\nRETURN p LIMIT $limit";
-
-    private static final Map<String, String> SUPPLIER_MAPPINGS = new HashMap<>();
-    static {
-        SUPPLIER_MAPPINGS.put("MolPort", "V_MP");
-    }
 
     protected String getQueryTemplate() {
         return NEIGHBOURHOOD_QUERY;
@@ -122,12 +120,12 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
         } else {
             StringBuilder builder = new StringBuilder();
             for (String supplier: suppliers) {
-                String code = SUPPLIER_MAPPINGS.get(supplier);
-                if (code == null) {
+                String label = supplierMappings.get(supplier);
+                if (label == null) {
                     // only accept valid suppliers or we risk injection attacks
                     throw new IllegalArgumentException("Invalid supplier: " + supplier);
                 }
-                builder.append(":").append(code);
+                builder.append(":").append(label);
             }
             vendorLabels = builder.toString();
         }
@@ -169,17 +167,10 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
         return graph;
     }
 
-    private List<String> getSuppliers() {
-        SuppliersQuery query = new SuppliersQuery(getSession());
-        List<String> results = query.getSuppliers();
-        return results;
-    }
-
-
     public static final void main(String[] args) {
         GraphDB db = new GraphDB();
         Session session = db.getSession();
-        SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session);
+        SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session, Collections.emptyMap());
         NeighbourhoodGraph result = query.executeNeighbourhoodQuery("c1ccccc1", 2, 10, 3, null);
         LOG.info("Found " + result.getNodes().size() + " nodes");
     }

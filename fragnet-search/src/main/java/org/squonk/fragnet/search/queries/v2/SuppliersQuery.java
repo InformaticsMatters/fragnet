@@ -7,7 +7,7 @@ import org.neo4j.driver.v1.types.Node;
 import org.squonk.fragnet.service.GraphDB;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -23,21 +23,26 @@ public class SuppliersQuery {
         this.session = session;
     }
 
-    public List<String> getSuppliers() {
-        List<String> suppliers = session.writeTransaction((tx) -> {
+    public List<Map<String,String>> getSuppliers() {
+        List<Map<String,String>> suppliers = session.writeTransaction((tx) -> {
             LOG.info("Executing Query: " + QUERY);
             StatementResult result = tx.run(QUERY);
-            List<String> results = new ArrayList<>();
+            List<Map<String,String>> results = new ArrayList<>();
             result.stream().forEachOrdered((r) -> {
                 LOG.finer("Handling record " + r);
                 Map<String, Object> m = r.asMap();
                 m.forEach((k,v)  -> {
                     //LOG.info("Found " + k + " -> " + v);
                     Node n = (Node)v;
-                    Value value = n.get("name");
-                    String name = value.asString();
-                    LOG.fine("Found Supplier " + name);
-                    results.add(name);
+                    Map<String,String> map = new LinkedHashMap<>();
+                    Value nameValue = n.get("name");
+                    String name = nameValue.asString();
+                    Value labelValue = n.get("label");
+                    String label = labelValue.asString();
+                    LOG.fine("Found Supplier " + name + " label=" + label);
+                    map.put("name", name);
+                    map.put("label", label);
+                    results.add(map);
                 });
             });
             return results;
@@ -49,7 +54,7 @@ public class SuppliersQuery {
         GraphDB db = new GraphDB();
         Session session = db.getSession();
         SuppliersQuery query = new SuppliersQuery(session);
-        List<String> suppliers = query.getSuppliers();
+        List<Map<String,String>> suppliers = query.getSuppliers();
         LOG.info("Found " + suppliers.size() + " suppliers");
     }
 

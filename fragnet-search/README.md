@@ -160,9 +160,10 @@ Results are returned in JSON format.
 
 ### Supplier results
 
-This is a simple JSON array of supplier names. e.g. `["MolPort","eMolecules"]`.
-If restricting searches to specific suppliers then specify the `suppliers` query parameter and give it the value
-of a comma separated list of suppliers. These must be specified __exactly__ as found in the result of this query. 
+This is a simple JSON array of supplier objects. e.g. `[{"name":"MolPort","label":"V_MP"},{"name":"eMolecules","label":"V_EMOLS"}]`.
+Each supplier object has a name and label property.
+If restricting searches to specific suppliers then specify the suppliers query parameter and give it the value
+of a comma separated list of supplier names. These must be specified __exactly__ as found in the result of this query. 
 
 ### Fragment Graph results.
 

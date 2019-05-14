@@ -29,12 +29,14 @@ import org.squonk.fragnet.service.GraphDB;
 
 import javax.inject.Inject;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Defines the v2 REST APIs
- *
+/**
+ * Defines the v2 REST APIs
  */
 public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder {
 
@@ -42,6 +44,9 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
     @Inject
     private GraphDB graphdb;
+
+    private List<Map<String, String>> suppliers;
+    private Map<String, String> supplierMappings;
 
     public FragnetSearchRouteBuilder() {
         this(true);
@@ -95,31 +100,45 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         ;
     }
 
+    /** Suppliers are read once the first time they are needed.
+     * It is assumed that the database will not change.
+     * @param exch
+     */
     void executeSuppliersQuery(Exchange exch) {
+
         Message message = exch.getIn();
 
         try {
-        long t0 = new Date().getTime();
-        String username = getUsername(exch);
-
-        try (Session session = graphdb.getSession()) {
-            // execute the query
-            SuppliersQuery query = new SuppliersQuery(session);
-
-            List<String> result = query.getSuppliers();
-            message.setBody(result);
+            List<Map<String, String>> suppliers = getSuppliers();
+            message.setBody(suppliers);
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-            long t1 = new Date().getTime();
-
-            LOG.info("Suppliers query for user " + username + " took " + (t1 - t0) + "ms");
-        }
-
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Query Failed", ex);
             message.setBody("{\"error\": \"Query Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
         }
+    }
 
+    private List<Map<String, String>> getSuppliers() {
+        if (suppliers == null) {
+            long t0 = new Date().getTime();
+            try (Session session = graphdb.getSession()) {
+                SuppliersQuery query = new SuppliersQuery(session);
+                suppliers = query.getSuppliers();
+            }
+            long t1 = new Date().getTime();
+            LOG.info("Suppliers query took " + (t1 - t0) + "ms");
+            supplierMappings = new HashMap<>();
+            suppliers.forEach((m) -> supplierMappings.put(m.get("name"), m.get("label")));
+        }
+        return suppliers;
+    }
+
+    private Map<String, String> getSupplierMappings() {
+        if (suppliers == null || supplierMappings == null) {
+            getSuppliers();
+        }
+        return supplierMappings;
     }
 
     void executeNeighbourhoodQuery(Exchange exch) {
@@ -156,7 +175,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             NeighbourhoodGraph result;
             try (Session session = graphdb.getSession()) {
                 // execute the query
-                SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session);
+                SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session, getSupplierMappings());
                 if (limit != null) { // default limit is 1000
                     query.setLimit(limit);
                 }
