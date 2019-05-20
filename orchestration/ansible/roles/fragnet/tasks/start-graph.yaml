@@ -2,7 +2,7 @@
 
 # Has the user defined suitable key variables?
 
-- name: Assert keycloak variables
+- name: Assert neo4j password
   fail:
     msg: You must provide a neo4j password
   when: graph_password == ''
@@ -11,15 +11,11 @@
 
 - name: Copy cypher-script
   copy:
-    src: graph/cypher.script
+    src: graph/{{ graph_cypher_script }}
     dest: "{{ graph_cypher_script_path }}/"
-
-# Launches the Graph DB (neo4j in this case)
-# using the loader directory as an input.
-# The graph DB is built locally on the cluster
-# by the build task in the 'prepare.yaml' play.
-#
-# The 'import_dir' is the one referred to in the import script
+  when:
+  - graph_cypher_script is defined
+  - graph_cypher_script|length > 0
 
 - name: Start graph container
   docker_container:

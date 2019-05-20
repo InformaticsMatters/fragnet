@@ -5,24 +5,29 @@
 # The graph to install.
 # This has to be a key in the 'graph_set'
 graph_name: molport_2019_05
-# The graph origin type (it's either a 'combination' or a 'build')
-# along with an identity, which is a number for a combination type or
-# a build-relative sub-path like 'activity/senp7/v1/build-2' for a build type.
-graph_origin_type: build
-graph_origin_id: vendor/molport/2019-05/build-1
-
-graph_image: informaticsmatters/docker-neo4j
-graph_version: 3.5.2
-graph_data_path: /neo4j/graph
 
 # The graph set consisting of named graphs listing the desired database root
-# (typically a mount path on the graph node).
+# (typically a mount path on the graph node). You must set 'graph_name',
+# which is used as a selector for this set.
+#
 graph_set:
   molport:
-    graph_root: /graph-molport-original
+    root: /graph-molport-original
+    origin_type: combination
+    origin_id: 1
+    cypher_script: cypher.script
   molport_build_3:
-    graph_root: /graph-molport-2018-11/molport-build-3/
+    root: /graph-molport-2018-11/molport-build-3
+    origin_type: build
+    origin_id: vendor/molport/2018-11/build-3
+    cypher_script: cypher.script
   molport_2019_05:
-    graph_root: /graph-molport-2019-05
+    root: /graph-molport-2019-05
+    origin_type: build
+    origin_id: vendor/molport/2019-05/build-1
+    cypher_script: cypher.script
   senp7:
-    graph_root: /graph-neo4j
+    root: /graph-neo4j
+    origin_type: build
+    origin_id: activity/senp7/v1/build-3
+    cypher_script: cypher.script
