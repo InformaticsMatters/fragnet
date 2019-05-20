@@ -12,11 +12,12 @@ resource "aws_instance" "graph-node" {
                             "${aws_security_group.fragnet.id}"]
   subnet_id = "${var.aws_subnet_id}"
   source_dest_check = false
+  disable_api_termination = false
 
   associate_public_ip_address = true
 
   root_block_device {
-    volume_size = "${var.data_volume_size}"
+    volume_size = "${var.root_volume_size}"
     volume_type = "gp2"
   }
 

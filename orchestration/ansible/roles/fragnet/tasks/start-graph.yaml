@@ -9,6 +9,11 @@
 
 - include_tasks: set-database-facts.yaml
 
+- name: Copy cypher-script
+  copy:
+    src: graph/cypher.script
+    dest: "{{ graph_cypher_script_path }}/"
+
 # Launches the Graph DB (neo4j in this case)
 # using the loader directory as an input.
 # The graph DB is built locally on the cluster
@@ -19,7 +24,7 @@
 - name: Start graph container
   docker_container:
     name: graph
-    image: informaticsmatters/docker-neo4j:{{ graph_version }}
+    image: "{{ graph_image }}:{{ graph_version }}"
     published_ports:
     - 7474:7474
     - 7687:7687
@@ -28,7 +33,7 @@
       NEO4J_dbms_memory_pagecache_size: 20G
       NEO4J_dbms_memory_heap_initial__size: 8G
       NEO4J_dbms_memory_heap_max__size: 8G
-      NEO4J_dbms_directories_data: /neo4j/graph
+      NEO4J_dbms_directories_data: /data
       NEO4J_dbms_directories_logs: /neo4j/log
       NEO4J_dbms_connector_bolt_advertised__address: "{{ inventory_hostname }}:7687"
       NEO4J_EDITION: community
@@ -37,8 +42,9 @@
       EXTENSION_SCRIPT: /data-loader/{{ graph_loader_script }}
     volumes:
     - "{{ graph_loader_path }}:/data-loader:Z"
-    - "{{ graph_db_path }}:/neo4j/graph:Z"
+    - "{{ graph_db_path }}:/data:Z"
     - "{{ graph_log_path }}:/neo4j/log:Z"
+    - "{{ graph_cypher_script_path }}:/cypher-script:Z"
     restart_policy: "{{ graph_restart_policy }}"
   become: yes
 

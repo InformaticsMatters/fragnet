@@ -4,36 +4,25 @@
 
 # The graph to install.
 # This has to be a key in the 'graph_set'
-graph_name: molport
+graph_name: molport_2019_05
 # The graph origin type (it's either a 'combination' or a 'build')
 # along with an identity, which is a number for a combination type or
-# a sub-path like 'activity/senp7/v1/build-2' for a build type.
-graph_origin_type: combination
-graph_origin_id: 1
+# a build-relative sub-path like 'activity/senp7/v1/build-2' for a build type.
+graph_origin_type: build
+graph_origin_id: vendor/molport/2019-05/build-1
 
-# The graph set consisting of named graphs listing the
-# desired loader, database (graph) and log directories
-# for each graph we can deploy.
-#
-# - The host loader directory is where the graph
-#   combination files are downloaded to and is different
-#   for each database
-# - The host db directory is the server directory that will be
-#   mounted into the graph DB container to house
-#   the compiled database, this is different for each db.
-# - The host log directory mounted  for the graph database.
-#   This can be shared.
-#
+graph_image: informaticsmatters/docker-neo4j
+graph_version: 3.5.2
+graph_data_path: /neo4j/graph
+
+# The graph set consisting of named graphs listing the desired database root
+# (typically a mount path on the graph node).
 graph_set:
   molport:
-    graph_loader_directory: /neo4j/loader
-    graph_db_directory: /neo4j/graph
-    graph_log_directory: /neo4j/log
+    graph_root: /graph-molport-original
   molport_build_3:
-    graph_loader_directory: /graph/molport-build-3/loader
-    graph_db_directory: /graph/molport-build-3/graph
-    graph_log_directory: /graph/molport-build-3/log
+    graph_root: /graph-molport-2018-11/molport-build-3/
+  molport_2019_05:
+    graph_root: /graph-molport-2019-05
   senp7:
-    graph_loader_directory: /neo4j/loader-senp7
-    graph_db_directory: /neo4j/graph-senp7
-    graph_log_directory: /neo4j/log-senp7
+    graph_root: /graph-neo4j

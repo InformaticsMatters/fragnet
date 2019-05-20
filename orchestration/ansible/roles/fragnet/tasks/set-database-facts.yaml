@@ -8,10 +8,22 @@
     msg: You must provide a graph_name
   when: graph_name == ''
 
+- name: Expose graph name
+  debug:
+    var: graph_name
+
 - name: Set database facts
   set_fact:
-    graph_loader_path: "{{ item.value.graph_loader_directory }}"
-    graph_db_path: "{{ item.value.graph_db_directory }}"
-    graph_log_path:  "{{ item.value.graph_log_directory }}"
+    graph_loader_path: "{{ item.value.graph_root }}/loader"
+    graph_db_path: "{{ item.value.graph_root }}/graph"
+    graph_log_path:  "{{ item.value.graph_root }}/log"
+    graph_cypher_script_path:  "{{ item.value.graph_root }}/cypher-script"
   loop: "{{ lookup('dict', graph_set) }}"
-  when: graph_name in item.key
+  when: graph_name == item.key
+
+# The variables above must have been set in one iteration of the loop.
+# Checking ine of them checks them all
+
+- name: Assert database facts
+  assert:
+    that: graph_loader_path is defined

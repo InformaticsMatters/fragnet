@@ -36,8 +36,8 @@ To create the cluster (and write the ansible inventory file): -
 
 >   Terraform state is preserved in an AWS S3 bucket.
 
-The cluster creation renders the corresponding Ansible inventory file
-with the created host's details, so Ansible is ready to run.
+The cluster creation renders the corresponding `ansible/inventory` file
+so Ansible playbooks (executed form the `ansible` directory) are ready to run.
  
 To destroy the cluster, return to the Terraform AWS directory and run: -
 
@@ -62,7 +62,8 @@ will expect. Before going any further...
 
 ### The ssh-agent
 You might need to use the ssh agent to allow Ansible access to the
-created hosts. You just need to add the key used by terraform. i.e. :-
+created hosts. You just need to add the `aws_key_name` that's used by
+terraform. i.e.:-
 
     $ eval $(ssh-agent)
     $ ssh-add ~/.ssh/abc-im
@@ -138,7 +139,7 @@ tasks like `deploy`, `stop` and `start`: -
 
 ## Deploying a new database
 You **must** stop the existing containers before you do this. You cannot
-deploy a 2nd database while the graph server is serving one. So: -
+deploy new database while the graph server is serving one. So: -
 
     $ ansible-playbook playbooks/fragnet/stop-containers.yaml 
 
@@ -155,7 +156,45 @@ deploy: -
     (`neo4j`). Before you go any further login to the server at
     `http://${graph_host}:7474` and login and then change the password
     using your chosen NEO4J_PASSWORD so it can be used.
-         
+     
+## Adding volumes
+Unless the database is very small it is probably wise to create separate
+volumes for each one, remembering that there may be volume instance [limits].
+
+For now, add volumes in the AWS console.
+
+You then need to: -
+
+-   format (typically a type like `ext4`) the volume
+-   mount the volume (see [EBS Volumes])
+-   add the volume to fstab for remounts after reboot
+
+This is typically a sequence of commands on the graph server node like...
+
+    $ lsblk
+    $ sudo file -s /dev/<NAME>
+    $ sudo mkfs -t ext4 /dev/<NAME>
+    $ sudo mkdir /graph-<SET>
+    $ sudo mount /dev/<NAME> /graph-<SET>
+    
+Where `NAME` is the block device name and `SET` is the `graph_set` name you
+expect to deploy to this mounted volume.
+
+>   Remember to edit the `fstab` so the volume is mounted when the node is
+    restarted (see the AWS [mount] documentation for details on how this is
+    done).
+    
+>   **CRUCIALLY** ... If you ever boot your instance without this volume
+    attached (for example, after moving the volume to another instance),
+    the `nofail` mount option enables the instance to boot even if there are
+    errors mounting the volume. Debian derivatives, including Ubuntu
+    versions earlier than 16.04, must also add the `nobootwait` mount option.
+    (this is from the AWS [mount] documentation)
+    
+>   **FURTHER** ... Errors in the `/etc/fstab` file can render a system
+    unbootable. Do not shut down a system that has errors in the
+    `/etc/fstab` file.
+
 ## Example REST interaction
 Get your token (jq) with a FRAGNET_USERNAME and FRAGNET_PASSWORD ...
 
@@ -172,8 +211,32 @@ And then curl the FRAGNET_HOST...
     $ curl -LH "Authorization: bearer $token" \
         "http://${FRAGNET_HOST}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 
-## Example graph query
+## Example graph queries
+You can access the cypher-shell form within the graph container (assuming
+you have the neo4j password): -
 
-    MATCH (c:MolPort)-->(m:F2)-->(a:Available)
-        WHERE m.smiles = 'NC1CCCNC1' RETURN c,m,a LIMIT 10
-        
+    $ docker exec --it <CONTAINTER-ID> bash
+    $ export NEO4J_USERNAME=neo4j
+    $ export NEO4J_PASSWORD=<PASSWORD>
+    $ /var/lib/neo4j/bin/cypher-shell "CALL db.indexes;"
+    
+A query to list index tables: -
+
+    CALL db.indexes;
+
+Count nodes and edges: -
+
+    match (n) return count(*);
+    match (n)-[r]->() return count(r);
+
+An example MolPort query for the 'original' DB: -
+
+    match (c:MolPort)-->(m:F2)-->(a:Available)
+        where m.smiles = 'B(C1CCCCC1)C1CCCCC1.CO' return c,m,a limit 10;
+
+---
+
+[ebs volumes]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
+[limits]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/volume_limits.html
+[mount]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html#ebs-mount-after-reboot
+       
