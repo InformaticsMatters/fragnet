@@ -17,7 +17,7 @@
     pause:
       prompt: |-
         Are you sure you want to deploy the {{ graph_name }} database?
-        HAVE YOU RUN THE "sop-containers" PLAYBOOK?
+        HAVE YOU RUN THE "stop-containers" PLAYBOOK?
         Press return to continue if you do and have.
         Press Ctrl+c and then "a" if you've changed your mind
 

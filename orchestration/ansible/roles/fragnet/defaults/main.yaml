@@ -41,6 +41,9 @@ wait_for_graph: no
 minutes_to_wait_for_graph: 360
 # The container restart policy for the Graph database...
 graph_restart_policy: always
+# Synchronise the S3 graph data files?
+# If set graph import files will be synchronised with those on S3
+synchronise_origin: true
 
 # Fragnet application variables...
 # -------
