@@ -59,6 +59,8 @@ fragnet_username: "{{ lookup('env', 'FRAGNET_USERNAME') }}"
 fragnet_password: "{{ lookup('env', 'FRAGNET_PASSWORD') }}"
 # The container restart policy for the Fragnet server...
 fragnet_restart_policy: always
+# Display result details?
+fragnet_debug: yes
 
 # Keycloak variables...
 # --------

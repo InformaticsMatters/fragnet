@@ -22,28 +22,13 @@
 # `orchestration/README.md`, which is the source of the original
 # cURL command sequence for the example being automatically tested here.
 
-- name: Get an API token
-  uri:
-    url: https://squonk.it/auth/realms/squonk/protocol/openid-connect/token
-    body: "grant_type=password&\
-          client_id=fragnet-search&\
-          username={{ fragnet_username }}&\
-          password={{ fragnet_password }}"
-    body_format: json
-    method: POST
-    headers:
-      Content-Type: "application/x-www-form-urlencoded"
-  register: fragnet_result
-
-- name: Run an example search
-  uri:
-    url: "http://{{ api }}/{{ method }}/{{ smiles|urlencode }}?\
-          hac={{ hac }}&\
-          rac={{ rac }}&\
-          hops={{ hops }}&\
-          calcs={{ calcs }}"
-    headers:
-      Authorization: bearer {{ fragnet_result.json.access_token }}
+- name: Construct query
+  set_fact:
+    fragnet_query: "http://{{ api }}/{{ method }}/{{ smiles|urlencode }}?\
+                                      hac={{ hac }}&\
+                                      rac={{ rac }}&\
+                                      hops={{ hops }}&\
+                                      calcs={{ calcs }}"
   vars:
     api: "{{ ansible_host }}:8080/fragnet-search/rest/v1"
     method: search/neighbourhood
@@ -52,25 +37,84 @@
     rac: 1
     hops: 2
     calcs: LOGP,SIM_RDKIT_TANIMOTO
+
+- name: Display query
+  debug:
+    var: fragnet_query
+  when: fragnet_debug|bool
+
+# To get an API token we POST to Squonk
+# and pass in a number of 'parameters'.
+#
+# As the 'body' format is 'form-urlencoded'
+# the following will automatically add the header
+# "Content-Type: application/x-www-form-urlencoded"
+
+- name: Get an API token
+  uri:
+    url: https://squonk.it/auth/realms/squonk/protocol/openid-connect/token
+    body:
+      grant_type: password
+      client_id: fragnet-search
+      username: "{{ fragnet_username }}"
+      password: "{{ fragnet_password }}"
+    body_format: form-urlencoded
+    method: POST
+  register: fragnet_result
+
+- name: Display API username
+  debug:
+    var: fragnet_username
+  when: fragnet_debug|bool
+
+- name: Display API token
+  debug:
+    var: fragnet_result.json.access_token
+  when: fragnet_debug|bool
+
+- name: Run query
+  uri:
+    url: "{{ fragnet_query }}"
+    headers:
+      Authorization: bearer {{ fragnet_result.json.access_token }}
   register: search_result
 
 - name: Assert sane search result
   assert:
     that:
-    - search_result.json.edges is defined
-    - search_result.json.nodes is defined
-    - search_result.json.groups is defined
+      - search_result.json.edges is defined
+      - search_result.json.nodes is defined
+      - search_result.json.groups is defined
 
-- name: Echo search results
+- name: Check search results
+  assert:
+    that:
+      - search_result.json.edges|length == 251
+      - search_result.json.nodes|length == 238
+      - search_result.json.groups|length == 23
+
+- name: Echo search result lengths
   debug:
     msg: >-
       edges={{ search_result.json.edges|length }}
       nodes={{ search_result.json.nodes|length }}
       groups={{ search_result.json.groups|length }}
 
-- name: Check search results
+- name: Get node SMILES and compound IDs that are available for procurement
+  set_fact:
+    compounds: "{{ search_result.json|json_query(query) }}"
+  vars:
+    query: "nodes[?molType=='NET_MOL'].{smiles: smiles, cmpd_id: props.cmpd_id}"
+
+- name: Display compounds
+  debug:
+    var: compounds
+  when: fragnet_debug|bool
+
+- name: Display number of compounds
+  debug:
+    msg: compounds={{ compounds|length }}
+
+- name: Assert compound count
   assert:
-    that:
-    - search_result.json.edges|length == 251
-    - search_result.json.nodes|length == 238
-    - search_result.json.groups|length == 23
+    that: compounds|length == 225
