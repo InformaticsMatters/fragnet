@@ -17,7 +17,7 @@
     pause:
       prompt: |-
         Are you sure you want to deploy the {{ graph_name }} database?
-        HAVE YOU RUN THE "stop-containers" PLAYBOOK?
+        This will stop the graph container, replacing it with a new graph.
         Press return to continue if you do and have.
         Press Ctrl+c and then "a" if you've changed your mind
 
@@ -31,6 +31,10 @@
     include_role:
       name: fragnet
       tasks_from: start-instances.yaml
+  - name: Run the Role 'stop graph' Tasks
+    include_role:
+      name: fragnet
+      tasks_from: stop-graph.yaml
 
 - hosts: graph
   gather_facts: no
