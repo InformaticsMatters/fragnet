@@ -35,12 +35,15 @@ Parameters:
 | limit  | Query | No       | The maximum number of paths to return from the graph query. Default is 1000 and this is usually more than enough. Values greater than 5000 are not permitted. | 
 
 An example query run with [curl], where the Fragnet server address is
-set in the `FRAGNET_SERVER` environment variable, might look like this:
+set in the `FRAGNET_SERVER` environment variable (e.g. `export FRAGNET_SERVER=http://100.25.105.8:8080`),
+might look like this:
 
 ```
-curl "http://${FRAGNET_SERVER}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+curl "${FRAGNET_SERVER}/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ``` 
-Note that the query molecule is specified as smiles and must by URL encoded.
+
+Note that the query molecule is specified as smiles and must by URL encoded. This can, for instance,
+be performed [here](https://www.urlencoder.org/).
 
 Results are of type **Fragment Neighbourhood results** described below.  
 
@@ -106,9 +109,14 @@ token=$(curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username
 Replace `<username>` and `<password>` with the appropriate values.
 You can use `echo $token` to make sure you have obtained a token.
 
-To perform step 4 you will need to do something like this:
+If using a different client then this is a HTTP POST operation to
+`https://squonk.it/auth/realms/squonk/protocol/openid-connect/token` using 
+multipart form data (`Content-Type` header of `application/x-www-form-urlencoded`)
+passing in form parameters equivalent to the `-d` parameters set by curl. 
+
+To perform a search of the fragment network you will now need to do something like this:
 ```
-curl -LH "Authorization: bearer $token" "http://${FRAGNET_SERVER}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+curl -LH "Authorization: bearer $token" "${FRAGNET_SERVER}/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ```
 Notice how the token is sent with the request.
 
@@ -135,7 +143,7 @@ echo %token%
 4. Use it like this:
 
 ```
-curl -LH "Authorization: bearer %token%" "http://100.25.105.8:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+curl -LH "Authorization: bearer %token%" "${FRAGNET_SERVER}/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ```
 
 ## Result Details
