@@ -58,4 +58,4 @@
     delay: 20
     sleep: 20
     timeout: "{{ minutes_to_wait_for_graph|int * 60 }}"
-  when: wait_for_graph
+  when: wait_for_graph|bool
