@@ -7,15 +7,12 @@
   gather_facts: no
 
   tasks:
-  - name: Run the Role 'pre-flight check' Tasks
-    include_role:
+  - include_role:
       name: fragnet
       tasks_from: pre-flight-check.yaml
-  - name: Wait for Connection
-    wait_for_connection:
-  - name: Gathering facts
-    setup:
-  - name: Run the Role 'test-fragnet' Tasks
-    include_role:
+
+  - wait_for_connection:
+  - setup:
+  - include_role:
       name: fragnet
       tasks_from: test-fragnet.yaml

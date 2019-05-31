@@ -21,23 +21,20 @@
         Press return to continue if you are happy to deploy.
         Press Ctrl+c and then "a" if you've changed your mind
 
-  # Let's go...
-
-  - name: Run the Role 'pre-flight check' Tasks
-    include_role:
+  - include_role:
       name: fragnet
       tasks_from: pre-flight-check.yaml
-  - name: Run the Role 'start instances' Tasks
-    include_role:
-      name: fragnet
-      tasks_from: start-instances.yaml
-  - name: Run the Role 'stop graph' Tasks
-    include_role:
-      name: fragnet
-      tasks_from: stop-graph.yaml
 
 - hosts: graph
   gather_facts: no
 
-  roles:
-  - fragnet
+  tasks:
+
+  - include_role:
+      name: fragnet
+      tasks_from: start-instances.yaml
+  - include_role:
+      name: fragnet
+      tasks_from: stop-graph.yaml
+  - include_role:
+      name: fragnet

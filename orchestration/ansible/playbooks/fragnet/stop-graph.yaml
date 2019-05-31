@@ -3,7 +3,6 @@
 - hosts: graph
 
   tasks:
-  - name: Run the Role 'stop' Tasks
-    include_role:
+  - include_role:
       name: fragnet
       tasks_from: stop-graph.yaml
