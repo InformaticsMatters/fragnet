@@ -199,6 +199,10 @@ A query to list index tables: -
 
     CALL db.indexes;
 
+Display the known supplier node process IDs and build-times: -
+
+    match (s:Supplier) return s.process_id,s.build_datetime;
+
 Count nodes and edges: -
 
     match (n) return count(*);
