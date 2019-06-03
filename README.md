@@ -11,3 +11,4 @@ Current components:
 For more information see:
 
 * [Talk at 2018 RDKit UGM](https://github.com/rdkit/UGM_2018/blob/master/Lightning/tim_dudgeon_fragment-network.pdf).
+* [Informatics Matters website](https://www.informaticsmatters.com/pages/fragment_network.html)
