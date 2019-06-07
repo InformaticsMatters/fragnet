@@ -25,14 +25,20 @@ Significant changes:
 
 The current search types that are supported are:
 
-1. Molecule neighbourhood search - find the local graph network surrounding a specific molecule.
 1. Supplier search - find the different suppliers that are in the database. Other searches can be
 restricted to specific suppliers.
+1. Molecule neighbourhood search - find the local graph network surrounding a specific molecule.
 
 Planned searches are:
 
 1. Activity island searches - find clusters of molecules with activity.
 2. Compound availability search - find out who you can purchase molecules from.
+
+### Supplier search
+
+This is available from the `fragnet-search/rest/v2/search/suppliers` endpoint. There are no parameters for this request.
+
+The result is a JSON array of supplier objects as described in the [Supplier results](###supplier-results) section.
 
 ### Molecule neighbourhood search
 
@@ -62,9 +68,9 @@ be performed [here](https://www.urlencoder.org/).
 
 Results are of type **Fragment Neighbourhood results** described below.  
 
-## Search details
+#### Search details
 
-### Query molecule standardisation and canonicalisation
+##### Query molecule standardisation and canonicalisation
 
 Molecules  in the fragment network are standardised and canonicalised and query matches are by exact matches of smiles
 strings. This means that the query molecule must be standardised and canonicalised in the same way as was done for the 
@@ -83,7 +89,7 @@ rules that should suffice in most cases:
 Once the new RDKit standardisation code (first introduced in the 2018_09 release) is available from Java we will also be
 able to perform standardisation.
 
-### Calculations
+##### Calculations
 
 We have a small number of molecular calculations built in that are available to include in query results. Heavy atom count
 (`hac` property) and ring atom count (`chac` property - NOTE: we plan to rename this to `rac`) are present in the fragment 
