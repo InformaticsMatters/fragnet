@@ -2,13 +2,16 @@
 
 # Fragnet control variables.
 
+# Fragnet search docker image tag
+fragnet_tag: 0.2.0
+
 # Synchronise file with the origin,
 # True unless you've deliberately tinkered with the exiting files.
 synchronise_origin: true
 
 # The graph to install.
 # This has to be a key in the 'graph_set'
-graph_name: molport_2019_05
+graph_name: combination_2
 
 # The graph set consisting of named graphs listing the desired database root
 # (typically a mount path on the graph node). You must set 'graph_name',
@@ -29,6 +32,11 @@ graph_set:
     root: /graph-molport-2019-05
     origin_type: build
     origin_id: vendor/molport/2019-05/build-1
+    cypher_script: cypher.script
+  combination_2:
+    root: /graph-combination-2
+    origin_type: combination
+    origin_id: 2
     cypher_script: cypher.script
   senp7:
     root: /graph-neo4j

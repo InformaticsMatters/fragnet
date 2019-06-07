@@ -22,7 +22,7 @@
 # `orchestration/README.md`, which is the source of the original
 # cURL command sequence for the example being automatically tested here.
 
-- name: Construct query
+- name: Construct query (API {{ franget_api }})
   set_fact:
     fragnet_query: "http://{{ api }}/{{ method }}/{{ smiles|urlencode }}?\
                                       hac={{ hac }}&\
@@ -30,7 +30,7 @@
                                       hops={{ hops }}&\
                                       calcs={{ calcs }}"
   vars:
-    api: "{{ ansible_host }}:8080/fragnet-search/rest/v1"
+    api: "{{ ansible_host }}:8080/fragnet-search/rest/{{ franget_api }}"
     method: search/neighbourhood
     smiles: c1ccc(Nc2nc3ccccc3o2)cc1
     hac: 3
@@ -86,13 +86,6 @@
       - search_result.json.nodes is defined
       - search_result.json.groups is defined
 
-- name: Check search results
-  assert:
-    that:
-      - search_result.json.edges|length == 251
-      - search_result.json.nodes|length == 238
-      - search_result.json.groups|length == 23
-
 - name: Echo search result lengths
   debug:
     msg: >-
@@ -100,16 +93,22 @@
       nodes={{ search_result.json.nodes|length }}
       groups={{ search_result.json.groups|length }}
 
+- name: Check search results
+  assert:
+    that:
+      - search_result.json.edges|length == 766
+      - search_result.json.nodes|length == 698
+      - search_result.json.groups|length == 29
+
+- name: Echo search result lengths
+  debug:
+    var: search_result.json.nodes
+
 - name: Get node SMILES and compound IDs that are available for procurement
   set_fact:
     compounds: "{{ search_result.json|json_query(query) }}"
   vars:
-    query: "nodes[?molType=='NET_MOL'].{smiles: smiles, cmpd_id: props.cmpd_id}"
-
-- name: Display compounds
-  debug:
-    var: compounds
-  when: fragnet_debug|bool
+    query: "nodes[?molType=='NET_FRAG'].{smiles: smiles, cmpd_ids: props.cmpd_ids}"
 
 - name: Display number of compounds
   debug:
@@ -117,4 +116,4 @@
 
 - name: Assert compound count
   assert:
-    that: compounds|length == 225
+    that: compounds|length == 698

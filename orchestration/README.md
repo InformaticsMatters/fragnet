@@ -190,29 +190,29 @@ expect to deploy to this mounted volume.
 You can access the cypher-shell form within the graph container (assuming
 you have the neo4j password): -
 
-    $ docker exec --it <CONTAINTER-ID> bash
+    $ docker exec -it <CONTAINTER-ID> bash
     $ export NEO4J_USERNAME=neo4j
     $ export NEO4J_PASSWORD=<PASSWORD>
     $ /var/lib/neo4j/bin/cypher-shell "CALL db.indexes;"
     
-A query to list index tables: -
-
-    CALL db.indexes;
-
 Display the known supplier node process IDs and build-times: -
 
-    match (s:Supplier) return s.process_id,s.build_datetime;
+    $ /var/lib/neo4j/bin/cypher-shell \
+        "match (s:Supplier) return s.process_id,s.build_datetime;"
 
 Count nodes and edges: -
 
-    match (n) return count(*);
-    match (n)-[r]->() return count(r);
+    $ /var/lib/neo4j/bin/cypher-shell "match (n) return count(*);"
+    $ /var/lib/neo4j/bin/cypher-shell "match (n)-[r]->() return count(r);"
 
-An example MolPort query for the 'original' DB: -
+An example MolPort query for the new (combination 2)) DB: -
 
-    match (c:MolPort)-->(m:F2)-->(a:Available)
-        where m.smiles = 'B(C1CCCCC1)C1CCCCC1.CO' return c,m,a limit 10;
+    $ /var/lib/neo4j/bin/cypher-shell \
+        "match (c:MolPort)-->(m:F2)-->(a:Available) \
+        where c.smiles = 'CC(=O)NCCOC(=O)C[C@@H](CN)CC(C)C' \
+        return c,m,a limit 10;"
 
+/var/lib/neo4j/bin/cypher-shell "match (c:MolPort)-->(m:F2)-->(a:Available) where c.smiles = 'B(C1CCCCC1)C1CCCCC1.CO' return c,m,a limit 10;"
 ---
 
 [ebs volumes]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
