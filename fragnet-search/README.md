@@ -38,7 +38,7 @@ Planned searches are:
 
 This is available from the `fragnet-search/rest/v2/search/suppliers` endpoint. There are no parameters for this request.
 
-The result is a JSON array of supplier objects as described in the [Supplier results](###supplier-results) section.
+The result is a JSON array of supplier objects as described in the [Supplier results](#supplier-results) section.
 
 ### Molecule neighbourhood search
 
