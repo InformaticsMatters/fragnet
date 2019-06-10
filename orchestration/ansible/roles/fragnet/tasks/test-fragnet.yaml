@@ -61,7 +61,7 @@
   debug:
     var: suppliers_in_db
 
-- name: Check suyppliers
+- name: Check suppliers
   assert:
     that: suppliers_in_db|length > 0
 
