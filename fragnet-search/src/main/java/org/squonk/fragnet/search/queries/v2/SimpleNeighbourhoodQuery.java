@@ -162,7 +162,7 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
         graph.setResultAvailableAfter(result.summary().resultAvailableAfter(TimeUnit.MILLISECONDS));
         graph.setProcessingTime(t1 - t0);
 
-        LOG.info(String.format("Results built. %s nodes, %s edges", graph.numNodes(), graph.numEdges()));
+        LOG.info(String.format("Results built. %s nodes, %s edges", graph.getNodeCount(), graph.getEdgeCount()));
 
         return graph;
     }

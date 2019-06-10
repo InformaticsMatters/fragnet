@@ -40,7 +40,7 @@ import java.util.logging.Logger;
  * The key parts of this are the nodes (molecules and fragments) and the edges (connections between the nodes).
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"apiVersion","query", "parameters", "resultAvailableAfter", "processingTime", "calculationTime", "nodes", "edges"})
+@JsonPropertyOrder({"apiVersion","query","parameters","resultAvailableAfter","processingTime","calculationTime","nodeCount","edgeCount","nodes","edges"})
 public class FragmentGraph {
 
     private static final Logger LOG = Logger.getLogger(FragmentGraph.class.getName());
@@ -81,11 +81,11 @@ public class FragmentGraph {
         return API_VERSION;
     }
 
-    public int numNodes() {
+    public int getNodeCount() {
         return nodes.size();
     }
 
-    public int numEdges() {
+    public int getEdgeCount() {
         return edges.size();
     }
 

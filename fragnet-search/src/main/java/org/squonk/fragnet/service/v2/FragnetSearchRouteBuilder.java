@@ -190,7 +190,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             message.setBody(result);
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
             long t1 = new Date().getTime();
-            writeToQueryLog(username, "NeighbourhoodQuery", t1 - t0, result.numNodes(), result.numEdges(), result.numGroups());
+            writeToQueryLog(username, "NeighbourhoodQuery", t1 - t0, result.getNodeCount(), result.getEdgeCount(), result.getGroupCount());
 
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Query Failed", ex);

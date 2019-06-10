@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * and will contain one or more nodes. Each group thus represents a transform 'vector' and can involve one or two edges.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"apiVersion","query", "parameters", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "nodes", "edges", "groups"})
+@JsonPropertyOrder({"apiVersion","query","parameters","refmol","resultAvailableAfter","processingTime","calculationTime","nodeCount","edgeCount","groupCount","nodes","edges","groups"})
 public class NeighbourhoodGraph extends FragmentGraph {
 
     private static final Logger LOG = Logger.getLogger(NeighbourhoodGraph.class.getName());
@@ -75,7 +75,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
         return grouping.collectGroups();
     }
 
-    public int numGroups() {
+    public int getGroupCount() {
         return grouping.size();
     }
 
