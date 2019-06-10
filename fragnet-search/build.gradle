@@ -20,6 +20,8 @@ import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 description = 'Fragment network search'
 def contextName = 'fragnet-search'
 
+version = '0.2.1'
+
 String RDBASE = System.getenv('RDBASE')
 String RDKitJarFile = '/Code/JavaWrappers/gmwrapper/org.RDKit.jar'
 boolean RDKitJava = RDBASE && file(RDBASE + RDKitJarFile).exists()
@@ -127,4 +129,5 @@ $CATALINA_HOME/lib/''')
 task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
     inputDir = buildDockerFile.destFile.get().asFile.parentFile
     tags.add("squonk/${contextName}:latest")
+    tags.add("squonk/${contextName}:${version}")
 }
