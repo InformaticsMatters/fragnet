@@ -126,10 +126,10 @@ like this...
         https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
         | jq -r '.access_token')
 
-And then curl the FRAGNET_HOST...
+And then curl the FRAGNET_SERVER...
 
     $ curl -LH "Authorization: bearer $token" \
-        "http://${FRAGNET_HOST}:8080/fragnet-search/rest/v1/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+        "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP&suppliers=eMolecules-BB"
 
 ## Handy shell-scripts
 Super-simple shell-scripts can be used to quickly execute the most common

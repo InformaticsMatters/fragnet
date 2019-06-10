@@ -10,38 +10,6 @@
 # A series of tasks to test the Fragnet service.
 # This relies on a suitable username and password that can be used
 # to obtain a Fragnet API access token.
-#
-# In this simple example we...
-#
-# - Get a token from the Fragnet server
-# - Run an example search
-# - Echo the size of the search results (nodes, edges, groups)
-# - Check the search result (just the count of nodes, edges, groups)
-#
-# Refer to the **Example REST interaction** section of the
-# `orchestration/README.md`, which is the source of the original
-# cURL command sequence for the example being automatically tested here.
-
-- name: Construct query (API {{ franget_api }})
-  set_fact:
-    fragnet_query: "http://{{ api }}/{{ method }}/{{ smiles|urlencode }}?\
-                                      hac={{ hac }}&\
-                                      rac={{ rac }}&\
-                                      hops={{ hops }}&\
-                                      calcs={{ calcs }}"
-  vars:
-    api: "{{ ansible_host }}:8080/fragnet-search/rest/{{ franget_api }}"
-    method: search/neighbourhood
-    smiles: c1ccc(Nc2nc3ccccc3o2)cc1
-    hac: 3
-    rac: 1
-    hops: 2
-    calcs: LOGP,SIM_RDKIT_TANIMOTO
-
-- name: Display query
-  debug:
-    var: fragnet_query
-  when: fragnet_debug|bool
 
 # To get an API token we POST to Squonk
 # and pass in a number of 'parameters'.
@@ -72,20 +40,57 @@
     var: fragnet_result.json.access_token
   when: fragnet_debug|bool
 
-- name: Run query
+# Test the search/suppliers query
+
+- name: Run search/suppliers query
   uri:
-    url: "{{ fragnet_query }}"
+    url: http://{{ api }}/{{ method }}
     headers:
       Authorization: bearer {{ fragnet_result.json.access_token }}
     timeout: "{{ fragnet_query_timeout_s|int }}"
+  vars:
+    api: "{{ ansible_host }}:8080/fragnet-search/rest/{{ franget_api }}"
+    method: search/suppliers
+  register: suppliers_result
+
+- name: Collect suppliers
+  set_fact:
+    suppliers_in_db: "{{ suppliers_result|json_query('json[*].name')|flatten }}"
+
+- name: Display suppliers
+  debug:
+    var: suppliers_in_db
+
+- name: Check suyppliers
+  assert:
+    that: suppliers_in_db|length > 0
+
+# Test the search/neighbourhood query (using the first supplier)
+
+- name: Run search/neighbourhood query ({{ suppliers_in_db[0] }})
+  uri:
+    url: "http://{{ api }}/{{ method }}/{{ smiles|urlencode }}?\
+          {{ hac }}&{{ rac }}&{{ hops }}&{{ calcs }}&{{ suppliers }}"
+    headers:
+      Authorization: bearer {{ fragnet_result.json.access_token }}
+    timeout: "{{ fragnet_query_timeout_s|int }}"
+  vars:
+    api: "{{ ansible_host }}:8080/fragnet-search/rest/{{ franget_api }}"
+    method: search/neighbourhood
+    smiles: c1ccc(Nc2nc3ccccc3o2)cc1
+    hac: hac=3
+    rac: rac=1
+    hops: hops=2
+    calcs: calcs=LOGP
+    suppliers: suppliers={{ suppliers_in_db[0] }}
   register: search_result
 
-- name: Assert sane search result
+- name: Check we have some nodes, edges and groups
   assert:
     that:
-      - search_result.json.edges is defined
-      - search_result.json.nodes is defined
-      - search_result.json.groups is defined
+    - search_result.json.nodes is defined
+    - search_result.json.edges is defined
+    - search_result.json.groups is defined
 
 - name: Echo search result lengths
   debug:
@@ -94,27 +99,8 @@
       nodes={{ search_result.json.nodes|length }}
       groups={{ search_result.json.groups|length }}
 
-- name: Check search results
-  assert:
-    that:
-      - search_result.json.edges|length == 766
-      - search_result.json.nodes|length == 698
-      - search_result.json.groups|length == 29
-
-- name: Echo search result lengths
+- name: Echo search result group keys (classification=='ADDITION')
   debug:
-    var: search_result.json.nodes
-
-- name: Get node SMILES and compound IDs that are available for procurement
-  set_fact:
-    compounds: "{{ search_result.json|json_query(query) }}"
+    var: search_result|json_query(query)
   vars:
-    query: "nodes[?molType=='NET_FRAG'].{smiles: smiles, cmpd_ids: props.cmpd_ids}"
-
-- name: Display number of compounds
-  debug:
-    msg: compounds={{ compounds|length }}
-
-- name: Assert compound count
-  assert:
-    that: compounds|length == 698
+    query: "json.groups[?classification=='ADDITION'].key"
