@@ -49,7 +49,7 @@ synchronise_origin: true
 # -------
 
 # The Docker image tag for the 'squonk/fragnet-search' image.
-fragnet_tag: 0.2.0
+fragnet_tag: 0.2.1
 # The port to expose the Fragnet service on.
 # Internally the port is expected to be on 8080,
 # this is the port Fragnet is mapped to on the host.
