@@ -63,6 +63,8 @@ fragnet_password: "{{ lookup('env', 'FRAGNET_PASSWORD') }}"
 fragnet_restart_policy: always
 # Display result details?
 fragnet_debug: yes
+# Query timeout (used in the test-fragnet play)
+fragnet_query_timeout_s: 180
 
 # Keycloak variables...
 # --------

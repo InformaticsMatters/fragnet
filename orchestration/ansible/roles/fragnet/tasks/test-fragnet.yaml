@@ -77,6 +77,7 @@
     url: "{{ fragnet_query }}"
     headers:
       Authorization: bearer {{ fragnet_result.json.access_token }}
+    timeout: "{{ fragnet_query_timeout_s|int }}"
   register: search_result
 
 - name: Assert sane search result
