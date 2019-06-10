@@ -57,8 +57,8 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
      * Example query smiles: c1ccc(Nc2nc3ccccc3o2)cc1
      *
      */
-    private final String NEIGHBOURHOOD_QUERY = "MATCH p=(m:F2)-[:FRAG%s]-(e:Mol%s)\n" +
-            "WHERE m.smiles=$smiles AND e.smiles <> $smiles%s\nRETURN p LIMIT $limit";
+    private final String NEIGHBOURHOOD_QUERY = "MATCH p=(m:F2)-[:FRAG%s]-(e:Mol)\n" +
+            "WHERE %sm.smiles=$smiles AND e.smiles <> $smiles%s\nRETURN p LIMIT $limit";
 
     protected String getQueryTemplate() {
         return NEIGHBOURHOOD_QUERY;
@@ -118,7 +118,7 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
         if (suppliers == null || suppliers.isEmpty()) {
             vendorLabels = "";
         } else {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder("(e");
             for (String supplier: suppliers) {
                 String label = supplierMappings.get(supplier);
                 if (label == null) {
@@ -127,7 +127,7 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
                 }
                 builder.append(":").append(label);
             }
-            vendorLabels = builder.toString();
+            vendorLabels = builder.append(") AND ").toString();
         }
         String hopsQuery = null;
         if (hops == 1) {
