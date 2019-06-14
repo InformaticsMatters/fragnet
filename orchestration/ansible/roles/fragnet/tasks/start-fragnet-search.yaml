@@ -26,10 +26,10 @@
     - fragnet-search/logging.properties
     - fragnet-search/web.xml
 
-- name: Start fragnet container
+- name: Start fragnet container ({{ image_ref }})
   docker_container:
     name: fragnet-search
-    image: squonk/fragnet-search:{{ fragnet_tag }}
+    image: "{{ image_ref }}"
     pull:
       yes
     published_ports:
@@ -51,4 +51,6 @@
     - "./fragnet/web.xml:/usr/local/tomcat/webapps/fragnet-search/WEB-INF/web.xml:ro,Z"
     - "./fragnet/context.xml:/usr/local/tomcat/webapps/fragnet-search/META-INF/context.xml:ro,Z"
     restart_policy: "{{ fragnet_restart_policy }}"
+  vars:
+    image_ref: squonk/fragnet-search:{{ fragnet_tag }}
   become: yes

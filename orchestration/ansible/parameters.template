@@ -2,38 +2,44 @@
 
 # Fragnet control variables.
 
+# Fragnet search docker image tag
+fragnet_tag: 0.2.0
+
+# Synchronise file with the origin,
+# True unless you've deliberately tinkered with the exiting files.
+synchronise_origin: true
+
 # The graph to install.
 # This has to be a key in the 'graph_set'
-graph_name: molport
-# The graph origin type (it's either a 'combination' or a 'build')
-# along with an identity, which is a number for a combination type or
-# a sub-path like 'activity/senp7/v1/build-2' for a build type.
-graph_origin_type: combination
-graph_origin_id: 1
+graph_name: combination_2
 
-# The graph set consisting of named graphs listing the
-# desired loader, database (graph) and log directories
-# for each graph we can deploy.
-#
-# - The host loader directory is where the graph
-#   combination files are downloaded to and is different
-#   for each database
-# - The host db directory is the server directory that will be
-#   mounted into the graph DB container to house
-#   the compiled database, this is different for each db.
-# - The host log directory mounted  for the graph database.
-#   This can be shared.
+# The graph set consisting of named graphs listing the desired database root
+# (typically a mount path on the graph node). You must set 'graph_name',
+# which is used as a selector for this set.
 #
 graph_set:
   molport:
-    graph_loader_directory: /neo4j/loader
-    graph_db_directory: /neo4j/graph
-    graph_log_directory: /neo4j/log
+    root: /graph-molport-original
+    origin_type: combination
+    origin_id: 1
+    cypher_script: cypher.script
   molport_build_3:
-    graph_loader_directory: /graph/molport-build-3/loader
-    graph_db_directory: /graph/molport-build-3/graph
-    graph_log_directory: /graph/molport-build-3/log
+    root: /graph-molport-2018-11/molport-build-3
+    origin_type: build
+    origin_id: vendor/molport/2018-11/build-3
+    cypher_script: cypher.script
+  molport_2019_05:
+    root: /graph-molport-2019-05
+    origin_type: build
+    origin_id: vendor/molport/2019-05/build-1
+    cypher_script: cypher.script
+  combination_2:
+    root: /graph-combination-2
+    origin_type: combination
+    origin_id: 2
+    cypher_script: cypher.script
   senp7:
-    graph_loader_directory: /neo4j/loader-senp7
-    graph_db_directory: /neo4j/graph-senp7
-    graph_log_directory: /neo4j/log-senp7
+    root: /graph-neo4j
+    origin_type: build
+    origin_id: activity/senp7/v1/build-3
+    cypher_script: cypher.script

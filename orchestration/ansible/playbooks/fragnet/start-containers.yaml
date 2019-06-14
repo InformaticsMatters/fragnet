@@ -4,12 +4,10 @@
   gather_facts: no
 
   tasks:
-  - name: Run the Role 'pre-flight check' Tasks
-    include_role:
+  - include_role:
       name: fragnet
       tasks_from: pre-flight-check.yaml
-  - name: Run the Role 'start instances' Tasks
-    include_role:
+  - include_role:
       name: fragnet
       tasks_from: start-instances.yaml
 
@@ -17,15 +15,11 @@
   gather_facts: no
 
   tasks:
-  - name: Wait for Connection
-    wait_for_connection:
-  - name: Gather facts
-    setup:
-  - name: Run a Role Task (start-graph)
-    include_role:
+  - wait_for_connection:
+  - setup:
+  - include_role:
       name: fragnet
       tasks_from: start-graph.yaml
-  - name: Run a Role Task (start-fragnet-search)
-    include_role:
+  - include_role:
       name: fragnet
       tasks_from: start-fragnet-search.yaml

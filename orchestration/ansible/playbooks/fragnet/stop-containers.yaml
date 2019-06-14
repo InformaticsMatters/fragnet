@@ -3,15 +3,12 @@
 - hosts: graph
 
   tasks:
-  - name: Run the Role 'pre-flight check' Tasks
-    include_role:
+  - include_role:
       name: fragnet
       tasks_from: pre-flight-check.yaml
-  - name: Run a Role Task (stop-fragnet-search)
-    include_role:
+  - include_role:
       name: fragnet
       tasks_from: stop-fragnet-search.yaml
-  - name: Run a Role Task (stop-graph)
-    include_role:
+  - include_role:
       name: fragnet
       tasks_from: stop-graph.yaml

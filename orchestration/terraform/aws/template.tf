@@ -7,6 +7,8 @@ data "template_file" "inventory" {
 
   vars {
     graph_host = "${aws_eip_association.graph_node.public_ip}"
+    instance_id = "${aws_instance.graph-node.id}"
+    instance_region = "${var.aws_region}"
   }
 }
 

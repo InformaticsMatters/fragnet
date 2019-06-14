@@ -28,10 +28,11 @@ s3_fragnet_bucket: im-fragnet
 graph_password: "{{ lookup('env', 'NEO4J_PASSWORD') }}"
 # The import/loader script
 graph_loader_script: load-neo4j.sh
-# The InformaticsMatters Graph container image version
-graph_version: 3.5.2
+# The InformaticsMatters Graph container image and version
+graph_image: informaticsmatters/neo4j
+graph_version: 3.5
 # Do we wait for the graph DB before continuing?
-wait_for_graph: yes
+wait_for_graph: no
 # And the time to wait for the database?
 # Here, this is the time for the neo47 port (7474) to become available.
 # On first deployment this can be significant, on subsequent
@@ -40,21 +41,30 @@ wait_for_graph: yes
 minutes_to_wait_for_graph: 360
 # The container restart policy for the Graph database...
 graph_restart_policy: always
+# Synchronise the S3 graph data files?
+# If set graph import files will be synchronised with those on S3
+synchronise_origin: true
 
 # Fragnet application variables...
 # -------
 
 # The Docker image tag for the 'squonk/fragnet-search' image.
-fragnet_tag: 0.1.0
+fragnet_tag: 0.2.1
 # The port to expose the Fragnet service on.
 # Internally the port is expected to be on 8080,
 # this is the port Fragnet is mapped to on the host.
 fragnet_port: 8080
+# Fragnet API version
+franget_api: v2
 # A username and password (generally for tests)
 fragnet_username: "{{ lookup('env', 'FRAGNET_USERNAME') }}"
 fragnet_password: "{{ lookup('env', 'FRAGNET_PASSWORD') }}"
 # The container restart policy for the Fragnet server...
 fragnet_restart_policy: always
+# Display result details?
+fragnet_debug: yes
+# Query timeout (used in the test-fragnet play)
+fragnet_query_timeout_s: 180
 
 # Keycloak variables...
 # --------
@@ -66,8 +76,3 @@ fragnet_restart_policy: always
 keycloak_server_url: "{{ lookup('env', 'KEYCLOAK_SERVER_URL') }}"
 keycloak_public_key: "{{ lookup('env', 'KEYCLOAK_PUBLIC_KEY') }}"
 keycloak_secret: "{{ lookup('env', 'KEYCLOAK_SECRET') }}"
-
-# AWS EC2 variables
-# -------
-fragnet_server_id: i-007e2d377aef7be36
-fragnet_server_region: us-east-1

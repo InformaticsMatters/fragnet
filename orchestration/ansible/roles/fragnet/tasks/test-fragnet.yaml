@@ -10,67 +10,97 @@
 # A series of tasks to test the Fragnet service.
 # This relies on a suitable username and password that can be used
 # to obtain a Fragnet API access token.
+
+# To get an API token we POST to Squonk
+# and pass in a number of 'parameters'.
 #
-# In this simple example we...
-#
-# - Get a token from the Fragnet server
-# - Run an example search
-# - Echo the size of the search results (nodes, edges, groups)
-# - Check the search result (just the count of nodes, edges, groups)
-#
-# Refer to the **Example REST interaction** section of the
-# `orchestration/README.md`, which is the source of the original
-# cURL command sequence for the example being automatically tested here.
+# As the 'body' format is 'form-urlencoded'
+# the following will automatically add the header
+# "Content-Type: application/x-www-form-urlencoded"
 
 - name: Get an API token
   uri:
     url: https://squonk.it/auth/realms/squonk/protocol/openid-connect/token
-    body: "grant_type=password&\
-          client_id=fragnet-search&\
-          username={{ fragnet_username }}&\
-          password={{ fragnet_password }}"
-    body_format: json
+    body:
+      grant_type: password
+      client_id: fragnet-search
+      username: "{{ fragnet_username }}"
+      password: "{{ fragnet_password }}"
+    body_format: form-urlencoded
     method: POST
-    headers:
-      Content-Type: "application/x-www-form-urlencoded"
   register: fragnet_result
 
-- name: Run an example search
+- name: Display API username
+  debug:
+    var: fragnet_username
+  when: fragnet_debug|bool
+
+- name: Display API token
+  debug:
+    var: fragnet_result.json.access_token
+  when: fragnet_debug|bool
+
+# Test the search/suppliers query
+
+- name: Run search/suppliers query
   uri:
-    url: "http://{{ api }}/{{ method }}/{{ smiles|urlencode }}?\
-          hac={{ hac }}&\
-          rac={{ rac }}&\
-          hops={{ hops }}&\
-          calcs={{ calcs }}"
+    url: http://{{ api }}/{{ method }}
     headers:
       Authorization: bearer {{ fragnet_result.json.access_token }}
+    timeout: "{{ fragnet_query_timeout_s|int }}"
   vars:
-    api: "{{ ansible_host }}:8080/fragnet-search/rest/v1"
+    api: "{{ ansible_host }}:8080/fragnet-search/rest/{{ franget_api }}"
+    method: search/suppliers
+  register: suppliers_result
+
+- name: Collect suppliers
+  set_fact:
+    suppliers_in_db: "{{ suppliers_result|json_query('json[*].name')|flatten }}"
+
+- name: Display suppliers
+  debug:
+    var: suppliers_in_db
+
+- name: Check suppliers
+  assert:
+    that: suppliers_in_db|length > 0
+
+# Test the search/neighbourhood query (using the first supplier)
+
+- name: Run search/neighbourhood query ({{ suppliers_in_db[0] }})
+  uri:
+    url: "http://{{ api }}/{{ method }}/{{ smiles|urlencode }}?\
+          {{ hac }}&{{ rac }}&{{ hops }}&{{ calcs }}&{{ suppliers }}"
+    headers:
+      Authorization: bearer {{ fragnet_result.json.access_token }}
+    timeout: "{{ fragnet_query_timeout_s|int }}"
+  vars:
+    api: "{{ ansible_host }}:8080/fragnet-search/rest/{{ franget_api }}"
     method: search/neighbourhood
     smiles: c1ccc(Nc2nc3ccccc3o2)cc1
-    hac: 3
-    rac: 1
-    hops: 2
-    calcs: LOGP,SIM_RDKIT_TANIMOTO
+    hac: hac=3
+    rac: rac=1
+    hops: hops=2
+    calcs: calcs=LOGP
+    suppliers: suppliers={{ suppliers_in_db[0] }}
   register: search_result
 
-- name: Assert sane search result
+- name: Check we have some nodes, edges and groups
   assert:
     that:
-    - search_result.json.edges is defined
     - search_result.json.nodes is defined
+    - search_result.json.edges is defined
     - search_result.json.groups is defined
 
-- name: Echo search results
+- name: Echo search result lengths
   debug:
     msg: >-
       edges={{ search_result.json.edges|length }}
       nodes={{ search_result.json.nodes|length }}
       groups={{ search_result.json.groups|length }}
 
-- name: Check search results
-  assert:
-    that:
-    - search_result.json.edges|length == 251
-    - search_result.json.nodes|length == 238
-    - search_result.json.groups|length == 23
+- name: Echo search result group keys (classification=='ADDITION')
+  debug:
+    var: search_result|json_query(query)
+  vars:
+    query: "json.groups[?classification=='ADDITION'].key"

@@ -25,6 +25,7 @@
   - "{{ graph_loader_path }}"
   - "{{ graph_db_path }}"
   - "{{ graph_log_path }}"
+  - "{{ graph_cypher_script_path }}"
   - "{{ ansible_env.HOME }}/fragnet"
 
 - name: Install pip

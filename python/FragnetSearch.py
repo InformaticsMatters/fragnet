@@ -33,7 +33,7 @@ import requests
 # The version of this module.
 # Modify with every change, complying with
 # semantic 2.0.0 rules.
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 
 # The search result.
 # A namedtuple.
@@ -81,9 +81,9 @@ class FragnetSearch:
     INTERNAL_ERROR_CODE = 600
 
     TOKEN_URI = 'https://squonk.it/auth/realms/squonk/protocol/openid-connect/token'
-    API = 'fragnet-search/rest/v1'
+    API = 'fragnet-search/rest/v2'
     CLIENT_ID = 'fragnet-search'
-    REQUEST_TIMOUT_S = 10
+    REQUEST_TIMOUT_S = 20
 
     # The minimum remaining life of a token (or refresh token) (in seconds)
     # before an automatic refresh is triggered.
@@ -94,7 +94,7 @@ class FragnetSearch:
         An API token is collected when you 'authenticate'.
 
         :param fragnet_host: The Fragnet host and designated port,
-                             i.e. http://fragnet.squonk.ot:8080
+                             i.e. http://fragnet.squonk.it:8080
         :type fragnet_host: ``str``
         :param username: A Fragnet username
         :type username: ``str``
@@ -144,11 +144,11 @@ class FragnetSearch:
         time_now = datetime.datetime.now()
         self._access_token =json['access_token']
         self._access_token_expiry = time_now + \
-            datetime.timedelta(seconds=json['expires_in'])
+                                    datetime.timedelta(seconds=json['expires_in'])
         self._refresh_token = json['refresh_token']
         if 'refresh_expires_in' in json:
             self._refresh_token_expiry = time_now + \
-                datetime.timedelta(seconds=json['refresh_expires_in'])
+                                         datetime.timedelta(seconds=json['refresh_expires_in'])
         else:
             debug('Setting _refresh_expires_in to None (no refresh expiry)...')
             self._refresh_token_expiry = None
@@ -301,23 +301,24 @@ class FragnetSearch:
         if not smiles.strip():
             return SearchResult(FragnetSearch.INTERNAL_ERROR_CODE,
                                 'EmptySmiles', None)
-        if hac < 1:
+        if hac < 0:
             return SearchResult(FragnetSearch.INTERNAL_ERROR_CODE,
                                 'InvalidHAC', None)
-        if rac < 1:
+        if rac < 0:
             return SearchResult(FragnetSearch.INTERNAL_ERROR_CODE,
                                 'InvalidRAC', None)
         if hops < 1 or hops > FragnetSearch.MAX_HOPS:
             return SearchResult(FragnetSearch.INTERNAL_ERROR_CODE,
-                                'InvalidHops', None)
+                                'InvalidHops (%s)' % hops,  None)
         if limit < 1 or limit > FragnetSearch.MAX_LIMIT:
             return SearchResult(FragnetSearch.INTERNAL_ERROR_CODE,
-                                'InvalidLimit', None)
+                                'InvalidLimit (%s)' % limit, None)
         if calculations:
             for calculation in calculations:
                 if calculation not in FragnetSearch.SUPPORTED_CALCULATIONS:
                     return SearchResult(FragnetSearch.INTERNAL_ERROR_CODE,
-                                        'InvalidCalculation', None)
+                                        'InvalidCalculation: %s' % calculation,
+                                        None)
 
         # Always try to refresh the access token.
         # The token is only refreshed if it is close to expiry.
@@ -364,6 +365,7 @@ class FragnetSearch:
             pass
 
         return SearchResult(resp.status_code, 'Success', content)
+
 
 # -----------------------------------------------------------------------------
 # MAIN

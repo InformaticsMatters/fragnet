@@ -11,9 +11,13 @@
 - import_tasks: prepare.yaml
 
 - import_tasks: get-combination.yaml
-  when: graph_origin_type == 'combination'
+  when:
+  - synchronise_origin|bool
+  - graph_origin_type == 'combination'
 - import_tasks: get-build.yaml
-  when: graph_origin_type == 'build'
+  when:
+  - synchronise_origin|bool
+  - graph_origin_type == 'build'
 
 - import_tasks: start-graph.yaml
 - import_tasks: start-fragnet-search.yaml

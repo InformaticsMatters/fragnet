@@ -8,10 +8,45 @@
     msg: You must provide a graph_name
   when: graph_name == ''
 
+- name: Expose graph name
+  debug:
+    var: graph_name
+
 - name: Set database facts
   set_fact:
-    graph_loader_path: "{{ item.value.graph_loader_directory }}"
-    graph_db_path: "{{ item.value.graph_db_directory }}"
-    graph_log_path:  "{{ item.value.graph_log_directory }}"
+    graph_origin_type: "{{ item.value.origin_type }}"
+    graph_origin_id: "{{ item.value.origin_id }}"
+    graph_root: "{{ item.value.root }}"
+    graph_loader_path: "{{ item.value.root }}/loader"
+    graph_db_path: "{{ item.value.root }}/graph"
+    graph_log_path:  "{{ item.value.root }}/log"
+    graph_cypher_script_path:  "{{ item.value.root }}/cypher-script"
+    graph_cypher_script:  "{{ item.value.cypher_script }}"
   loop: "{{ lookup('dict', graph_set) }}"
-  when: graph_name in item.key
+  when: graph_name == item.key
+
+# The variables above must have been set in one iteration of the loop.
+# If they're not defined the 'graph_name's isn't in the 'graph_set'.
+# Checking at least one of them checks them all.
+
+- name: Assert database facts
+  assert:
+    that:
+    - graph_origin_type is defined
+    - graph_origin_id is defined
+    - graph_root is defined
+    - graph_loader_path is defined
+
+# The root directory (expected to be a mount point)
+# must exists - the user creates this when they mount the data drive.
+
+- name: Check data root
+  stat:
+    path: "{{ graph_root }}"
+  register: graph_root_directory
+
+- name: Assert data root exsists
+  assert:
+    that:
+    - graph_root_directory.stat.exists
+    - graph_root_directory.stat.isdir

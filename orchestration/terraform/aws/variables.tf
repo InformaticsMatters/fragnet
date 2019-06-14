@@ -50,9 +50,9 @@ variable "amis" {
   }
 }
 
-variable "data_volume_size" {
+variable "root_volume_size" {
   description = "Size of graph data volume (Gi)"
-  default = "500"
+  default = "32"
 }
 
 variable "ansible_dir" {

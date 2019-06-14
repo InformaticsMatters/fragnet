@@ -1,0 +1,2 @@
+CREATE INDEX ON :F2(smiles);
+CREATE INDEX ON :Available(cmpd_id);
