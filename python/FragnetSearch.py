@@ -33,7 +33,7 @@ import requests
 # The version of this module.
 # Modify with every change, complying with
 # semantic 2.0.0 rules.
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 
 # The search result.
 # A namedtuple.
@@ -326,7 +326,7 @@ class FragnetSearch:
             return SearchResult(FragnetSearch.INTERNAL_ERROR_CODE,
                                 'APITokenRefreshFailure', None)
 
-        # Construct the basic URI, whcih includes the URL-encoded
+        # Construct the basic URI, which includes the URL-encoded
         # version of the provided SMILES string...
         search_uri = '{}/{}/search/neighbourhood/{}'.\
             format(self._fragnet_host,
@@ -366,6 +366,60 @@ class FragnetSearch:
 
         return SearchResult(resp.status_code, 'Success', content)
 
+    def search_suppliers(self):
+        """Runs a 'search/suppliers' query on the Fragnet server.
+
+        :returns: A SearchResult namedtuple consisting of the API 'status_code'
+                  (normally 200 on success), a 'message',
+                  and the response 'json' content
+                  (or None if there is no content). The content is
+                  a possibly empty list of supplier name strings.
+        """
+        # Always try to refresh the access token.
+        # The token is only refreshed if it is close to expiry.
+        if not self._check_token():
+            return SearchResult(FragnetSearch.INTERNAL_ERROR_CODE,
+                                'APITokenRefreshFailure', None)
+
+        # Construct the basic URI, which includes the URL-encoded
+        # version of the provided SMILES string...
+        search_uri = '{}/{}/search/suppliers'.\
+            format(self._fragnet_host, FragnetSearch.API)
+
+        headers = {'Authorization': 'bearer {}'.format(self._access_token)}
+
+        # Make the request...
+        debug('Calling search/suppliers...')
+        try:
+            resp = requests.get(search_uri,
+                                headers=headers,
+                                timeout=FragnetSearch.REQUEST_TIMOUT_S)
+        except requests.exceptions.ConnectTimeout:
+            return SearchResult(FragnetSearch.INTERNAL_ERROR_CODE,
+                                'RequestTimeout', None)
+
+        # Try to extract the JSON content
+        # and return it and the status code.
+        content = None
+        try:
+            content = resp.json()
+            debug('Returned from search with content.')
+        except ValueError:
+            # No json content.
+            # Nothing to do - content is already 'None'
+            warning('ValueError getting response json content.')
+            pass
+
+        # Map content to a list of names.
+        # The input's a dictionary of labels and names:
+        #
+        # [{ u'label': u'V_MP', u'name': u'MolPort'},
+        #  { u'label': u'V_EMOLS_BB', u'name': u'eMolecules-BB'}]
+        #
+        translated_content = list(map(lambda x: x['name'], content))
+
+        return SearchResult(resp.status_code, 'Success', translated_content)
+
 
 # -----------------------------------------------------------------------------
 # MAIN
@@ -382,15 +436,26 @@ if __name__ == '__main__':
         print('You need to set FRAGNET_PASSWORD')
         sys.exit(1)
 
+    # Pretty-printer
+    pp = pprint.PrettyPrinter(indent=2)
+
     # Create a Fragnet object
     # then authenticate (checking for success)...
     fs = FragnetSearch('http://fragnet.squonk.it:8080',
                        fragnet_username, fragnet_password)
     fs.authenticate()
 
-    # Now run a basic search.
+    # Now run a search for suppliers...
+    #
     # The response code from the server is followed by the JSON content
     # The JSON value is 'None' if there is no JSON content.
+    result = fs.search_suppliers()
+
+    pp.pprint(result.status_code)
+    pp.pprint(result.message)
+    pp.pprint(result.json)
+
+    # Now run a basic search...
     hac = 3
     rac = 1
     hops = 2
@@ -399,9 +464,6 @@ if __name__ == '__main__':
     result = fs.search_neighbourhood('c1ccc(Nc2nc3ccccc3o2)cc1',
                                      hac, rac, hops, limit,
                                      calculations)
-
-    # Pretty-print a summary...
-    pp = pprint.PrettyPrinter(indent=2)
 
     pp.pprint(result.status_code)
     pp.pprint(result.message)
