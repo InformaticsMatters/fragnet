@@ -272,7 +272,7 @@ class FragnetSearch:
 
         debug('Authenticated.')
 
-    def search_neighbourhood(self, smiles, hac, rac, hops, limit, calculations):
+    def search_neighbourhood(self, smiles, hac, rac, hops, limit, calculations, suppliers):
         """Runs a 'search/neighbourhood' query on the Fragnet server.
         The API token is collected when this class instance has been
         created.
@@ -291,6 +291,8 @@ class FragnetSearch:
         :type limit: ``int``
         :param calculations: The list of calculations (can be empty)
         :type calculations: ``list``
+        :param suppliers: The list of suppliers (if empty molecules from all suppliers are returned)
+        :type suppliers: ``list``
 
         :returns: A SearchResult namedtuple consisting of the API 'status_code'
                   (normally 200 on success), a 'message',
@@ -340,6 +342,9 @@ class FragnetSearch:
                   'limit': limit}
         if calculations:
             params['calcs'] = ','.join(calculations)
+
+        if suppliers:
+            params['suppliers'] = ','.join(suppliers)
 
         # Make the request...
         debug('Calling search/neighbourhood for {}...'.format(smiles))
