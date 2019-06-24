@@ -205,6 +205,10 @@ Count nodes and edges: -
     $ /var/lib/neo4j/bin/cypher-shell "match (n) return count(*);"
     $ /var/lib/neo4j/bin/cypher-shell "match (n)-[r]->() return count(r);"
 
+Fill the graph cache: -
+
+    $ /var/lib/neo4j/bin/cypher-shell "CALL apoc.warmup.run(true, true, true);"
+
 An example MolPort query for the new (combination 2)) DB: -
 
     $ /var/lib/neo4j/bin/cypher-shell \
