@@ -83,7 +83,7 @@ public class CdkMolDepictServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        String smiles = req.getParameter("smiles");
+        String smiles = req.getParameter("mol");
         if (smiles == null) {
             LOG.info("No smiles specified. Cannot render");
             return;
