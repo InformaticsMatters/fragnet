@@ -15,4 +15,4 @@
  */
 
 
-include 'fragnet-search'
+include 'fragnet-search', 'fragnet-depict'
