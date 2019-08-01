@@ -34,6 +34,6 @@ services:
     environment:
       NEO4J_PASSWORD: test123
     ports:
-    - "80:8080"
+    - "8080:8080"
     depends_on:
       - neo4j

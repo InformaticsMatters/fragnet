@@ -16,19 +16,12 @@
 
 
 description = 'Fragment network depiction'
-def contextName = 'fragnet-depict'
-
-version = '0.1.0'
-
 
 apply plugin: 'war'
 apply plugin: 'groovy'
 apply plugin: 'com.bmuschko.tomcat'
 
-
-
 dependencies {
-
     
     providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
 
@@ -50,9 +43,7 @@ dependencies {
 
     testCompile "org.codehaus.groovy:groovy-all:2.5.7"
     testCompile "org.spockframework:spock-core:1.3-groovy-2.5"
-
 }
-
 
 tomcat {
     enableSSL = false

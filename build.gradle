@@ -15,6 +15,7 @@
  */
 
 description = 'Fragment Network tools and services'
+version = '0.3.0'
 
 apply plugin: 'com.bmuschko.docker-remote-api'
 
@@ -41,7 +42,6 @@ allprojects {
     apply plugin: 'java'
 
     sourceCompatibility = 1.8
-    version = '0.1.0-SNAPSHOT'
 
     project.ext.set('camelVersion', '2.23.0')
     // look at the jackson2-version property here (with correct tag) to get the right Jackson version
@@ -95,7 +95,7 @@ task copyFragnetSearchWarFiles(type: Copy) {
     ]
     from "./fragnet-search/build/libs/"
     into "build/libs/"
-    include "fragnet-search-*.war"
+    include "fragnet-search.war"
 }
 
 task copyFragnetDepictWarFiles(type: Copy) {
@@ -104,7 +104,7 @@ task copyFragnetDepictWarFiles(type: Copy) {
     ]
     from "./fragnet-depict/build/libs/"
     into "build/libs/"
-    include "fragnet-depict-*.war"
+    include "fragnet-depict.war"
 }
 
 task buildDockerFile(type: Dockerfile) {
@@ -127,12 +127,11 @@ task buildDockerFile(type: Dockerfile) {
  mv *.jar $CATALINA_HOME/lib &&\
  cd $CATALINA_HOME && rm -rf keycloak''')
 
-    addFile('./libs/fragnet-search-*.war', "/usr/local/tomcat/webapps/fragnet-search.war")
-    addFile('./libs/fragnet-depict-*.war', "/usr/local/tomcat/webapps/fragnet-depict.war")
-    runCommand("cd /usr/local/tomcat/webapps && " + 
+    addFile('./libs/fragnet-*.war', "/usr/local/tomcat/webapps/")
+    runCommand("cd /usr/local/tomcat/webapps && " +
             "unzip -d fragnet-search fragnet-search.war && " +
             "unzip -d fragnet-depict fragnet-depict.war && " +
-            "rm fragnet-depict.war fragnet-search.war")
+            "rm fragnet-*.war")
 
     // this bit handles the conflicting jars in lib and webapps/fragnet-search/WEB-INF/lib.
     // the old ones in lib are removed and the correct ones moved from the webapp lib dir to the tomcat lib dir.
