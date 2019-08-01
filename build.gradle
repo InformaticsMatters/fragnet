@@ -78,3 +78,83 @@ wrapper {
     gradleVersion = '4.10.3'
 }
 
+docker {
+    url = dockerHost
+    certPath = null
+}
+
+task copyKeycloakJarsFiles(type: Copy) {
+    from "./lib/keycloak-2.1.0-jars-tomcat8"
+    into "build/libs/keycloak-2.1.0-jars-tomcat8/"
+    include "*.jar"
+}
+
+task copyFragnetSearchWarFiles(type: Copy) {
+    dependsOn = [
+            'fragnet-search:war'
+    ]
+    from "./fragnet-search/build/libs/"
+    into "build/libs/"
+    include "fragnet-search-*.war"
+}
+
+task copyFragnetDepictWarFiles(type: Copy) {
+    dependsOn = [
+            'fragnet-depict:war'
+    ]
+    from "./fragnet-depict/build/libs/"
+    into "build/libs/"
+    include "fragnet-depict-*.war"
+}
+
+task buildDockerFile(type: Dockerfile) {
+
+    dependsOn = [
+            copyFragnetSearchWarFiles,
+            copyFragnetDepictWarFiles,
+            copyKeycloakJarsFiles
+    ]
+
+    destFile = project.file('build/Dockerfile')
+    from "informaticsmatters/rdkit-tomcat-debian:Release_2019_03"
+    label(['maintainer': 'Tim Dudgeon "tdudgeon@informaticsmatters.com"'])
+
+    // include the keycloak adapters
+    runCommand('''mkdir keycloak && cd keycloak && curl -s -o keycloak.tar.gz\
+ https://downloads.jboss.org/keycloak/3.4.3.Final/adapters/keycloak-oidc/keycloak-tomcat8-adapter-dist-3.4.3.Final.tar.gz &&\
+ tar xfz keycloak.tar.gz &&\
+ rm keycloak.tar.gz &&\
+ mv *.jar $CATALINA_HOME/lib &&\
+ cd $CATALINA_HOME && rm -rf keycloak''')
+
+    addFile('./libs/fragnet-search-*.war', "/usr/local/tomcat/webapps/fragnet-search.war")
+    addFile('./libs/fragnet-depict-*.war', "/usr/local/tomcat/webapps/fragnet-depict.war")
+    runCommand("cd /usr/local/tomcat/webapps && " + 
+            "unzip -d fragnet-search fragnet-search.war && " +
+            "unzip -d fragnet-depict fragnet-depict.war && " +
+            "rm fragnet-depict.war fragnet-search.war")
+
+    // this bit handles the conflicting jars in lib and webapps/fragnet-search/WEB-INF/lib.
+    // the old ones in lib are removed and the correct ones moved from the webapp lib dir to the tomcat lib dir.
+    runCommand('''rm $CATALINA_HOME/lib/jackson* $CATALINA_HOME/lib/jboss-logging* &&\
+mv $CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-core*.jar \
+$CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-annotations*.jar \
+$CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-databind*.jar \
+$CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jboss-logging*.jar \
+$CATALINA_HOME/lib/''')
+
+}
+
+/** Build a Docker image
+ * run the generated image with something like this:
+ *
+ * docker run -d --name fragnet-search -p 80:8080 squonk/fragnet-search:latest
+ *
+ */
+task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
+    inputDir = buildDockerFile.destFile.get().asFile.parentFile
+    tags.add("squonk/fragnet-search:latest")
+    tags.add("squonk/fragnet-search:${version}")
+}
+
+
