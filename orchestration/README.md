@@ -93,12 +93,15 @@ The **deploy** playbook configures the graph-db node with a chosen
 _combination_ (or _build_). You define the graph you want to deploy using
 a copy of the parameter template file.
 
+**Deploy** essentially ensures the compute instances are _started_,
+the graph container is stopped and then everything brought to life
+with your chosen graph.
+
     $ source setenv.sh
     $ cd ansible
     $ cp parameters.template parameters
     [edit your 'parameters' file]
     $ ansible-playbook -e '@parameters' playbooks/fragnet/deploy.yaml 
-
 
 ## testing the (MolPort) graph
 You can test the Fragnet service **molport** deployment
@@ -216,7 +219,6 @@ An example MolPort query for the new (combination 2)) DB: -
         where c.smiles = 'CC(=O)NCCOC(=O)C[C@@H](CN)CC(C)C' \
         return c,m,a limit 10;"
 
-/var/lib/neo4j/bin/cypher-shell "match (c:MolPort)-->(m:F2)-->(a:Available) where c.smiles = 'B(C1CCCCC1)C1CCCCC1.CO' return c,m,a limit 10;"
 ---
 
 [ebs volumes]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html

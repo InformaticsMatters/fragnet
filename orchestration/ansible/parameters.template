@@ -11,7 +11,7 @@ synchronise_origin: true
 
 # The graph to install.
 # This has to be a key in the 'graph_set'
-graph_name: combination_2
+graph_name: molport_chemspace_2019_07
 
 # The graph set consisting of named graphs listing the desired database root
 # (typically a mount path on the graph node). You must set 'graph_name',
@@ -37,6 +37,11 @@ graph_set:
     root: /graph-combination-2
     origin_type: combination
     origin_id: 2
+    cypher_script: cypher.script
+  molport_chemspace_2019_07:
+    root: /graph-molport-chemspace-2019-07
+    origin_type: combination
+    origin_id: 4
     cypher_script: cypher.script
   senp7:
     root: /graph-neo4j

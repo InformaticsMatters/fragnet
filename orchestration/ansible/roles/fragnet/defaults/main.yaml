@@ -7,12 +7,12 @@
 # (the machine the playbook is run on, not the host being modified)
 # and other AWS-specific environment variables, namely: -
 #
-# - AWS_ACCESS_KEY
-# - AWS_SECRET_KEY
-# - AWS_REGION
+# - AWS_ACCESS_KEY_ID
+# - AWS_SECRET_ACCESS_KEY
+# - AWS_DEFAULT_REGION
 #
 # We read them here to ensure that the playbook does not progress
-# unless the user has been explict about the region 9especially).
+# unless the user has been explict about the region (especially).
 
 aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
 aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
