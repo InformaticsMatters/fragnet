@@ -13,6 +13,13 @@
   loop:
   - docker-1.13.1
 
+- name: Clear graph data directory
+  file:
+    path: "{{ graph_db_path }}"
+    state: absent
+  become: yes
+  when: clear_graph|bool
+
 - name: Create graph directories
   file:
     path: "{{ item }}"

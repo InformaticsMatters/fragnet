@@ -19,7 +19,7 @@
   debug:
     msg: "{{ s3_fragnet_bucket }}/combination/{{ graph_origin_id }}"
 
-- name: Get combination
+- name: Download combination
   shell: aws s3 sync s3://{{ origin }} {{ graph_loader_path }}
   vars:
     origin: "{{ s3_fragnet_bucket }}/combination/{{ graph_origin_id }}"

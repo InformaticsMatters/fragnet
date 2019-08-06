@@ -12,7 +12,7 @@
 - name: Copy cypher-script
   copy:
     src: graph/{{ graph_cypher_script }}
-    dest: "{{ graph_cypher_script_path }}/"
+    dest: "{{ graph_cypher_script_path }}/cypher.script"
   when:
   - graph_cypher_script is defined
   - graph_cypher_script|length > 0

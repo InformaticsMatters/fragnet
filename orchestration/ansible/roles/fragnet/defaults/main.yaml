@@ -43,13 +43,16 @@ minutes_to_wait_for_graph: 360
 graph_restart_policy: always
 # Synchronise the S3 graph data files?
 # If set graph import files will be synchronised with those on S3
-synchronise_origin: true
+synchronise_origin: yes
+# Set to clear the databse.
+# Used during initial deployment to remove the graph database directory.
+clear_graph: yes
 
 # Fragnet application variables...
 # -------
 
 # The Docker image tag for the 'squonk/fragnet-search' image.
-fragnet_tag: 0.2.1
+fragnet_tag: 0.3.0
 # The port to expose the Fragnet service on.
 # Internally the port is expected to be on 8080,
 # this is the port Fragnet is mapped to on the host.

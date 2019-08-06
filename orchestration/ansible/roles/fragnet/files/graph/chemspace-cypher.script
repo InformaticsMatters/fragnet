@@ -1,0 +1,4 @@
+CREATE INDEX ON :F2(smiles);
+CREATE INDEX ON :Available(cmpd_id);
+CREATE INDEX ON :F2(chac);
+CREATE INDEX ON :F2(hac);

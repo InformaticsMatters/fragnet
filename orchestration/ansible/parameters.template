@@ -3,11 +3,11 @@
 # Fragnet control variables.
 
 # Fragnet search docker image tag
-fragnet_tag: 0.2.0
+fragnet_tag: 0.3.0
 
 # Synchronise file with the origin,
 # True unless you've deliberately tinkered with the exiting files.
-synchronise_origin: true
+synchronise_origin: yes
 
 # The graph to install.
 # This has to be a key in the 'graph_set'
@@ -41,8 +41,8 @@ graph_set:
   molport_chemspace_2019_07:
     root: /graph-molport-chemspace-2019-07
     origin_type: combination
-    origin_id: 4
-    cypher_script: cypher.script
+    origin_id: 5
+    cypher_script: chemspace-cypher.script
   senp7:
     root: /graph-neo4j
     origin_type: build

@@ -203,16 +203,21 @@ Display the known supplier node process IDs and build-times: -
     $ /var/lib/neo4j/bin/cypher-shell \
         "match (s:Supplier) return s.process_id,s.build_datetime;"
 
-Count nodes and edges: -
+Count all nodes and edges: -
 
     $ /var/lib/neo4j/bin/cypher-shell "match (n) return count(*);"
     $ /var/lib/neo4j/bin/cypher-shell "match (n)-[r]->() return count(r);"
+
+Count supplier/vendor compounds (i.e≥ 'ChemSpace-BB'): -
+
+    $ /var/lib/neo4j/bin/cypher-shell "match (:Available)-->(s:Supplier) \
+            where s.name = 'ChemSpace-BB' return count(*);"
 
 Fill the graph cache: -
 
     $ /var/lib/neo4j/bin/cypher-shell "CALL apoc.warmup.run(true, true, true);"
 
-An example MolPort query for the new (combination 2)) DB: -
+An example MolPort query for the new (combination 5) DB: -
 
     $ /var/lib/neo4j/bin/cypher-shell \
         "match (c:MolPort)-->(m:F2)-->(a:Available) \
