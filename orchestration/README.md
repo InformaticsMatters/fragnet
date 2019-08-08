@@ -6,7 +6,7 @@ You will need: -
 - Python 3 (ideally a virtual/conda environment)
 - Terraform
 
-## The Squonk Keycloak Server
+## The Squonk Keycloak Server
 The Squonk Keycloak server needs: -
 
 1.  A `fragnet-search` client with a `confidential` **Access Type**
@@ -70,14 +70,15 @@ terraform. i.e.:-
 
 ## The playbooks
 Playbooks are contained in the `playbooks` sub-directory with each play
-supported by a corresponding *Role* task. There are lots of them.
+supported by a corresponding *Role*. There are lots of them but the most
+common ones are: -
 
--   deploy
--   stop-instances (the server)
--   start-instances (the server)
+-   deploy (initial deployment)
+-   stop-instances (stops the AWS server instance)
+-   start-instances ((re)starts the server instance - after a deployment)
 
 The plays rely on a number of parameters, conveniently replicated
-in the `parameters.template` file. Copy this file as `parameters`
+in the `ansible/parameters.template` file. Copy this file as `parameters`
 ans edit accordingly for use in the playbooks.
 
 ### The 'deploy' playbook
@@ -103,18 +104,32 @@ with your chosen graph.
     [edit your 'parameters' file]
     $ ansible-playbook -e '@parameters' playbooks/fragnet/deploy.yaml 
 
-## testing the (MolPort) graph
+>   Once you have deployed a database there's no need for you to deploy it
+    again. You can simply use the `start-instances` and `stop-instances` plays
+    (or handy scripts - see below).
+
+## Testing the (MolPort) graph
 You can test the Fragnet service **molport** deployment
 using a playbook. The test will attempt to get a token (using the
 user credentials in the setenv file), run a built-in search query
-(around "c1ccc(Nc2nc3ccccc3o2)cc1") and then conclude by checking
-an example query's results: -
+(around the molecule `c1ccc(Nc2nc3ccccc3o2)cc1`) and then conclude by checking
+the query's results: -
 
     $ ansible-playbook playbooks/fragnet/test-fragnet.yaml
 
 >   The check simply verifies the number of nodes, edges and groups
     returned by the query. It does not check the values of the nodes and edges,
     getting the right number is enough for this simple test.
+
+## Handy shell-scripts
+Super-simple shell-scripts can be used to quickly execute the most common
+tasks like `deploy` (a new or existing graph), `stop` (the server) and
+`start` (the server): -
+
+    $ ./deploy.sh
+    $ ./stop.sh
+    $ ./start.sh
+    $ ./test.sh
 
 ### Testing via a curl-based REST interaction
 On unix, assuming you have `curl` and `jq`, you can
@@ -133,15 +148,6 @@ And then curl the FRAGNET_SERVER...
 
     $ curl -LH "Authorization: bearer $token" \
         "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP&suppliers=eMolecules-BB"
-
-## Handy shell-scripts
-Super-simple shell-scripts can be used to quickly execute the most common
-tasks like `deploy` (a new or existing graph), `stop` (the server) and
-`start` (the server): -
-
-    $ ./deploy.sh
-    $ ./stop.sh
-    $ ./start.sh
 
 ## Deploying a new database
 before deploying, edit your `parameters` file to add a new `graph_set` and then
