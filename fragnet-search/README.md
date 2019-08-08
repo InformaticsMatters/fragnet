@@ -56,12 +56,15 @@ Parameters:
 | suppliers  | Query | No       | Comma separated list of suppliers to restrict results to. |
 | limit      | Query | No       | The maximum number of paths to return from the graph query. Default is 1000 and this is usually more than enough. Values greater than 5000 are not permitted. | 
 
-An example query run with [curl], where the Fragnet server address is
+An example query run with [curl], where the Fragnet server address (and port) is
 set in the `FRAGNET_SERVER` environment variable (e.g. `export FRAGNET_SERVER=http://localhost:8080`),
 might look like this:
 ```
 curl "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ``` 
+
+>   Remember that the Fragnet server may not be running on the default HTTP
+    port. It can normally be found on port `8080`.
 
 Note that the query molecule is specified as smiles and must by URL encoded. This can, for instance,
 be performed [here](https://www.urlencoder.org/).

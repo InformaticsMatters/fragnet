@@ -67,22 +67,30 @@
 
 # Test the search/neighbourhood query (using the first supplier)
 
-- name: Run search/neighbourhood query ({{ suppliers_in_db[0] }})
-  uri:
-    url: "http://{{ api }}/{{ method }}/{{ smiles|urlencode }}?\
-          {{ hac }}&{{ rac }}&{{ hops }}&{{ calcs }}&{{ suppliers }}"
-    headers:
-      Authorization: bearer {{ fragnet_result.json.access_token }}
-    timeout: "{{ fragnet_query_timeout_s|int }}"
+- name: Construct search/neighbourhood query ({{ suppliers_in_db[0] }})
+  set_fact:
+    uri_string: "http://{{ api }}/{{ path }}/{{ smiles|urlencode }}?\
+                 {{ hac }}&{{ rac }}&{{ hops }}&{{ calcs }}&{{ suppliers }}"
   vars:
     api: "{{ ansible_host }}:8080/fragnet-search/rest/{{ franget_api }}"
-    method: search/neighbourhood
+    path: search/neighbourhood
     smiles: c1ccc(Nc2nc3ccccc3o2)cc1
     hac: hac=3
     rac: rac=1
     hops: hops=2
     calcs: calcs=LOGP
     suppliers: suppliers={{ suppliers_in_db[0] }}
+
+- name: Display query
+  debug:
+    var: uri_string
+
+- name: Run query
+  uri:
+    url: "{{ uri_string }}"
+    headers:
+      Authorization: bearer {{ fragnet_result.json.access_token }}
+    timeout: "{{ fragnet_query_timeout_s|int }}"
   register: search_result
 
 - name: Check we have some nodes, edges and groups
