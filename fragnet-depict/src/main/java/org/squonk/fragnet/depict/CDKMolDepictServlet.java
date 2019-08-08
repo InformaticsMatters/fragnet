@@ -59,24 +59,9 @@ import java.util.logging.Logger;
         description = "Molecule depiction using CDK",
         urlPatterns = {"/moldepict"}
 )
-public class CdkMolDepictServlet extends HttpServlet {
+public class CDKMolDepictServlet extends HttpServlet {
 
-    private static final Logger LOG = Logger.getLogger(CdkMolDepictServlet.class.getName());
-
-    private static final SmilesParser smilesParser = new SmilesParser(SilentChemObjectBuilder.getInstance());
-    private static final Map<String, IAtomColorer> COLORERS = new HashMap<>();
-
-    static {
-        COLORERS.put("jmol", new JmolColors());
-        COLORERS.put("cdk2d", new CDK2DAtomColors());
-        COLORERS.put("partialAtomicCharge", new PartialAtomicChargeColors());
-        COLORERS.put("rasmol", new RasmolColors());
-        COLORERS.put("white", new UniColor(Color.WHITE));
-        COLORERS.put("black", new UniColor(Color.BLACK));
-    }
-
-    private static final IAtomColorer DEFAULT_COLORER = COLORERS.get("cdk2d");
-    private static final Color DEFAULT_BACKGROUND = new Color(255, 255, 255, 0);
+    private static final Logger LOG = Logger.getLogger(CDKMolDepictServlet.class.getName());
 
 
     @Override
@@ -97,30 +82,16 @@ public class CdkMolDepictServlet extends HttpServlet {
             HttpServletResponse resp,
             String smiles) throws IOException {
 
-        IAtomContainer mol = smilesToIAtomContainer(smiles);
+        IAtomContainer mol = CDKMolDepict.readSmiles(smiles);
 
-        Map<String, String[]> params = req.getParameterMap();
-
-        int width = getIntegerHttpParameter("w", params, 50);
-        int height = getIntegerHttpParameter("h", params, 50);
-        double margin = getDoubleHttpParameter("m", params, 0d);
-
-        String colorer = getStringHttpParameter("colorscheme", params, null);
-        IAtomColorer colorScheme = COLORERS.get(colorer);
-        if (colorScheme == null) {
-            colorScheme = DEFAULT_COLORER;
-        }
-
-        Color backgroundColor = getColorHttpParameter("bg", params, DEFAULT_BACKGROUND);
-        boolean expand = getBooleanHttpParameter("e", params, true); // expandToFit
-
+        CDKMolDepict moldepict = createMolDepict(req);
 
         String svg = null;
         try {
-            svg = moleculeToSVG(mol, width, height, margin, colorScheme, backgroundColor, expand);
+            svg = moldepict.moleculeToSVG(mol);
 
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error in svg depiction", e);
+            LOG.log(Level.WARNING, "Error in SVG depiction", e);
             return;
         }
         if (svg != null) {
@@ -133,49 +104,28 @@ public class CdkMolDepictServlet extends HttpServlet {
         }
     }
 
-    protected IAtomContainer smilesToIAtomContainer(String smiles) throws IOException {
-        try {
-            return smilesParser.parseSmiles(smiles);
-        } catch (InvalidSmilesException ise) {
-            throw new IOException("Invalid SMILES", ise);
-        }
-    }
+    protected CDKMolDepict createMolDepict(HttpServletRequest req) {
 
-    protected String moleculeToSVG(IAtomContainer mol,
-                                   int width,
-                                   int height,
-                                   double margin,
-                                   IAtomColorer colorScheme,
-                                   Color backgroundColor,
-                                   boolean expandToFit) throws CDKException {
-        if (mol == null) {
-            return null;
+        Map<String, String[]> params = req.getParameterMap();
+
+        int width = getIntegerHttpParameter("w", params, 50);
+        int height = getIntegerHttpParameter("h", params, 50);
+        double margin = getDoubleHttpParameter("m", params, 0d);
+
+        String colorer = getStringHttpParameter("colorscheme", params, null);
+        IAtomColorer colorScheme = CDKMolDepict.getColorer(colorer);
+        if (colorScheme == null) {
+            colorScheme = CDKMolDepict.DEFAULT_COLORER;
         }
 
-        DepictionGenerator dg = createDepictionGenerator(width, height, margin, colorScheme, backgroundColor, expandToFit);
-        Depiction depiction = dg.depict(mol);
-        return depiction.toSvgStr();
-    }
+        Color backgroundColor = getColorHttpParameter("bg", params, CDKMolDepict.DEFAULT_BACKGROUND);
+        boolean expandToFit = getBooleanHttpParameter("e", params, true);
+        boolean showImplicitH = getBooleanHttpParameter("i", params, true);
 
-    DepictionGenerator createDepictionGenerator(int width,
-                                                int height,
-                                                double margin,
-                                                IAtomColorer colorScheme,
-                                                Color backgroundColor,
-                                                boolean expandToFit) {
+        CDKMolDepict depict = new CDKMolDepict(
+                width, height, margin, colorScheme, backgroundColor, expandToFit, showImplicitH);
 
-        DepictionGenerator dg = new DepictionGenerator()
-                .withTerminalCarbons()
-                //.withParam(BasicAtomGenerator.ShowExplicitHydrogens.class, true)
-                .withBackgroundColor(backgroundColor)
-                .withSize(width, height)
-                .withAtomColors(colorScheme)
-                .withMargin(margin > 0 ? margin : 0);
-
-        if (expandToFit) {
-            dg = dg.withFillToFit();
-        }
-        return dg;
+        return depict;
     }
 
     private static String getStringHttpParameter(String name, Map<String, String[]> params, String defaultValue) {
