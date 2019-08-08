@@ -37,7 +37,8 @@ public class FragnetSearchRouteBuilderCommon extends RouteBuilder {
     public void configure() throws Exception {
 
 
-        restConfiguration().component("servlet").host("0.0.0.0");
+        restConfiguration().component("servlet").host("0.0.0.0")
+                .enableCORS(true);
 //                .apiContextPath("/api-doc")
 //                .apiProperty("api.title", "Fragnet services").apiProperty("api.version", "1.0")
 //                .apiProperty("cors", "true");
