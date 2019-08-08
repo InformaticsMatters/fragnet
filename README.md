@@ -25,3 +25,22 @@ Test the container using the [docker-compose-test.yml](docker-compose-test.yml) 
 This uses a sample Neo4j database with a small amount of data.
 
 For full deployment see [orchestration](orchestration/)
+
+### Image versions
+
+The application version is defined in `build.gradle`'s `version` string.
+
+During active development the version number (on the master branch)
+is typically the next anticipated formal release and **must** have a
+`-SNAPSHOT` suffix.
+
+**BEFORE** making and pushing a *formal* release you **must**: -
+1.  Remove the `-SNAPSHOT` suffix
+1.  Adjust the version number accordingly (if required)
+1.  Commit the change to Git
+1.  Tag the Git repository using the chosen version number
+
+**AFTER** making a formal release your next actions are to: -
+1.  Increment the version number
+1.  Append the `-SNAPSHOT` suffix
+1.  Commit your change to Git
