@@ -16,7 +16,7 @@
 
 description = 'Fragment Network tools and services'
 
-version = '0.3.2'
+version = '0.3.3-SNAPSHOT'
 
 apply plugin: 'com.bmuschko.docker-remote-api'
 

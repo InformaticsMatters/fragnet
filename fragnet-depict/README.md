@@ -55,6 +55,6 @@ http://localhost:8080/fragnet-depict/moldepict?mol=CN1C%3DNC2%3DC1C(%3DO)N(C)C(%
 
 ## History of Changes
 
-31-JUL-2019 Initial commit with basic rendering servlet code.
-01-AUG-2019 war file deployed to tomcat in Docker (alongside fragnet-search)
-13-AUG-2019 Atom/bond highlighting and show explicit hydrogens only added
+* 31-JUL-2019 Initial commit with basic rendering servlet code.
+* 01-AUG-2019 war file deployed to tomcat in Docker (alongside fragnet-search)
+* 13-AUG-2019 Atom/bond highlighting and show explicit hydrogens only added (v0.3.2)
