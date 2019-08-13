@@ -16,23 +16,18 @@
 
 package org.squonk.fragnet.depict;
 
-import org.openscience.cdk.depict.Depiction;
-import org.openscience.cdk.depict.DepictionGenerator;
-import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.renderer.color.*;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesParser;
+import org.openscience.cdk.renderer.color.IAtomColorer;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
+import java.awt.Color;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -84,11 +79,21 @@ public class CDKMolDepictServlet extends HttpServlet {
 
         IAtomContainer mol = CDKMolDepict.readSmiles(smiles);
 
-        CDKMolDepict moldepict = createMolDepict(req);
+        Map<String, String[]> params = req.getParameterMap();
+        CDKMolDepict moldepict = createMolDepict(params);
 
         String svg = null;
         try {
-            svg = moldepict.moleculeToSVG(mol);
+            List<Integer> highlightedAtoms = readHighlightedAtoms(params);
+            if (highlightedAtoms == null || highlightedAtoms.isEmpty()) {
+                // no atom highlighting
+                svg = moldepict.moleculeToSVG(mol);
+            } else {
+                boolean outerGlow = getBooleanHttpParameter("outerGlow", params, false);
+                Color highlightColor = getColorHttpParameter("highlightColor", params, Color.RED);
+                svg = moldepict.moleculeToSVG(mol, highlightColor, outerGlow, highlightedAtoms);
+            }
+
 
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Error in SVG depiction", e);
@@ -104,26 +109,29 @@ public class CDKMolDepictServlet extends HttpServlet {
         }
     }
 
-    protected CDKMolDepict createMolDepict(HttpServletRequest req) {
+    private List<Integer> readHighlightedAtoms(Map<String, String[]> params) {
+        List<Integer> highlights = getIntegerArrayHttpParameter("highlightAtoms",params, null);
+        return highlights;
+    }
 
-        Map<String, String[]> params = req.getParameterMap();
+    protected CDKMolDepict createMolDepict(Map<String, String[]> params) {
 
         int width = getIntegerHttpParameter("w", params, 50);
         int height = getIntegerHttpParameter("h", params, 50);
         double margin = getDoubleHttpParameter("m", params, 0d);
 
-        String colorer = getStringHttpParameter("colorscheme", params, null);
+        String colorer = getStringHttpParameter("colorScheme", params, null);
         IAtomColorer colorScheme = CDKMolDepict.getColorer(colorer);
         if (colorScheme == null) {
             colorScheme = CDKMolDepict.DEFAULT_COLORER;
         }
 
         Color backgroundColor = getColorHttpParameter("bg", params, CDKMolDepict.DEFAULT_BACKGROUND);
-        boolean expandToFit = getBooleanHttpParameter("e", params, true);
-        boolean showImplicitH = getBooleanHttpParameter("i", params, true);
+        boolean expandToFit = getBooleanHttpParameter("expand", params, true);
+        boolean showExplicitHOnly = getBooleanHttpParameter("explicitHOnly", params, false);
 
         CDKMolDepict depict = new CDKMolDepict(
-                width, height, margin, colorScheme, backgroundColor, expandToFit, showImplicitH);
+                width, height, margin, colorScheme, backgroundColor, expandToFit, showExplicitHOnly);
 
         return depict;
     }
@@ -146,6 +154,25 @@ public class CDKMolDepictServlet extends HttpServlet {
             return defaultValue;
         } else {
             return new Integer(str);
+        }
+    }
+
+    private static List<Integer> getIntegerArrayHttpParameter(String name, Map<String, String[]> params, List<Integer> defaultValue) {
+        String str = getStringHttpParameter(name, params, null);
+        if (str == null) {
+            return defaultValue;
+        } else {
+            String[] items = str.trim().split(",");
+            List<Integer> results = new ArrayList<>();
+            for (String item : items) {
+                try {
+                    Integer i = new Integer(item.trim());
+                    results.add(i);
+                } catch (NumberFormatException e) {
+                    LOG.log(Level.WARNING, "Invalid integer: " + item, e);
+                }
+            }
+            return results.isEmpty() ? null : results;
         }
     }
 

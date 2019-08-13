@@ -79,8 +79,7 @@ public class CDKMolDepict {
     }
 
     /**
-     * Allows to define custom parameters.
-     * You can use the {#link createDepictionGenerator} to create the generator with suitable values
+     * Constructor allows to define custom parameters.
      *
      */
     public CDKMolDepict(Integer width,
@@ -105,13 +104,7 @@ public class CDKMolDepict {
                             public boolean visible(IAtom atom, List<IBond> neighbors, RendererModel model) {
                                 if (atom.getAtomicNumber() == 6) {
                                     // count the number of connections that are heavy atoms
-                                    int numHeavy = 0;
-                                    for (IBond bond : atom.bonds()) {
-                                        IAtom other = bond.getOther(atom);
-                                        if (other.getAtomicNumber() > 1) {
-                                            numHeavy++;
-                                        }
-                                    }
+                                    int numHeavy = countHeavyAtomConnections(atom);
                                     // if only one then this is a terminal carbon so we need to leave the Hs in place
                                     return numHeavy < 2;
                                 } else { // non-carbon atoms
@@ -166,15 +159,15 @@ public class CDKMolDepict {
         return moleculeToSVG(mol, null, null, null);
     }
 
-    public String moleculeToSVG(IAtomContainer mol, Color highlightColor, Boolean outerGlow, Integer... atomHighlights)
+    public String moleculeToSVG(IAtomContainer mol, Color highlightColor, Boolean outerGlow, List<Integer> atomHighlights)
             throws CDKException {
 
         if (mol == null) {
             throw new IllegalArgumentException("Molecule must be defined");
         }
-
-        DepictionGenerator g = fixHighlights(mol, highlightColor, outerGlow, atomHighlights);
-        Depiction depiction = g.depict(mol);
+        IAtomContainer mol2 = fixMolecule(mol, showOnlyExplicitH);
+        DepictionGenerator g = fixHighlights(mol2, highlightColor, outerGlow, atomHighlights);
+        Depiction depiction = g.depict(mol2);
         return depiction.toSvgStr();
     }
 
@@ -182,24 +175,36 @@ public class CDKMolDepict {
         return moleculeToImage(mol, null, null, null);
     }
 
-    public BufferedImage moleculeToImage(IAtomContainer mol, Color highlightColor, Boolean outerGlow, Integer... atomHighlights)
+    private int countHeavyAtomConnections(IAtom atom) {
+        int numHeavy = 0;
+        for (IBond bond : atom.bonds()) {
+            IAtom other = bond.getOther(atom);
+            if (other.getAtomicNumber() > 1) {
+                numHeavy++;
+            }
+        }
+        return numHeavy;
+    }
+
+    public BufferedImage moleculeToImage(IAtomContainer mol, Color highlightColor, Boolean outerGlow, List<Integer> atomHighlights)
             throws CDKException {
 
         if (mol == null) {
             throw new IllegalArgumentException("Molecule must be defined");
         }
 
+        IAtomContainer mol2 = fixMolecule(mol, showOnlyExplicitH);
+        DepictionGenerator g = fixHighlights(mol2, highlightColor, outerGlow, atomHighlights);
+        Depiction depiction = g.depict(mol2);
+        return depiction.toImg();
+    }
+
+    private IAtomContainer fixMolecule(IAtomContainer mol, boolean showOnlyExplicitH) {
         if (showOnlyExplicitH) {
             for (IAtom atom : mol.atoms()) {
                 if (atom.getAtomicNumber() == 6) {
                     // count the number of connections that are heavy atoms
-                    int numHeavy = 0;
-                    for (IBond bond : atom.bonds()) {
-                        IAtom other = bond.getOther(atom);
-                        if (other.getAtomicNumber() > 1) {
-                            numHeavy++;
-                        }
-                    }
+                    int numHeavy = countHeavyAtomConnections(atom);
                     // if only one then this is a terminal carbon so we need to leave the Hs in place
                     if (numHeavy < 2) {
                         atom.setImplicitHydrogenCount(0);
@@ -209,17 +214,14 @@ public class CDKMolDepict {
                 }
             }
         }
-
-        DepictionGenerator g = fixHighlights(mol, highlightColor, outerGlow, atomHighlights);
-        Depiction depiction = g.depict(mol);
-        return depiction.toImg();
+        return mol;
     }
 
     private DepictionGenerator fixHighlights(
             IAtomContainer mol,
             Color highlightColor,
             Boolean outerGlow,
-            Integer... atomHighlights) {
+            List<Integer> atomHighlights) {
 
         if (atomHighlights == null || highlightColor == null) {
             return generator;
@@ -298,42 +300,5 @@ public class CDKMolDepict {
             throw new IOException("Invalid SMILES", ise);
         }
     }
-
-//    public static DepictionGenerator createDepictionGenerator() {
-//        return createDepictionGenerator(null, null, null, null, null, null, null);
-//    }
-
-//    public static DepictionGenerator createDepictionGenerator(
-//            Integer width,
-//            Integer height,
-//            Double margin,
-//            IAtomColorer colorScheme,
-//            Color backgroundColor,
-//            Boolean expandToFit,
-//            Boolean showImplicitH) {
-//
-//        DepictionGenerator dg = new DepictionGenerator()
-//                .withTerminalCarbons()
-//                .withBackgroundColor(backgroundColor == null ? DEFAULT_BACKGROUND : backgroundColor)
-//                .withSize(width == null ? DEFAULT_SIZE : width, height == null ? DEFAULT_SIZE : height)
-//                .withAtomColors(colorScheme == null ? DEFAULT_COLORER : colorScheme)
-//                .withMargin(margin == null ? 0d : margin);
-//
-//
-//        if (expandToFit == null || expandToFit.booleanValue()) {
-//            dg = dg.withFillToFit();
-//        }
-////        if (showImplicitH == null || showImplicitH.booleanValue()) {
-//        if (true) {
-//            dg = dg.withParam(StandardGenerator.Visibility.class,
-//                    new SymbolVisibility() {
-//                        @Override
-//                        public boolean visible(IAtom atom, List<IBond> neighbors, RendererModel model) {
-//                            return atom.getAtomicNumber() != 6;
-//                        }
-//                    });
-//        }
-//        return dg;
-//    }
 
 }
