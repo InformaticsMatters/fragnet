@@ -16,23 +16,18 @@
 
 package org.squonk.fragnet.depict;
 
-import org.openscience.cdk.depict.Depiction;
-import org.openscience.cdk.depict.DepictionGenerator;
-import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.renderer.color.*;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesParser;
+import org.openscience.cdk.renderer.color.IAtomColorer;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
+import java.awt.Color;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,24 +54,9 @@ import java.util.logging.Logger;
         description = "Molecule depiction using CDK",
         urlPatterns = {"/moldepict"}
 )
-public class CdkMolDepictServlet extends HttpServlet {
+public class CDKMolDepictServlet extends HttpServlet {
 
-    private static final Logger LOG = Logger.getLogger(CdkMolDepictServlet.class.getName());
-
-    private static final SmilesParser smilesParser = new SmilesParser(SilentChemObjectBuilder.getInstance());
-    private static final Map<String, IAtomColorer> COLORERS = new HashMap<>();
-
-    static {
-        COLORERS.put("jmol", new JmolColors());
-        COLORERS.put("cdk2d", new CDK2DAtomColors());
-        COLORERS.put("partialAtomicCharge", new PartialAtomicChargeColors());
-        COLORERS.put("rasmol", new RasmolColors());
-        COLORERS.put("white", new UniColor(Color.WHITE));
-        COLORERS.put("black", new UniColor(Color.BLACK));
-    }
-
-    private static final IAtomColorer DEFAULT_COLORER = COLORERS.get("cdk2d");
-    private static final Color DEFAULT_BACKGROUND = new Color(255, 255, 255, 0);
+    private static final Logger LOG = Logger.getLogger(CDKMolDepictServlet.class.getName());
 
 
     @Override
@@ -97,30 +77,26 @@ public class CdkMolDepictServlet extends HttpServlet {
             HttpServletResponse resp,
             String smiles) throws IOException {
 
-        IAtomContainer mol = smilesToIAtomContainer(smiles);
+        IAtomContainer mol = CDKMolDepict.readSmiles(smiles);
 
         Map<String, String[]> params = req.getParameterMap();
-
-        int width = getIntegerHttpParameter("w", params, 50);
-        int height = getIntegerHttpParameter("h", params, 50);
-        double margin = getDoubleHttpParameter("m", params, 0d);
-
-        String colorer = getStringHttpParameter("colorscheme", params, null);
-        IAtomColorer colorScheme = COLORERS.get(colorer);
-        if (colorScheme == null) {
-            colorScheme = DEFAULT_COLORER;
-        }
-
-        Color backgroundColor = getColorHttpParameter("bg", params, DEFAULT_BACKGROUND);
-        boolean expand = getBooleanHttpParameter("e", params, true); // expandToFit
-
+        CDKMolDepict moldepict = createMolDepict(params);
 
         String svg = null;
         try {
-            svg = moleculeToSVG(mol, width, height, margin, colorScheme, backgroundColor, expand);
+            List<Integer> highlightedAtoms = readHighlightedAtoms(params);
+            if (highlightedAtoms == null || highlightedAtoms.isEmpty()) {
+                // no atom highlighting
+                svg = moldepict.moleculeToSVG(mol);
+            } else {
+                boolean outerGlow = getBooleanHttpParameter("outerGlow", params, false);
+                Color highlightColor = getColorHttpParameter("highlightColor", params, Color.RED);
+                svg = moldepict.moleculeToSVG(mol, highlightColor, outerGlow, highlightedAtoms);
+            }
+
 
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error in svg depiction", e);
+            LOG.log(Level.WARNING, "Error in SVG depiction", e);
             return;
         }
         if (svg != null) {
@@ -133,49 +109,31 @@ public class CdkMolDepictServlet extends HttpServlet {
         }
     }
 
-    protected IAtomContainer smilesToIAtomContainer(String smiles) throws IOException {
-        try {
-            return smilesParser.parseSmiles(smiles);
-        } catch (InvalidSmilesException ise) {
-            throw new IOException("Invalid SMILES", ise);
-        }
+    private List<Integer> readHighlightedAtoms(Map<String, String[]> params) {
+        List<Integer> highlights = getIntegerArrayHttpParameter("highlightAtoms",params, null);
+        return highlights;
     }
 
-    protected String moleculeToSVG(IAtomContainer mol,
-                                   int width,
-                                   int height,
-                                   double margin,
-                                   IAtomColorer colorScheme,
-                                   Color backgroundColor,
-                                   boolean expandToFit) throws CDKException {
-        if (mol == null) {
-            return null;
+    protected CDKMolDepict createMolDepict(Map<String, String[]> params) {
+
+        int width = getIntegerHttpParameter("w", params, 50);
+        int height = getIntegerHttpParameter("h", params, 50);
+        double margin = getDoubleHttpParameter("m", params, 0d);
+
+        String colorer = getStringHttpParameter("colorScheme", params, null);
+        IAtomColorer colorScheme = CDKMolDepict.getColorer(colorer);
+        if (colorScheme == null) {
+            colorScheme = CDKMolDepict.DEFAULT_COLORER;
         }
 
-        DepictionGenerator dg = createDepictionGenerator(width, height, margin, colorScheme, backgroundColor, expandToFit);
-        Depiction depiction = dg.depict(mol);
-        return depiction.toSvgStr();
-    }
+        Color backgroundColor = getColorHttpParameter("bg", params, CDKMolDepict.DEFAULT_BACKGROUND);
+        boolean expandToFit = getBooleanHttpParameter("expand", params, true);
+        boolean showExplicitHOnly = getBooleanHttpParameter("explicitHOnly", params, false);
 
-    DepictionGenerator createDepictionGenerator(int width,
-                                                int height,
-                                                double margin,
-                                                IAtomColorer colorScheme,
-                                                Color backgroundColor,
-                                                boolean expandToFit) {
+        CDKMolDepict depict = new CDKMolDepict(
+                width, height, margin, colorScheme, backgroundColor, expandToFit, showExplicitHOnly);
 
-        DepictionGenerator dg = new DepictionGenerator()
-                .withTerminalCarbons()
-                //.withParam(BasicAtomGenerator.ShowExplicitHydrogens.class, true)
-                .withBackgroundColor(backgroundColor)
-                .withSize(width, height)
-                .withAtomColors(colorScheme)
-                .withMargin(margin > 0 ? margin : 0);
-
-        if (expandToFit) {
-            dg = dg.withFillToFit();
-        }
-        return dg;
+        return depict;
     }
 
     private static String getStringHttpParameter(String name, Map<String, String[]> params, String defaultValue) {
@@ -196,6 +154,25 @@ public class CdkMolDepictServlet extends HttpServlet {
             return defaultValue;
         } else {
             return new Integer(str);
+        }
+    }
+
+    private static List<Integer> getIntegerArrayHttpParameter(String name, Map<String, String[]> params, List<Integer> defaultValue) {
+        String str = getStringHttpParameter(name, params, null);
+        if (str == null) {
+            return defaultValue;
+        } else {
+            String[] items = str.trim().split(",");
+            List<Integer> results = new ArrayList<>();
+            for (String item : items) {
+                try {
+                    Integer i = new Integer(item.trim());
+                    results.add(i);
+                } catch (NumberFormatException e) {
+                    LOG.log(Level.WARNING, "Invalid integer: " + item, e);
+                }
+            }
+            return results.isEmpty() ? null : results;
         }
     }
 
