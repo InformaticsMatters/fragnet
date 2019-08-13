@@ -16,7 +16,7 @@
 
 description = 'Fragment Network tools and services'
 
-version = '0.3.2-SNAPSHOT'
+version = '0.3.2'
 
 apply plugin: 'com.bmuschko.docker-remote-api'
 
@@ -148,13 +148,15 @@ $CATALINA_HOME/lib/''')
 /** Build a Docker image
  * run the generated image with something like this:
  *
- * docker run -d --name fragnet-search -p 80:8080 squonk/fragnet-search:latest
+ * docker run -d --name fragnet-search -p 8080:8080 squonk/fragnet-search:latest
  *
  */
 task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
     inputDir = buildDockerFile.destFile.get().asFile.parentFile
     tags.add("squonk/fragnet-search:latest")
-    tags.add("squonk/fragnet-search:${version}")
+    if (!version.endsWith('-SNAPSHOT')) {
+        tags.add("squonk/fragnet-search:${version}")
+    }
 }
 
 
