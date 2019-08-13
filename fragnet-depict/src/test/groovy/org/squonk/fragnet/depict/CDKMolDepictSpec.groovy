@@ -16,12 +16,10 @@
 
 package org.squonk.fragnet.depict
 
-
 import org.openscience.cdk.interfaces.IAtomContainer
 import spock.lang.Specification
 
 import java.awt.*
-import java.nio.file.Files
 
 class CDKMolDepictSpec extends Specification {
 
@@ -32,7 +30,7 @@ class CDKMolDepictSpec extends Specification {
 
         when:
         def svg = depict.smilesToSVG("[H]C1NCC(C)C(N)=C1")
-        println svg
+        //println svg
 
         then:
         svg != null
@@ -48,7 +46,7 @@ class CDKMolDepictSpec extends Specification {
         IAtomContainer mol = CDKMolDepict.readSmiles("[H]C1NCC(C)C(N)=C1")
 
         when:
-        def svg = depict.moleculeToSVG(mol, Color.ORANGE, true, [1, 2, 3] as Integer[])
+        def svg = depict.moleculeToSVG(mol, Color.ORANGE, true, [1, 2, 3])
         //println svg
 
         then:
@@ -68,8 +66,8 @@ class CDKMolDepictSpec extends Specification {
         when:
         def img = depict.moleculeToImage(mol)
         byte[] png = depict.writeImage(img, 'png')
-        println png.length
-        Files.write(java.nio.file.Paths.get("/tmp/myimage.png"), png)
+        //println png.length
+        //Files.write(java.nio.file.Paths.get("/tmp/myimage.png"), png)
 
 
         then:
@@ -87,13 +85,13 @@ class CDKMolDepictSpec extends Specification {
 
         when:
         // img1 has highlights
-        def img1 = depict.moleculeToImage(mol, Color.ORANGE, true, [1, 2, 3] as Integer[])
+        def img1 = depict.moleculeToImage(mol, Color.ORANGE, true, [1, 2, 3])
         byte[] png1 = depict.writeImage(img1, 'png')
-        Files.write(java.nio.file.Paths.get("/tmp/myimage1.png"), png1)
+        //Files.write(java.nio.file.Paths.get("/tmp/myimage1.png"), png1)
         // img2 is no highlighted so will be smaller (?)
         def img2 = depict.moleculeToImage(mol)
         byte[] png2 = depict.writeImage(img2, 'png')
-        Files.write(java.nio.file.Paths.get("/tmp/myimage2.png"), png2)
+        //Files.write(java.nio.file.Paths.get("/tmp/myimage2.png"), png2)
 
         then:
         png1 != null
