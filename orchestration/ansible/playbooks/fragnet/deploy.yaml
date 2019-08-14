@@ -11,8 +11,8 @@
   tasks:
 
   - include_role:
-    name: fragnet
-    tasks_from: pre-flight-check.yaml
+      name: fragnet
+      tasks_from: pre-flight-check.yaml
 
   # Could be destructive/time-consuming.
   # Is the user sure?
