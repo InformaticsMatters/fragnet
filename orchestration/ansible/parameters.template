@@ -42,7 +42,7 @@ graph_set:
     root: /graph-molport-chemspace-2019-07
     origin_type: combination
     origin_id: 5
-    cypher_script: chemspace-cypher.script
+    cypher_script: cypher.script
   senp7:
     root: /graph-neo4j
     origin_type: build
