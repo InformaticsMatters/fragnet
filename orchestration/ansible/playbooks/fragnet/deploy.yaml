@@ -10,6 +10,10 @@
 
   tasks:
 
+  - include_role:
+    name: fragnet
+    tasks_from: pre-flight-check.yaml
+
   # Could be destructive/time-consuming.
   # Is the user sure?
 
@@ -20,10 +24,6 @@
         This will stop the graph container, replacing it with a new graph.
         Press return to continue if you are happy to deploy.
         Press Ctrl+c and then "a" if you've changed your mind
-
-  - include_role:
-      name: fragnet
-      tasks_from: pre-flight-check.yaml
 
 - hosts: graph
   gather_facts: no

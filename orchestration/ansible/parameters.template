@@ -3,7 +3,7 @@
 # Fragnet control variables.
 
 # Fragnet search docker image tag
-fragnet_tag: 0.3.0
+fragnet_tag: latest
 
 # Synchronise file with the origin,
 # True unless you've deliberately tinkered with the exiting files.
