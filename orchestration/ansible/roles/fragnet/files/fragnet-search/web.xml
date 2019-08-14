@@ -57,7 +57,7 @@
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>fragnet-search health check</web-resource-name>
-            <url-pattern>/ping</url-pattern>
+            <url-pattern>/rest/ping</url-pattern>
         </web-resource-collection>
         <!-- no auth-constraint -->
     </security-constraint>
