@@ -130,6 +130,7 @@ tasks like `deploy` (a new or existing graph), `stop` (the server) and
     $ ./stop.sh
     $ ./start.sh
     $ ./test.sh
+    $ ./restart-search.sh
 
 ### Testing via a curl-based REST interaction
 On unix, assuming you have `curl` and `jq`, you can
