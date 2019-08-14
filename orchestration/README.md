@@ -126,7 +126,7 @@ Super-simple shell-scripts can be used to quickly execute the most common
 tasks like `deploy` (a new or existing graph), `stop` (the server) and
 `start` (the server): -
 
-    $ ./deploy.sh
+    $ ./deploy.sh -e graph_pagecache_size_g=20
     $ ./stop.sh
     $ ./start.sh
     $ ./test.sh

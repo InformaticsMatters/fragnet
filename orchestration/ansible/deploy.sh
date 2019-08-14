@@ -5,4 +5,4 @@
 
 set -e
 
-ansible-playbook -e '@parameters' playbooks/fragnet/deploy.yaml
+ansible-playbook -e '@parameters' playbooks/fragnet/deploy.yaml "$@"

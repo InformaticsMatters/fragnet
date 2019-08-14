@@ -47,6 +47,11 @@ synchronise_origin: yes
 # Set to clear the database.
 # Used during initial deployment to remove the graph database directory.
 clear_graph: yes
+# Heap (min and max G)
+graph_heap_g: 8
+# The user is required to define the graph page cache size,
+# the value used here will result in an error.
+graph_pagecache_size_g: SetMe
 
 # Fragnet application variables...
 # -------
