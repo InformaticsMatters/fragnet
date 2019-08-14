@@ -215,7 +215,7 @@ Count all nodes and edges: -
     $ /var/lib/neo4j/bin/cypher-shell "match (n) return count(*);"
     $ /var/lib/neo4j/bin/cypher-shell "match (n)-[r]->() return count(r);"
 
-Count supplier/vendor compounds (i.e≥ 'ChemSpace-BB'): -
+Count supplier/vendor compounds (i.e. 'ChemSpace-BB'): -
 
     $ /var/lib/neo4j/bin/cypher-shell "match (:Available)-->(s:Supplier) \
             where s.name = 'ChemSpace-BB' return count(*);"
