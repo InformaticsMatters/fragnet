@@ -47,6 +47,7 @@
         <web-resource-collection>
             <web-resource-name>fragnet-search</web-resource-name>
             <url-pattern>/*</url-pattern>
+            <http-method-omission>OPTIONS</http-method-omission>
         </web-resource-collection>
         <auth-constraint>
             <role-name>fragnet-search</role-name>
