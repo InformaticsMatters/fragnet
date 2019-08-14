@@ -13,6 +13,10 @@ synchronise_origin: yes
 # This has to be a key in the 'graph_set'
 graph_name: molport_chemspace_2019_07
 
+# Clear the graph database directory?
+# (When deploying)
+clear_graph: yes
+
 # The graph set consisting of named graphs listing the desired database root
 # (typically a mount path on the graph node). You must set 'graph_name',
 # which is used as a selector for this set.
