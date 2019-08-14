@@ -69,13 +69,15 @@ public class CDKMolDepict {
     public static final int DEFAULT_SIZE = 50;
 
     private final DepictionGenerator generator;
-    private final boolean showOnlyExplicitH;
+    private boolean showOnlyExplicitH = false;
+    private IAtomContainer alignTo;
+    private Color mcsColor = null;
 
     /**
      * Create with default parameters
      */
     public CDKMolDepict() {
-        this(null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null);
     }
 
     /**
@@ -87,10 +89,7 @@ public class CDKMolDepict {
                         Double margin,
                         IAtomColorer colorScheme,
                         Color backgroundColor,
-                        Boolean expandToFit,
-                        Boolean showOnlyExplicitH) {
-
-        this.showOnlyExplicitH = showOnlyExplicitH == null ? false : showOnlyExplicitH.booleanValue();
+                        Boolean expandToFit) {
 
         DepictionGenerator dg = new DepictionGenerator()
                 .withTerminalCarbons()
@@ -119,6 +118,46 @@ public class CDKMolDepict {
         }
 
         this.generator = dg;
+    }
+
+    public boolean isShowOnlyExplicitH() {
+        return showOnlyExplicitH;
+    }
+
+    /** Set the depiction to show only hydrogens that are explicitly defined.
+     * e.g. do not display implicit hydrogens.
+     *
+     * @param showOnlyExplicitH
+     */
+    public void setShowOnlyExplicitH(boolean showOnlyExplicitH) {
+        this.showOnlyExplicitH = showOnlyExplicitH;
+    }
+
+    public IAtomContainer getAlignTo() {
+        return alignTo;
+    }
+
+    /** Set a molecucle to align the rendered molecules to (using MCS)
+     *
+     * NOTE: alignment is not yet implemented so setting this currently has no effect.
+     *
+     * @param alignTo
+     */
+    public void setAlignTo(IAtomContainer alignTo) {
+        this.alignTo = alignTo;
+    }
+
+    public Color getMcsColor() {
+        return mcsColor;
+    }
+
+    /** Set the color used to highlight the aligned MCS.
+     * If this value is null the molecules are aligned, but the common MCS is not highlighted.
+     *
+     * @param mcsColor
+     */
+    public void setMcsColor(Color mcsColor) {
+        this.mcsColor = mcsColor;
     }
 
     /**
@@ -300,5 +339,7 @@ public class CDKMolDepict {
             throw new IOException("Invalid SMILES", ise);
         }
     }
+
+
 
 }

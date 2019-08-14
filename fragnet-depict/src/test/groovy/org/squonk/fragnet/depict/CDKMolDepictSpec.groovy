@@ -17,9 +17,12 @@
 package org.squonk.fragnet.depict
 
 import org.openscience.cdk.interfaces.IAtomContainer
+import org.openscience.cdk.layout.StructureDiagramGenerator
 import spock.lang.Specification
 
+import javax.vecmath.Vector2d
 import java.awt.*
+import java.nio.file.Files
 
 class CDKMolDepictSpec extends Specification {
 
@@ -59,15 +62,19 @@ class CDKMolDepictSpec extends Specification {
 
 
         CDKMolDepict depict = new CDKMolDepict(
-                250, 250, 5, null, Color.WHITE, true, false)
+                250, 250, 5, null, Color.WHITE, true)
         IAtomContainer mol = CDKMolDepict.readSmiles("[H]C1NCC(C)C(N)=C1")
+
+        println "Atom 0 is at " + mol.getAtom(0).getPoint2d()
+
+        println "Atom 0 is now at " + mol.getAtom(0).getPoint2d()
 
 
         when:
         def img = depict.moleculeToImage(mol)
         byte[] png = depict.writeImage(img, 'png')
         //println png.length
-        //Files.write(java.nio.file.Paths.get("/tmp/myimage.png"), png)
+        Files.write(java.nio.file.Paths.get("/tmp/myimage.png"), png)
 
 
         then:
@@ -79,7 +86,7 @@ class CDKMolDepictSpec extends Specification {
 
 
         CDKMolDepict depict = new CDKMolDepict(
-                250, 250, 5, null, Color.WHITE, true, false)
+                250, 250, 5, null, Color.WHITE, true)
         IAtomContainer mol = CDKMolDepict.readSmiles("[H]C1NCC(C)C(N)=C1")
 
 

@@ -63,21 +63,21 @@ public class CDKMolDepictServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+
         String smiles = req.getParameter("mol");
         if (smiles == null) {
             LOG.info("No smiles specified. Cannot render");
             return;
         }
-        generateSVG(req, resp, smiles);
+        IAtomContainer mol = CDKMolDepict.readSmiles(smiles);
+        generateSVG(req, resp, mol);
     }
 
 
     protected void generateSVG(
             HttpServletRequest req,
             HttpServletResponse resp,
-            String smiles) throws IOException {
-
-        IAtomContainer mol = CDKMolDepict.readSmiles(smiles);
+            IAtomContainer mol) throws IOException {
 
         Map<String, String[]> params = req.getParameterMap();
         CDKMolDepict moldepict = createMolDepict(params);
@@ -131,7 +131,8 @@ public class CDKMolDepictServlet extends HttpServlet {
         boolean showExplicitHOnly = getBooleanHttpParameter("explicitHOnly", params, false);
 
         CDKMolDepict depict = new CDKMolDepict(
-                width, height, margin, colorScheme, backgroundColor, expandToFit, showExplicitHOnly);
+                width, height, margin, colorScheme, backgroundColor, expandToFit);
+        depict.setShowOnlyExplicitH(showExplicitHOnly);
 
         return depict;
     }
