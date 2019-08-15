@@ -16,6 +16,7 @@
 
 package org.squonk.fragnet.depict;
 
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.renderer.color.IAtomColorer;
 
@@ -27,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -69,15 +71,22 @@ public class CDKMolDepictServlet extends HttpServlet {
             LOG.info("No smiles specified. Cannot render");
             return;
         }
-        IAtomContainer mol = CDKMolDepict.readSmiles(smiles);
-        generateSVG(req, resp, mol);
+        try {
+            long t0 = new Date().getTime();
+            IAtomContainer mol = ChemUtils.readSmiles(smiles);
+            generateSVG(req, resp, mol);
+            long t1 = new Date().getTime();
+            LOG.fine("Depicting " + smiles + " took " + (t1 - t0) + "ms");
+        } catch (CDKException e) {
+            throw new IOException("Failed to generate SVG", e);
+        }
     }
 
 
     protected void generateSVG(
             HttpServletRequest req,
             HttpServletResponse resp,
-            IAtomContainer mol) throws IOException {
+            IAtomContainer mol) throws IOException, CDKException {
 
         Map<String, String[]> params = req.getParameterMap();
         CDKMolDepict moldepict = createMolDepict(params);
@@ -91,7 +100,7 @@ public class CDKMolDepictServlet extends HttpServlet {
             } else {
                 boolean outerGlow = getBooleanHttpParameter("outerGlow", params, false);
                 Color highlightColor = getColorHttpParameter("highlightColor", params, Color.RED);
-                svg = moldepict.moleculeToSVG(mol, highlightColor, outerGlow, highlightedAtoms);
+                svg = moldepict.moleculeToSVG(mol, highlightColor, highlightedAtoms, outerGlow);
             }
 
 
@@ -114,11 +123,15 @@ public class CDKMolDepictServlet extends HttpServlet {
         return highlights;
     }
 
-    protected CDKMolDepict createMolDepict(Map<String, String[]> params) {
+    protected CDKMolDepict createMolDepict(Map<String, String[]> params) throws IOException, CDKException {
 
         int width = getIntegerHttpParameter("w", params, 50);
         int height = getIntegerHttpParameter("h", params, 50);
         double margin = getDoubleHttpParameter("m", params, 0d);
+
+        String mcs = getStringHttpParameter("mcs", params, null);
+        Color mcsColor = getColorHttpParameter("mcsColor", params, null);
+        IAtomContainer query = mcs == null ? null : ChemUtils.readSmiles(mcs);
 
         String colorer = getStringHttpParameter("colorScheme", params, null);
         IAtomColorer colorScheme = CDKMolDepict.getColorer(colorer);
@@ -133,6 +146,7 @@ public class CDKMolDepictServlet extends HttpServlet {
         CDKMolDepict depict = new CDKMolDepict(
                 width, height, margin, colorScheme, backgroundColor, expandToFit);
         depict.setShowOnlyExplicitH(showExplicitHOnly);
+        depict.setMCSAlignment(query, mcsColor);
 
         return depict;
     }

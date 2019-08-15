@@ -46,10 +46,10 @@ class CDKMolDepictSpec extends Specification {
 
 
         CDKMolDepict depict = new CDKMolDepict()
-        IAtomContainer mol = CDKMolDepict.readSmiles("[H]C1NCC(C)C(N)=C1")
+        IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
 
         when:
-        def svg = depict.moleculeToSVG(mol, Color.ORANGE, true, [1, 2, 3])
+        def svg = depict.moleculeToSVG(mol, Color.ORANGE, [1, 2, 3], true)
         //println svg
 
         then:
@@ -63,18 +63,13 @@ class CDKMolDepictSpec extends Specification {
 
         CDKMolDepict depict = new CDKMolDepict(
                 250, 250, 5, null, Color.WHITE, true)
-        IAtomContainer mol = CDKMolDepict.readSmiles("[H]C1NCC(C)C(N)=C1")
-
-        println "Atom 0 is at " + mol.getAtom(0).getPoint2d()
-
-        println "Atom 0 is now at " + mol.getAtom(0).getPoint2d()
-
+        IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
 
         when:
         def img = depict.moleculeToImage(mol)
         byte[] png = depict.writeImage(img, 'png')
         //println png.length
-        Files.write(java.nio.file.Paths.get("/tmp/myimage.png"), png)
+        //Files.write(java.nio.file.Paths.get("/tmp/myimage.png"), png)
 
 
         then:
@@ -82,20 +77,20 @@ class CDKMolDepictSpec extends Specification {
         png.length > 0
     }
 
-    void "smiles2png highlight"() {
+    void "smiles2png glow highlight"() {
 
 
         CDKMolDepict depict = new CDKMolDepict(
                 250, 250, 5, null, Color.WHITE, true)
-        IAtomContainer mol = CDKMolDepict.readSmiles("[H]C1NCC(C)C(N)=C1")
+        IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
 
 
         when:
         // img1 has highlights
-        def img1 = depict.moleculeToImage(mol, Color.ORANGE, true, [1, 2, 3])
+        def img1 = depict.moleculeToImage(mol, Color.ORANGE, [1, 2, 3], true)
         byte[] png1 = depict.writeImage(img1, 'png')
         //Files.write(java.nio.file.Paths.get("/tmp/myimage1.png"), png1)
-        // img2 is no highlighted so will be smaller (?)
+        // img2 is not highlighted so will be smaller (?)
         def img2 = depict.moleculeToImage(mol)
         byte[] png2 = depict.writeImage(img2, 'png')
         //Files.write(java.nio.file.Paths.get("/tmp/myimage2.png"), png2)
@@ -104,5 +99,41 @@ class CDKMolDepictSpec extends Specification {
         png1 != null
         png1.length > 0
         png1.length > png2.length
+    }
+
+    void "smiles2png mcs"() {
+
+        CDKMolDepict depict = new CDKMolDepict(
+                250, 250, 5, null, Color.WHITE, true)
+        IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
+        IAtomContainer query = ChemUtils.readSmiles("C1NCCC=C1")
+        depict.setMCSAlignment(query, Color.ORANGE)
+
+        when:
+        def img = depict.moleculeToImage(mol)
+        byte[] png = depict.writeImage(img, 'png')
+        //Files.write(java.nio.file.Paths.get("/tmp/myimage3.png"), png)
+
+        then:
+        png != null
+        png.length > 0
+    }
+
+    void "smiles2png highlight + mcs"() {
+
+        CDKMolDepict depict = new CDKMolDepict(
+                250, 250, 5, null, Color.WHITE, true)
+        IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
+        IAtomContainer query = ChemUtils.readSmiles("C1NCCC=C1")
+        depict.setMCSAlignment(query, Color.ORANGE)
+
+        when:
+        def img = depict.moleculeToImage(mol, Color.CYAN, [6,7,8], false)
+        byte[] png = depict.writeImage(img, 'png')
+        //Files.write(java.nio.file.Paths.get("/tmp/myimage4.png"), png)
+
+        then:
+        png != null
+        png.length > 0
     }
 }
