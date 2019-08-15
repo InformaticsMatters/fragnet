@@ -25,18 +25,26 @@ dependencies {
     
     providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
 
-    def cdkVersion = '2.2'
-    compile "org.openscience.cdk:cdk-core:$cdkVersion"
-    compile "org.openscience.cdk:cdk-data:$cdkVersion"
-    compile "org.openscience.cdk:cdk-silent:$cdkVersion"
-    compile "org.openscience.cdk:cdk-io:$cdkVersion"
-    compile "org.openscience.cdk:cdk-ioformats:$cdkVersion"
-    compile "org.openscience.cdk:cdk-smiles:$cdkVersion"
-    compile "org.openscience.cdk:cdk-renderbasic:$cdkVersion"
-    compile "org.openscience.cdk:cdk-renderawt:$cdkVersion"
-    compile "org.openscience.cdk:cdk-depict:$cdkVersion"
-
+    def cdkVersion = '2.3'
+    def smsdVersion = '2.0.0'
     def tomcatVersion = '8.5.43'
+
+    compile "org.openscience.cdk:cdk-bundle:$cdkVersion"
+
+//    compile "org.openscience.cdk:cdk-core:$cdkVersion"
+//    compile "org.openscience.cdk:cdk-data:$cdkVersion"
+//    compile "org.openscience.cdk:cdk-silent:$cdkVersion"
+//    compile "org.openscience.cdk:cdk-io:$cdkVersion"
+//    compile "org.openscience.cdk:cdk-ioformats:$cdkVersion"
+//    compile "org.openscience.cdk:cdk-smiles:$cdkVersion"
+//    compile "org.openscience.cdk:cdk-renderbasic:$cdkVersion"
+//    compile "org.openscience.cdk:cdk-renderawt:$cdkVersion"
+//    compile "org.openscience.cdk:cdk-depict:$cdkVersion"
+////    compile "org.openscience.cdk:cdk-smsd:$cdkVersion"
+
+    compile "uk.ac.ebi.smsd:smsd-core:$smsdVersion"
+    compile "uk.ac.ebi.smsd:smsd-exec:$smsdVersion"
+    
     tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
             "org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}"
 

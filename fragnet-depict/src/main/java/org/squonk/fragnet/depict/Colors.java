@@ -45,7 +45,10 @@ public class Colors {
     }
 
     public static Color rgbaHexToColor(String hex) {
-        return new Color(Long.decode(hex).intValue(), true);
+
+        Color c =  new Color(Long.decode(hex).intValue(), true);
+        LOG.fine("Color: " + c.getRed() + " " + c.getGreen() + " " + c.getBlue());
+        return c;
     }
 
     public static Color interpolateRGBLinear(Color start, Color end, float value) {

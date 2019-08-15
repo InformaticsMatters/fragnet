@@ -28,10 +28,12 @@ Only the `mol` parameter is required. Sensible defaults are used for other param
 | highlightAtoms | comma separated list of atom numbers to highlight                  | none    |
 | highlightColor | colour to use for highlighted atoms and bonds                      | red     |
 | outerGlow      | highlight using "outer glow" rather than colouring atoms and bonds | false   |
+| mcs            | SMILES to use for MCS determination                                | none    |
+| mcsColor       | Color to use for MCS highlighting                                  | none    |
 
 ### Examples
 
-All these examples use caffeine as the molecule. Make sure that the SMILES is URL encoded.
+Most of these examples use caffeine as the molecule. Make sure that the SMILES is URL encoded.
 
 **Specify image size and background colour**:
 http://localhost:8080/fragnet-depict/moldepict?&w=75&h=60&bg=0x33FFFF00&mol=CN1C%3DNC2%3DC1C(%3DO)N(C)C(%3DO)N2C
@@ -51,10 +53,16 @@ http://localhost:8080/fragnet-depict/moldepict?mol=CN1C%3DNC2%3DC1C(%3DO)N(C)C(%
 **Highlight atoms using outer glow**:
 http://localhost:8080/fragnet-depict/moldepict?mol=CN1C%3DNC2%3DC1C(%3DO)N(C)C(%3DO)N2C&highlightAtoms=0,1,2,3&outerGlow=true&highlightColor=0x33FFFF00
 
+**Highlight MCS**:
+http://localhost:8080/fragnet-depict/moldepict?&w=75&h=75&mol=%5BH%5DC1NCC%28C%29C%28N%29%3DC1&mcs=C1NCCC%3DC1&mcsColor=0xFFFF0000
 
+User specified highlighting and MCS highlighting can be combined, with the user specified colour being used when atoms are
+in both sets. The `outer glow` option applies to both. e.g. It is NOT possible to highlight MCS by colouring atoms and 
+bonds and highlight the user specified atoms with outer glow. But it is possible to use different colours. 
 
 ## History of Changes
 
 * 31-JUL-2019 Initial commit with basic rendering servlet code.
 * 01-AUG-2019 war file deployed to tomcat in Docker (alongside fragnet-search)
 * 13-AUG-2019 Atom/bond highlighting and show explicit hydrogens only added (v0.3.2)
+* 15-AUG-2019 MCS highlighting for depiction
