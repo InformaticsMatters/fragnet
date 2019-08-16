@@ -21,7 +21,9 @@ import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
 import org.neo4j.driver.v1.Session;
 import org.squonk.fragnet.chem.Calculator;
+import org.squonk.fragnet.search.model.v2.Availability;
 import org.squonk.fragnet.search.model.v2.NeighbourhoodGraph;
+import org.squonk.fragnet.search.queries.v2.AvailabilityQuery;
 import org.squonk.fragnet.search.queries.v2.SimpleNeighbourhoodQuery;
 import org.squonk.fragnet.search.queries.v2.SuppliersQuery;
 import org.squonk.fragnet.service.AbstractFragnetSearchRouteBuilder;
@@ -76,14 +78,14 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         rest("/v2/search/").description("Fragnet search")
                 .bindingMode(RestBindingMode.json)
                 // service descriptor
-                .get("/neighbourhood/{smiles}").description("Neighbourhood search")
+                .get("neighbourhood/{smiles}").description("Neighbourhood search")
+                .param().name("smiles").type(RestParamType.path).description("SMILES query").endParam()
                 .param().name("hac").type(RestParamType.query).description("Heavy atom count bounds").endParam()
                 .param().name("rac").type(RestParamType.query).description("Ring atom count bounds").endParam()
                 .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
                 .param().name("calcs").type(RestParamType.query).description("Calculations to execute").endParam()
                 .param().name("suppliers").type(RestParamType.query).description("Suppliers to include").endParam()
                 .param().name("limit").type(RestParamType.query).description("Limit parameter for the number of paths to return from the graph query").endParam()
-                .bindingMode(RestBindingMode.json)
                 .produces("application/json")
                 .route()
                 .process((Exchange exch) -> {
@@ -97,11 +99,58 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                     executeSuppliersQuery(exch);
                 })
                 .endRest()
+                .get("availability/{smiles}").description("Get molecule availability")
+                .param().name("smiles").type(RestParamType.path).description("SMILES query").endParam()
+                .produces("application/json")
+                .route()
+                .process((Exchange exch) -> {
+                    executeAvailabilityQuery(exch);
+                })
+                .endRest()
         ;
     }
 
-    /** Suppliers are read once the first time they are needed.
+    void executeAvailabilityQuery(Exchange exch) {
+
+        Message message = exch.getIn();
+        String smiles = message.getHeader("smiles", String.class);
+
+        try {
+            Availability availability = getAvailability(smiles);
+            if (availability == null || availability.getItems().size() == 0) {
+                message.setBody("{\"error\": \"Query Failed\",\"message\",\"SMILES not found\"}");
+                message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+            } else {
+                message.setBody(availability);
+                message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+            }
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "Query Failed", ex);
+            message.setBody("{\"error\": \"Query Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
+            message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+        }
+    }
+
+    private Availability getAvailability(String smiles) {
+
+        if (smiles == null || smiles.isEmpty()) {
+            throw new IllegalArgumentException("No SMILES specified");
+        }
+
+        long t0 = new Date().getTime();
+        try (Session session = graphdb.getSession()) {
+            AvailabilityQuery query = new AvailabilityQuery(session);
+            Availability availability = query.getAvailability(smiles);
+            long t1 = new Date().getTime();
+            LOG.fine("Availability query took " + (t1 - t0) + "ms");
+            return availability;
+        }
+    }
+
+    /**
+     * Suppliers are read once the first time they are needed.
      * It is assumed that the database will not change.
+     *
      * @param exch
      */
     void executeSuppliersQuery(Exchange exch) {

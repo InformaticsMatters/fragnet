@@ -13,3 +13,6 @@
 ### 0.2.1 10-JUN-2019
 * Fixed problem with supplier search
 * Added `nodeCount`, `edgeCount` and `groupCount` properties to result JSON
+
+### 16-AUG-2019
+* Added availability endpoint for fetching information about molecule availability from suppliers.

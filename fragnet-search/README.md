@@ -38,7 +38,12 @@ Planned searches are:
 
 This is available from the `fragnet-search/rest/v2/search/suppliers` endpoint. There are no parameters for this request.
 
-The result is a JSON array of supplier objects as described in the [Supplier results](#supplier-results) section.
+#### Supplier results
+
+This is a simple JSON array of supplier objects. e.g. `[{"name":"MolPort","label":"V_MP"},{"name":"eMolecules","label":"V_EMOLS"}]`.
+Each supplier object has a name and label property.
+If restricting searches to specific suppliers then specify the suppliers query parameter and give it the value
+of a comma separated list of supplier names. These must be specified __exactly__ as found in the result of this query.
 
 ### Molecule neighbourhood search
 
@@ -111,77 +116,7 @@ All these properties are calculated with RDKit.
 Specify the properties to caclulate as a comma separated list of values for the `calcs` property for queries that support
 this property. e.g. `calcs=LOGP,SIM_RDKIT_TANIMOTO`
 
-### Authentication
-
-#### Linux or Mac
-
-In the Squonk production environment access to the search service will require authentication.
-To achieve this you will need to:
- 
-1. Get a login to the Squonk systems. Contact info@informaticsmatters to get an account set up.
-2. Request access to fragnet-search. You need to be given the `fragnet-search` role to be able to use this.
-3. Generate an authentication token.
-4. Run the query passing in the authentication token.
-
-For instance, assuming have [curl] and [jq] installed, to perform step 3 you will need to do something like this:
-
-```
-token=$(curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username=<username>" -d "password=<password>"\
-  https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
-  | jq -r '.access_token')
-```
-Replace `<username>` and `<password>` with the appropriate values.
-You can use `echo $token` to make sure you have obtained a token.
-
-If using a different client then this is a HTTP POST operation to
-`https://squonk.it/auth/realms/squonk/protocol/openid-connect/token` using 
-multipart form data (`Content-Type` header of `application/x-www-form-urlencoded`)
-passing in form parameters equivalent to the `-d` parameters set by curl. 
-
-To perform a search of the fragment network you will now need to do something like this:
-```
-curl -LH "Authorization: bearer $token" "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
-```
-Notice how the token is sent with the request.
-
-#### Windows
-
-If you are unfortunate enough to have to use Windows then try something like this (you need to have `curl` installed):
-
-1. Get the token:
-```
-curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username=username" -d "password=password" https://squonk.it/auth/realms/squonk/protocol/openid-connect/token
-```
-(change username and password accordingly).
-
-2. Then from the JSON that you get back copy out the value of the access_token property and set it to a variable like this:
-```
-set token=<paste-token-here>
-```
-
-3. Check it like this:
-```
-echo %token%
-```
-
-4. Use it like this:
-
-```
-curl -LH "Authorization: bearer %token%" "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
-```
-
-## Result Details
-
-Results are returned in JSON format.
-
-### Supplier results
-
-This is a simple JSON array of supplier objects. e.g. `[{"name":"MolPort","label":"V_MP"},{"name":"eMolecules","label":"V_EMOLS"}]`.
-Each supplier object has a name and label property.
-If restricting searches to specific suppliers then specify the suppliers query parameter and give it the value
-of a comma separated list of supplier names. These must be specified __exactly__ as found in the result of this query. 
-
-### Fragment Graph results.
+#### Fragment Graph results.
 
 This is a JSON serialised form of the 
 [org.squonk.fragnet.search.model.v2.FragmentGraph](src/main/java/org/squonk/fragnet/search/model/v2/FragmentGraph.java)
@@ -221,7 +156,7 @@ which provide the following properties:
 NOTE: the IDs should only be used for reconstructing the dataset. They are not guaranteed to be stable between searches.
 For longer term persistence use the SMILES string of the node.
 
-### Fragment Neighbourhood results.
+#### Fragment Neighbourhood results.
 
 An example results file can be found [here](neighbourhood-search.json).
 
@@ -257,7 +192,92 @@ each path from the query. If there are multiple paths then there are multiple el
 array of **edge** IDs that defines the path. Positive values describe the ID of a parent-to-child **edge** and negative values describe 
 the negative ID of a child-to-parent **edge**.
 
-#### Expected use
+### Availability search
+
+This is available from the `fragnet-search/rest/v2/search/availability/{smiles}` endpoint.
+
+This endpoint allows to fetch details of compound availability. The molecules in the fragment network are standardized
+and achiral which means that additional info such as salt forms and stereoisomers is not present. You need to use the
+availability search to find the exact forms that are available from the various suppliers.
+
+The only parameter for this endpoint is the SMILES string that is appended to the path. This is the SMILES for a molecule
+in the fragment network.
+
+#### Availability search results
+
+The results are in JSON format and look like this:
+```
+{"smiles":"CC(C)OCc1ccc(CNC(=O)CCCCNC(N)=O)cc1","items":[
+{"supplier":"MolPort","code":"MOLPORT:020-059-849","smiles":"CC(C)OCC1=CC=C(CNC(=O)CCCCNC(N)=O)C=C1"}
+]}
+```
+The `items` property will contain one record for each form that is available. The `items.smiles` property describes
+the actual form that is available (e.g. with stereochemistry and salts if present).
+The suppliers code for that form is present in the `items.code` property. The part after the colon is the actual
+identifier that will be recognised by the supplier.
+The `smiles` that is the first property you see (e.g. as a top level property) is the SMILES that was queried. 
+
+## Authentication
+
+### Linux or Mac
+
+In the production environment access to the search service will require authentication.
+To achieve this you will need to:
+ 
+1. Get a login to the Squonk systems. Contact info@informaticsmatters to get an account set up.
+2. Request access to fragnet-search. You need to be given the `fragnet-search` role to be able to use this.
+3. Generate an authentication token.
+4. Run the query passing in the authentication token.
+
+For instance, assuming have [curl] and [jq] installed, to perform step 3 you will need to do something like this:
+
+```
+token=$(curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username=<username>" -d "password=<password>"\
+  https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
+  | jq -r '.access_token')
+```
+Replace `<username>` and `<password>` with the appropriate values.
+You can use `echo $token` to make sure you have obtained a token.
+
+If using a different client then this is a HTTP POST operation to
+`https://squonk.it/auth/realms/squonk/protocol/openid-connect/token` using 
+multipart form data (`Content-Type` header of `application/x-www-form-urlencoded`)
+passing in form parameters equivalent to the `-d` parameters set by curl. 
+
+To perform a search of the fragment network you will now need to do something like this:
+```
+curl -LH "Authorization: bearer $token" "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+```
+Notice how the token is sent with the request.
+
+### Windows
+
+If you are unfortunate enough to have to use Windows then try something like this (you need to have `curl` installed, but 
+this is now included in Windows 10):
+
+1. Get the token:
+```
+curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username=username" -d "password=password" https://squonk.it/auth/realms/squonk/protocol/openid-connect/token
+```
+(change username and password accordingly).
+
+2. Then from the JSON that you get back copy out the value of the access_token property and set it to a variable like this:
+```
+set token=<paste-token-here>
+```
+
+3. Check it like this:
+```
+echo %token%
+```
+
+4. Use it like this:
+
+```
+curl -LH "Authorization: bearer %token%" "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+```
+
+## Expected use
 
 The Fragment Neighbourhood results are typically expected to be used to generate a UI that depicts the neighbours of the 
 query structure grouped according to the transformation type. See for instance figure 2 in the Astex paper.
