@@ -1,0 +1,53 @@
+---
+
+# Install and configure certbot (via an existing Galaxy Role)
+
+# The main aim of this assert block is to ensure that the
+# user has provided a vault password, typically via
+# the argument "--vault-password-file ../vault-pass.txt"
+
+- name: Assert key variables
+  assert:
+    that:
+    - fragent_search_domain_certbot_email|length > 0
+    - fragent_search_domain_certbot_email != 'SetMe'
+    - fragent_search_pfx_password|length > 0
+    - fragent_search_pfx_password != 'SetMe'
+
+- name: Install packages
+  package:
+    name: openssl
+  become: yes
+
+- name: Install certbot role
+  import_role:
+    name: geerlingguy.certbot
+  vars:
+    certbot_auto_renew: "{{ fragnet_search_certificate_auto_renew|bool }}"
+    certbot_auto_renew_hour: "{{ fragnet_search_renew_hour }}"
+    certbot_auto_renew_minute: "{{ fragnet_search_renew_minute }}"
+    certbot_create_if_missing: true
+    certbot_admin_email: "{{ fragent_search_domain_certbot_email }}"
+    certbot_certs:
+    - domains:
+      - "{{ fragnet_search_domain }}"
+  become: yes
+
+# Create a pkcs12 cryptography file (.pfx)
+# in the user's $HOME/fragnet directory.
+
+- name: Ensure PFX destination directory
+  file:
+    path: "{{ ansible_env.HOME }}/fragnet"
+    state: directory
+
+- name: Create PFX file (pkcs12)
+  command: >-
+    openssl pkcs12 -export -out {{ ansible_env.HOME }}/fragnet/bundle.pfx
+    -inkey privkey.pem
+    -in cert.pem
+    -certfile chain.pem
+    -passout pass:{{ fragent_search_pfx_password }}
+  args:
+    chdir: /etc/letsencrypt/live/{{ fragnet_search_domain }}
+  become: yes

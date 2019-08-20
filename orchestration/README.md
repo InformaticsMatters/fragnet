@@ -19,13 +19,14 @@ The Squonk Keycloak server needs: -
 1.  You will need to put the Keycloak Public Key and client secret
     into your `setenv.sh` (see below)
 
-## Python requirements
+## Python/Ansible requirements
 Ideally work from a **Conda** or Python **Virtual Environment** using the
 latest Python 3. From your environment you will need to install
 requirements as listed in `orchestration/requirements.txt`: -
 
     $ cd orchestration
     $ pip install -r requirements.txt
+    $ ansible-galaxy install -r requirements.yml
     
 ## Terraform (hardware provisioning)
 To create the cluster (and write the ansible inventory file): -

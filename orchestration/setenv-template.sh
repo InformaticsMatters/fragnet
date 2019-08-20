@@ -4,6 +4,8 @@
 # AWS credentials
 export AWS_ACCESS_KEY_ID="SetMe"
 export AWS_SECRET_ACCESS_KEY="SetMe"
+# The region of the S3 bucket
+export AWS_DEFAULT_REGION=eu-west-1
 
 # the location of the Keycloak server. e.g. "https://squonk.it/auth"
 export KEYCLOAK_SERVER_URL="SetMe"
@@ -22,3 +24,8 @@ export NEO4J_PASSWORD="SetMe"
 # Then run 'test-fragnet' playbook.
 export FRAGNET_USERNAME="SetMe"
 export FRAGNET_PASSWORD="SetMe"
+
+# Sarvice certificate bun dle password
+# and certbot registration email.
+export FRAGNET_PFX_PASSWORD="SetMe"
+export FRAGNET_CERTBOT_EMAIL="SetMe"

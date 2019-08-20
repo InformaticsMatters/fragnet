@@ -7,6 +7,10 @@
     msg: You must define a FRAGNET_USERNAME and FRAGNET_PASSWORD
   when: fragnet_username == '' or fragnet_password == ''
 
+- name: Ping the search engine
+  uri:
+    url: https://{{ fragnet_search_domain }}/fragnet-search/rest/ping
+
 # A series of tasks to test the Fragnet service.
 # This relies on a suitable username and password that can be used
 # to obtain a Fragnet API access token.
@@ -44,12 +48,12 @@
 
 - name: Run search/suppliers query
   uri:
-    url: http://{{ api }}/{{ method }}
+    url: https://{{ api }}/{{ method }}
     headers:
       Authorization: bearer {{ fragnet_result.json.access_token }}
     timeout: "{{ fragnet_query_timeout_s|int }}"
   vars:
-    api: "{{ ansible_host }}:8080/fragnet-search/rest/{{ franget_api }}"
+    api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ franget_api }}"
     method: search/suppliers
   register: suppliers_result
 
@@ -69,10 +73,10 @@
 
 - name: Construct search/neighbourhood query ({{ suppliers_in_db[0] }})
   set_fact:
-    uri_string: "http://{{ api }}/{{ path }}/{{ smiles|urlencode }}?\
+    uri_string: "https://{{ api }}/{{ path }}/{{ smiles|urlencode }}?\
                  {{ hac }}&{{ rac }}&{{ hops }}&{{ calcs }}&{{ suppliers }}"
   vars:
-    api: "{{ ansible_host }}:8080/fragnet-search/rest/{{ franget_api }}"
+    api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ franget_api }}"
     path: search/neighbourhood
     smiles: c1ccc(Nc2nc3ccccc3o2)cc1
     hac: hac=3

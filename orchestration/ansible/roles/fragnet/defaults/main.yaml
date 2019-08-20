@@ -61,7 +61,7 @@ fragnet_tag: latest
 # The port to expose the Fragnet service on.
 # Internally the port is expected to be on 8080,
 # this is the port Fragnet is mapped to on the host.
-fragnet_port: 8080
+fragnet_non_ssl_port: 8080
 # Fragnet API version
 franget_api: v2
 # A username and password (generally for tests)
@@ -73,6 +73,15 @@ fragnet_restart_policy: always
 fragnet_debug: yes
 # Query timeout (used in the test-fragnet play)
 fragnet_query_timeout_s: 180
+# Fragnet search domain/certbot registration
+fragnet_search_certificate_auto_renew: yes
+fragnet_search_renew_hour: 6
+fragnet_search_renew_minute: 47
+fragnet_search_domain: fragnet.informaticsmatters.com
+fragent_search_domain_certbot_email: "{{ lookup('env', 'FRAGNET_CERTBOT_EMAIL') }}"
+# The password used to encrypt the bundle.pfx file.
+# See KeePass:fragnet/SSL PFX bundle password
+fragent_search_pfx_password: "{{ lookup('env', 'FRAGNET_PFX_PASSWORD') }}"
 
 # Keycloak variables...
 # --------

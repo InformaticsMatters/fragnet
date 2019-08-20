@@ -7,24 +7,36 @@
     msg: You must provide 'keycloak' variables
   when: keycloak_server_url == ''
 
-- name: Assert keycloak variables
+- name: Assert graph variables
   fail:
     msg: You must provide a neo4j password
   when: graph_password == ''
+
+- name: Assert PFX passwsord
+  fail:
+    msg: You must provide a PFX bundle password
+  when: fragent_search_pfx_password == ''
 
 # Start the fragnet-search container
 # (currently on the same node as the graph DB).
 # We 'always' pull the images (this is not OpenShift after all)
 
-- name: Copy fragnet keycloak files
+- name: Copy fragnet files
   copy:
     src: "{{ item }}"
     dest: "{{ ansible_env.HOME }}/fragnet/"
   loop:
-    - fragnet-search/context.xml
-    - fragnet-search/keycloak.json
-    - fragnet-search/logging.properties
-    - fragnet-search/web.xml
+  - fragnet-search/context.xml
+  - fragnet-search/keycloak.json
+  - fragnet-search/logging.properties
+  - fragnet-search/web.xml
+
+- name: Copy fragnet templates
+  template:
+    src: "{{ item }}"
+    dest: "{{ ansible_env.HOME }}/fragnet/{{ item|regex_replace('fragnet-search/')|regex_replace('.j2') }}"
+  loop:
+  - fragnet-search/server.xml.j2
 
 - name: Start fragnet container ({{ image_ref }})
   docker_container:
@@ -33,7 +45,8 @@
     pull:
       yes
     published_ports:
-    - "{{ fragnet_port }}:8080"
+    - "{{ fragnet_non_ssl_port }}:8080"
+    - "443:8443"
     env:
       NEO4J_SERVER: "{{ inventory_hostname }}"
       NEO4J_USER: neo4j
@@ -50,6 +63,8 @@
     - "./fragnet/keycloak.json:/usr/local/tomcat/webapps/fragnet-search/WEB-INF/keycloak.json:ro,Z"
     - "./fragnet/web.xml:/usr/local/tomcat/webapps/fragnet-search/WEB-INF/web.xml:ro,Z"
     - "./fragnet/context.xml:/usr/local/tomcat/webapps/fragnet-search/META-INF/context.xml:ro,Z"
+    - "./fragnet/server.xml:/usr/local/tomcat/conf/server.xml:ro,Z"
+    - "./fragnet/bundle.pfx:/usr/local/tomcat/conf/bundle.pfx:ro,Z"
     restart_policy: "{{ fragnet_restart_policy }}"
   vars:
     image_ref: squonk/fragnet-search:{{ fragnet_tag }}

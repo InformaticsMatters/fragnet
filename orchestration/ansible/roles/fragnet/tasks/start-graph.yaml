@@ -2,6 +2,16 @@
 
 # Has the user defined suitable key variables?
 
+- name: Assert definition of graph PageCache Size
+  fail:
+    msg: "{{ msg.split('\n') }}"
+  vars:
+    msg: |-
+      You must define the 'graph_pagecache_size_g' varibale.
+      Re-run adding '-e graph_pagecache_size_g=N' where N is
+      the required size in GigaBytes
+  when: graph_pagecache_size_g == 'SetMe'
+
 - name: Assert neo4j password
   fail:
     msg: You must provide a neo4j password
