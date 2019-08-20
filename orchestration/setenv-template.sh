@@ -25,7 +25,7 @@ export NEO4J_PASSWORD="SetMe"
 export FRAGNET_USERNAME="SetMe"
 export FRAGNET_PASSWORD="SetMe"
 
-# Sarvice certificate bun dle password
+# The fragnet-search certificate bundle password
 # and certbot registration email.
 export FRAGNET_PFX_PASSWORD="SetMe"
 export FRAGNET_CERTBOT_EMAIL="SetMe"
