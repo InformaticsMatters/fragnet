@@ -142,9 +142,10 @@ public class CDKMolDepictServlet extends HttpServlet {
         Color backgroundColor = getColorHttpParameter("bg", params, CDKMolDepict.DEFAULT_BACKGROUND);
         boolean expandToFit = getBooleanHttpParameter("expand", params, true);
         boolean showExplicitHOnly = getBooleanHttpParameter("explicitHOnly", params, false);
+        boolean noStereo = getBooleanHttpParameter("noStereo", params, false);
 
         CDKMolDepict depict = new CDKMolDepict(
-                width, height, margin, colorScheme, backgroundColor, expandToFit);
+                width, height, margin, colorScheme, backgroundColor, expandToFit, noStereo);
         depict.setShowOnlyExplicitH(showExplicitHOnly);
         depict.setMCSAlignment(query, mcsColor);
 

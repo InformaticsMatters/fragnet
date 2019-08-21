@@ -19,12 +19,10 @@ package org.squonk.fragnet.depict;
 import org.openscience.cdk.depict.Depiction;
 import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.geometry.GeometryUtil;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IChemObject;
-import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.renderer.RendererModel;
 import org.openscience.cdk.renderer.SymbolVisibility;
 import org.openscience.cdk.renderer.color.*;
@@ -83,12 +81,13 @@ public class CDKMolDepict {
     private boolean showOnlyExplicitH = false;
     private IAtomContainer alignTo;
     private Color mcsColor = null;
+    private final boolean removeStereo;
 
     /**
      * Create with default parameters
      */
     public CDKMolDepict() {
-        this(null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null);
     }
 
     /**
@@ -99,7 +98,8 @@ public class CDKMolDepict {
                         Double margin,
                         IAtomColorer colorScheme,
                         Color backgroundColor,
-                        Boolean expandToFit) {
+                        Boolean expandToFit,
+                        Boolean removeStereo) {
 
         DepictionGenerator dg = new DepictionGenerator()
                 .withTerminalCarbons()
@@ -122,6 +122,7 @@ public class CDKMolDepict {
                             }
                         });
 
+        this.removeStereo = removeStereo == null ? false : removeStereo.booleanValue();
 
         if (expandToFit == null || expandToFit.booleanValue()) {
             dg = dg.withFillToFit();
@@ -165,10 +166,7 @@ public class CDKMolDepict {
         this.mcsColor = mcsColor;
         if (alignTo != null) {
             ChemUtils.prepareForMCS(alignTo);
-            if (!GeometryUtil.has2DCoordinates(alignTo)) {
-                StructureDiagramGenerator g = new StructureDiagramGenerator();
-                g.generateCoordinates(alignTo);
-            }
+            ChemUtils.layoutMoleculeIn2D(alignTo, false);
         }
         this.alignTo = alignTo;
     }
@@ -283,10 +281,20 @@ public class CDKMolDepict {
 
     private Depiction depict(IAtomContainer mol, Color highlightColor, List<Integer> atomHighlights, Boolean outerGlow)
             throws CDKException, CloneNotSupportedException {
+
+        // fix the molecule so that it displays as required
         IAtomContainer mol2 = fixMolecule(mol, showOnlyExplicitH);
+
+        // align the molecule if a query is defined and ensure we have 2D coordinates or the removeStereo trick won't work
         List<Integer> mcsAtomIndexes = alignAndLayoutMolecule(mol2);
-        DepictionGenerator g = fixHighlights(mol2, highlightColor, atomHighlights, mcsAtomIndexes, outerGlow);
-        Depiction depiction = g.depict(mol2);
+
+        if (removeStereo) {
+            // we need to display without stereochemistry e.g. no wedge/dash/squiggle bonds
+            removeStereoChemistry(mol2);
+        }
+
+        DepictionGenerator dg = fixHighlights(mol2, highlightColor, atomHighlights, mcsAtomIndexes, outerGlow);
+        Depiction depiction = dg.depict(mol2);
         return depiction;
     }
 
@@ -300,6 +308,7 @@ public class CDKMolDepict {
     private List<Integer> alignAndLayoutMolecule(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
         List<Integer> atoms = new ArrayList<>();
         if (alignTo != null) {
+            LOG.fine("Aligning molecule");
             AtomAtomMapping mapping = alignMolecule(mol);
             if (mapping != null) {
                 ChemUtils.alignMolecule(mol, mapping);
@@ -307,11 +316,22 @@ public class CDKMolDepict {
                 atoms.addAll(indexMappings.values());
             }
         }
+        // the remove stereo trick only works if 2D coordinates are already present so we make sure that is the case
+        ChemUtils.layoutMoleculeIn2D(mol, false);
         LOG.fine("MCS atoms to highlight: " + atoms);
         return atoms;
     }
 
+    private void removeStereoChemistry(IAtomContainer mol) {
+        LOG.fine("Removing stereochemistry from bonds");
+        for (IBond bond : mol.bonds()) {
+            bond.setStereo(IBond.Stereo.NONE);
+            bond.setDisplay(IBond.Display.Solid);
+        }
+    }
+
     private IAtomContainer fixExplicitHOnly(IAtomContainer mol) {
+        LOG.fine("Removing implicit hydrogens");
         for (IAtom atom : mol.atoms()) {
             if (atom.getAtomicNumber() == 6) {
                 // count the number of connections that are heavy atoms

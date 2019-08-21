@@ -2,6 +2,7 @@ package org.squonk.fragnet.depict;
 
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
+import org.openscience.cdk.geometry.GeometryUtil;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
@@ -130,6 +131,20 @@ public class ChemUtils {
             }
             StructureDiagramGenerator g = new StructureDiagramGenerator();
             g.setMolecule(mol, false, fixedAtoms, null);
+            g.generateCoordinates(mol);
+        }
+    }
+
+    /** Generate 2D coordinates for the molecule
+     *
+     * @param mol The molecule
+     * @param always Generate even if the molecule already has 2D coordinates
+     * @throws CDKException
+     */
+    public static void layoutMoleculeIn2D(IAtomContainer mol, boolean always) throws CDKException {
+        if (always || !GeometryUtil.has2DCoordinates(mol)) {
+            LOG.fine("Laying out molecule");
+            StructureDiagramGenerator g = new StructureDiagramGenerator();
             g.generateCoordinates(mol);
         }
     }

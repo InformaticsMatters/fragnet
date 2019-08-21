@@ -30,6 +30,7 @@ Only the `mol` parameter is required. Sensible defaults are used for other param
 | outerGlow      | highlight using "outer glow" rather than colouring atoms and bonds | false   |
 | mcs            | SMILES to use for MCS determination                                | none    |
 | mcsColor       | Color to use for MCS highlighting                                  | none    |
+| noStereo       | Display as achiral (no wedge/dash/squiggle bonds etc)              | false   |
 
 ### Examples
 
@@ -66,3 +67,4 @@ bonds and highlight the user specified atoms with outer glow. But it is possible
 * 01-AUG-2019 war file deployed to tomcat in Docker (alongside fragnet-search)
 * 13-AUG-2019 Atom/bond highlighting and show explicit hydrogens only added (v0.3.2)
 * 15-AUG-2019 MCS highlighting for depiction
+* 21-AUG-2019 Added noStereo option for depicting molecules as achiral

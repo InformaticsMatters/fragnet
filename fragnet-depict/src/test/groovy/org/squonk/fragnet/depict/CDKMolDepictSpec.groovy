@@ -16,10 +16,14 @@
 
 package org.squonk.fragnet.depict
 
+import org.openscience.cdk.depict.Depiction
+import org.openscience.cdk.depict.DepictionGenerator
 import org.openscience.cdk.interfaces.IAtomContainer
+import org.openscience.cdk.interfaces.IBond
 import org.openscience.cdk.layout.StructureDiagramGenerator
 import spock.lang.Specification
 
+import javax.imageio.ImageIO
 import javax.vecmath.Vector2d
 import java.awt.*
 import java.nio.file.Files
@@ -62,14 +66,14 @@ class CDKMolDepictSpec extends Specification {
 
 
         CDKMolDepict depict = new CDKMolDepict(
-                250, 250, 5, null, Color.WHITE, true)
+                250, 250, 5, null, Color.WHITE, true, false)
         IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
 
         when:
         def img = depict.moleculeToImage(mol)
         byte[] png = depict.writeImage(img, 'png')
         //println png.length
-        //Files.write(java.nio.file.Paths.get("/tmp/myimage.png"), png)
+//        Files.write(java.nio.file.Paths.get("/tmp/myimage.png"), png)
 
 
         then:
@@ -81,7 +85,7 @@ class CDKMolDepictSpec extends Specification {
 
 
         CDKMolDepict depict = new CDKMolDepict(
-                250, 250, 5, null, Color.WHITE, true)
+                250, 250, 5, null, Color.WHITE, true, false)
         IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
 
 
@@ -89,11 +93,11 @@ class CDKMolDepictSpec extends Specification {
         // img1 has highlights
         def img1 = depict.moleculeToImage(mol, Color.ORANGE, [1, 2, 3], true)
         byte[] png1 = depict.writeImage(img1, 'png')
-        //Files.write(java.nio.file.Paths.get("/tmp/myimage1.png"), png1)
+//        Files.write(java.nio.file.Paths.get("/tmp/myimage1.png"), png1)
         // img2 is not highlighted so will be smaller (?)
         def img2 = depict.moleculeToImage(mol)
         byte[] png2 = depict.writeImage(img2, 'png')
-        //Files.write(java.nio.file.Paths.get("/tmp/myimage2.png"), png2)
+//        Files.write(java.nio.file.Paths.get("/tmp/myimage2.png"), png2)
 
         then:
         png1 != null
@@ -104,7 +108,7 @@ class CDKMolDepictSpec extends Specification {
     void "smiles2png mcs"() {
 
         CDKMolDepict depict = new CDKMolDepict(
-                250, 250, 5, null, Color.WHITE, true)
+                250, 250, 5, null, Color.WHITE, true, false)
         IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
         IAtomContainer query = ChemUtils.readSmiles("C1NCCC=C1")
         depict.setMCSAlignment(query, Color.ORANGE)
@@ -112,7 +116,7 @@ class CDKMolDepictSpec extends Specification {
         when:
         def img = depict.moleculeToImage(mol)
         byte[] png = depict.writeImage(img, 'png')
-        //Files.write(java.nio.file.Paths.get("/tmp/myimage3.png"), png)
+//        Files.write(java.nio.file.Paths.get("/tmp/myimage3.png"), png)
 
         then:
         png != null
@@ -122,7 +126,7 @@ class CDKMolDepictSpec extends Specification {
     void "smiles2png highlight + mcs"() {
 
         CDKMolDepict depict = new CDKMolDepict(
-                250, 250, 5, null, Color.WHITE, true)
+                250, 250, 5, null, Color.WHITE, true, false)
         IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
         IAtomContainer query = ChemUtils.readSmiles("C1NCCC=C1")
         depict.setMCSAlignment(query, Color.ORANGE)
@@ -130,7 +134,24 @@ class CDKMolDepictSpec extends Specification {
         when:
         def img = depict.moleculeToImage(mol, Color.CYAN, [6,7,8], false)
         byte[] png = depict.writeImage(img, 'png')
-        //Files.write(java.nio.file.Paths.get("/tmp/myimage4.png"), png)
+//        Files.write(java.nio.file.Paths.get("/tmp/myimage4.png"), png)
+
+        then:
+        png != null
+        png.length > 0
+    }
+
+    void "no stereo"() {
+
+        IAtomContainer mol = ChemUtils.readSmiles("c1ccc(N=C2SCCN2c2ccccc2)cc1")
+
+        CDKMolDepict depict = new CDKMolDepict(
+                250, 250, 5, null, Color.WHITE, true, true)
+
+        when:
+        def img = depict.moleculeToImage(mol)
+        byte[] png = depict.writeImage(img, 'png')
+//        Files.write(java.nio.file.Paths.get("/tmp/myimage5.png"), png)
 
         then:
         png != null
