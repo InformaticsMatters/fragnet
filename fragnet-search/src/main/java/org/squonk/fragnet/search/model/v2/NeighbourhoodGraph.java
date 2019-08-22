@@ -191,7 +191,8 @@ public class NeighbourhoodGraph extends FragmentGraph {
                 String key = m.generateGroupingKey();
                 Group group = result.get(key);
                 if (group == null) {
-                    group = new Group(key);
+                    // TODO generate a more meaningful prototype structure such as an R-group representation of the group
+                    group = new Group(key, m.getSmiles());
                     result.put(key, group);
                 }
                 group.addMember(m);
@@ -214,14 +215,18 @@ public class NeighbourhoodGraph extends FragmentGraph {
     }
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonPropertyOrder({"key","classification","prototype","members"})
+
     public class Group {
 
         private final String key;
         private GroupingType classification;
+        private final String prototype;
         private final List<GroupMember> members = new ArrayList<>();
 
-        protected Group(String key) {
+        protected Group(String key, String prototype) {
             this.key = key;
+            this.prototype = prototype;
         }
 
         public String getKey() {
@@ -230,6 +235,14 @@ public class NeighbourhoodGraph extends FragmentGraph {
 
         public List<GroupMember> getMembers() {
             return members;
+        }
+
+        /** A prototype structure (SMILES) for the group.
+         *
+         * @return
+         */
+        public String getPrototype() {
+            return prototype;
         }
 
         protected void addMember(GroupMember member) {

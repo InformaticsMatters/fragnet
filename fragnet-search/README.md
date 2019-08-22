@@ -180,6 +180,7 @@ instance (this is an inner class of `NeighbourhoodGraph`) and has properties for
 * **key** - a generated key for the group based on the traversal path
 * **classification** - a classification of the type of change e.g. addition, substitution (NOTE: currently this classification 
 is not yet full optimised)
+* **prototype** - a prototype structure for the group (currently the structure of the first member)
 * **members** - an array of members of the group.
 
 The members have these properties:
