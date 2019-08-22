@@ -85,7 +85,7 @@ terraform. i.e.:-
 Alternatively, you can add the variable `ansible_ssh_private_key_file`
 to your parameter file, naming the private key file you use: -
 
-    ansible_ssh_private_key_file: ~/.ssh/my-private-key-file
+    ansible_ssh_private_key_file: ~/.ssh/abc-im
 
 ### The 'deploy' playbook
 >   **Know your disk requirements before deploying!**

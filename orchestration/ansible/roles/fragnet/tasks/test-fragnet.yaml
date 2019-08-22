@@ -53,7 +53,7 @@
       Authorization: bearer {{ fragnet_result.json.access_token }}
     timeout: "{{ fragnet_query_timeout_s|int }}"
   vars:
-    api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ franget_api }}"
+    api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ fragnet_api }}"
     method: search/suppliers
   register: suppliers_result
 
@@ -76,7 +76,7 @@
     uri_string: "https://{{ api }}/{{ path }}/{{ smiles|urlencode }}?\
                  {{ hac }}&{{ rac }}&{{ hops }}&{{ calcs }}&{{ suppliers }}"
   vars:
-    api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ franget_api }}"
+    api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ fragnet_api }}"
     path: search/neighbourhood
     smiles: c1ccc(Nc2nc3ccccc3o2)cc1
     hac: hac=3
