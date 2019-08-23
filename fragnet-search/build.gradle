@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+
+plugins {
+    id 'com.bmuschko.docker-remote-api'
+}
+
 description = 'Fragment network search'
 
 String RDBASE = System.getenv('RDBASE')
@@ -61,14 +69,43 @@ dependencies {
 
 }
 
-task(runQuery, dependsOn: 'classes', type: JavaExec) {
-    main = 'org.squonk.fragnet.search.queries.SimpleNeighbourhoodQuery'
-    classpath = sourceSets.main.runtimeClasspath
-}
-
 tomcat {
     enableSSL = false
     httpProtocol = 'org.apache.coyote.http11.Http11Nio2Protocol'
     ajpProtocol  = 'org.apache.coyote.ajp.AjpNio2Protocol'
 }
+
+task createNeoContainer(type: DockerCreateContainer) {
+    targetImageId 'informaticsmatters/fragnet-test:3.5'
+    portBindings = ['7474:7474','7687:7687']
+    envVars = ['NEO4J_dbms_memory_pagecache_size': '2g',
+               'NEO4J_dbms_memory_heap_initial__size': '2g',
+               'NEO4J_dbms_memory_heap_max__size': '2g',
+               'NEO4J_AUTH': 'neo4j/test123',
+               'NEO4J_USERNAME': 'neo4j',
+               'NEO4J_PASSWORD': 'test123']
+    autoRemove = true
+}
+
+task startNeoContainer(type: DockerStartContainer) {
+    dependsOn createNeoContainer
+    targetContainerId createNeoContainer.getContainerId()
+}
+
+task stopNeoContainer(type: DockerStopContainer) {
+    targetContainerId createNeoContainer.getContainerId()
+}
+
+test {
+    environment = [
+            'NEO4J_PASSWORD':'test123',
+            'NEO4J_SERVER':'localhost'
+    ]
+//    beforeTest { descriptor ->
+//        logger.lifecycle("Running test: " + descriptor)
+//    }
+}
+
+tasks.test.dependsOn("startNeoContainer")
+tasks.test.finalizedBy("stopNeoContainer")
 

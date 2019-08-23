@@ -30,10 +30,9 @@ import org.squonk.fragnet.service.AbstractFragnetSearchRouteBuilder;
 import org.squonk.fragnet.service.GraphDB;
 
 import javax.inject.Inject;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -131,7 +130,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         }
     }
 
-    private Availability getAvailability(String smiles) {
+    private Availability getAvailability(String smiles) throws IOException {
 
         if (smiles == null || smiles.isEmpty()) {
             throw new IllegalArgumentException("No SMILES specified");
@@ -168,7 +167,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         }
     }
 
-    private List<Map<String, String>> getSuppliers() {
+    private List<Map<String, String>> getSuppliers() throws IOException {
         if (suppliers == null) {
             long t0 = new Date().getTime();
             try (Session session = graphdb.getSession()) {
@@ -183,7 +182,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         return suppliers;
     }
 
-    private Map<String, String> getSupplierMappings() {
+    private Map<String, String> getSupplierMappings() throws IOException {
         if (suppliers == null || supplierMappings == null) {
             getSuppliers();
         }

@@ -14,15 +14,6 @@
  * limitations under the License.
  */
 
-description = 'Fragment Network tools and services'
-
-version = '0.3.3-SNAPSHOT'
-
-apply plugin: 'com.bmuschko.docker-remote-api'
-
-import com.bmuschko.gradle.docker.tasks.image.Dockerfile
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-
 buildscript {
     repositories {
         jcenter()
@@ -30,11 +21,20 @@ buildscript {
 
     dependencies {
         classpath 'com.bmuschko:gradle-tomcat-plugin:2.5'
-        classpath 'com.bmuschko:gradle-docker-plugin:4.2.0' // needs gradle >= 2.5
-
-        classpath 'org.unbroken-dome.gradle-plugins:gradle-testsets-plugin:1.2.0'
     }
 }
+
+plugins {
+    id 'com.bmuschko.docker-remote-api' version '4.10.0' // needs gradle >= 5.1
+}
+
+description = 'Fragment Network tools and services'
+
+version = '0.3.3-SNAPSHOT'
+
+import com.bmuschko.gradle.docker.tasks.container.*
+import com.bmuschko.gradle.docker.tasks.image.*
+
 
 allprojects {
 
@@ -76,7 +76,7 @@ String getDockerHost() {
 }
 
 wrapper {
-    gradleVersion = '4.10.3'
+    gradleVersion = '5.6'
 }
 
 docker {
@@ -158,5 +158,9 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
         tags.add("squonk/fragnet-search:${version}")
     }
 }
+
+
+
+
 
 

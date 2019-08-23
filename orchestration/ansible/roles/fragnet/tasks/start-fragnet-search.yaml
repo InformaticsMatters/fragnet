@@ -67,5 +67,5 @@
     - "./fragnet/bundle.pfx:/usr/local/tomcat/conf/bundle.pfx:ro,Z"
     restart_policy: "{{ fragnet_restart_policy }}"
   vars:
-    image_ref: squonk/fragnet-search:{{ fragnet_tag }}
+    image_ref: squonk/fragnet-all:{{ fragnet_tag }}
   become: yes

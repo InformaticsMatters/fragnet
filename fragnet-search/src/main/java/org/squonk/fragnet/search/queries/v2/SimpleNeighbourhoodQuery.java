@@ -167,12 +167,4 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
         return graph;
     }
 
-    public static final void main(String[] args) {
-        GraphDB db = new GraphDB();
-        Session session = db.getSession();
-        SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session, Collections.emptyMap());
-        NeighbourhoodGraph result = query.executeNeighbourhoodQuery("c1ccccc1", 2, 10, 3, null);
-        LOG.info("Found " + result.getNodes().size() + " nodes");
-    }
-
 }
