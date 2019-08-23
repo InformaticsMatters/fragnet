@@ -63,7 +63,7 @@ fragnet_tag: latest
 # this is the port Fragnet is mapped to on the host.
 fragnet_non_ssl_port: 8080
 # Fragnet API version
-franget_api: v2
+fragnet_api: v2
 # A username and password (generally for tests)
 fragnet_username: "{{ lookup('env', 'FRAGNET_USERNAME') }}"
 fragnet_password: "{{ lookup('env', 'FRAGNET_PASSWORD') }}"

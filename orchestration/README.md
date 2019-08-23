@@ -61,14 +61,6 @@ will expect. Before going any further...
     keycloak public ket and client secret discussed above)
 1.  *source* it
 
-### The ssh-agent
-You might need to use the ssh agent to allow Ansible access to the
-created hosts. You just need to add the `aws_key_name` that's used by
-terraform. i.e.:-
-
-    $ eval $(ssh-agent)
-    $ ssh-add ~/.ssh/abc-im
-
 ## The playbooks
 Playbooks are contained in the `playbooks` sub-directory with each play
 supported by a corresponding *Role*. There are lots of them but the most
@@ -80,7 +72,20 @@ common ones are: -
 
 The plays rely on a number of parameters, conveniently replicated
 in the `ansible/parameters.template` file. Copy this file as `parameters`
-ans edit accordingly for use in the playbooks.
+and edit accordingly for use in the playbooks.
+
+### Providing your SSH private key
+You might need to use the ssh agent to allow Ansible access to the
+created hosts. You just need to add the `aws_key_name` that's used by
+terraform. i.e.:-
+
+    $ eval $(ssh-agent)
+    $ ssh-add ~/.ssh/abc-im
+
+Alternatively, you can add the variable `ansible_ssh_private_key_file`
+to your parameter file, naming the private key file you use: -
+
+    ansible_ssh_private_key_file: ~/.ssh/abc-im
 
 ### The 'deploy' playbook
 >   **Know your disk requirements before deploying!**

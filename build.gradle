@@ -148,14 +148,14 @@ $CATALINA_HOME/lib/''')
 /** Build a Docker image
  * run the generated image with something like this:
  *
- * docker run -d --name fragnet-search -p 8080:8080 squonk/fragnet-search:latest
+ * docker run -d --name fragnet-services -p 8080:8080 squonk/fragnet-services:latest
  *
  */
 task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
     inputDir = buildDockerFile.destFile.get().asFile.parentFile
-    tags.add("squonk/fragnet-search:latest")
+    tags.add("squonk/fragnet-services:latest")
     if (!version.endsWith('-SNAPSHOT')) {
-        tags.add("squonk/fragnet-search:${version}")
+        tags.add("squonk/fragnet-services:${version}")
     }
 }
 
