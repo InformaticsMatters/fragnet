@@ -106,7 +106,31 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                     executeAvailabilityQuery(exch);
                 })
                 .endRest()
+                .get("calcs").description("List the available calculations")
+                .produces("application/json")
+                .route()
+                .process((Exchange exch) -> {
+                    findCalculations(exch);
+                })
         ;
+    }
+
+    void findCalculations(Exchange exch) {
+
+        Message message = exch.getIn();
+
+        List<Map<String,String>> list = new ArrayList<>();
+        for (Calculator.Calculation calc : Calculator.Calculation.values()){
+            Map<String,String> map = new LinkedHashMap<>();
+            map.put("id", calc.toString());
+            map.put("name", calc.propname);
+            map.put("description", calc.description);
+            map.put("type", calc.type);
+            list.add(map);
+        }
+
+        message.setBody(list);
+        message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
     }
 
     void executeAvailabilityQuery(Exchange exch) {

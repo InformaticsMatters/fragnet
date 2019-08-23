@@ -149,6 +149,11 @@ public class FragmentGraph {
             for (Calculator.Calculation calc : calcs) {
                 switch (calc) {
 
+                    case MW:
+                        Float mw = Calculator.calcMolWeight(mol);
+                        n.addProp(calc.propname, mw);
+                        break;
+
                     case LOGP:
                         Float logp = Calculator.calcLogP(mol);
                         n.addProp(calc.propname, logp);
@@ -157,6 +162,21 @@ public class FragmentGraph {
                     case TPSA:
                         Float tpsa = Calculator.calcTPSA(mol);
                         n.addProp(calc.propname, tpsa);
+                        break;
+
+                    case ROTB:
+                        Integer rotb = Calculator.calcRotatableBonds(mol);
+                        n.addProp(calc.propname, rotb);
+                        break;
+
+                    case HBA:
+                        Integer hba = Calculator.calcHydrogenBondAcceptors(mol);
+                        n.addProp(calc.propname, hba);
+                        break;
+
+                    case HBD:
+                        Integer hbd = Calculator.calcHydrogenBondDonors(mol);
+                        n.addProp(calc.propname, hbd);
                         break;
 
                     case SIM_RDKIT_TANIMOTO:

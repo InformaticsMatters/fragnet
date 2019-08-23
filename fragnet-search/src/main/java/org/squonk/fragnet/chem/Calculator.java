@@ -25,17 +25,25 @@ import javax.validation.constraints.NotNull;
 public class Calculator {
 
     public enum Calculation {
-        LOGP("logp"),
-        TPSA("tpsa"),
-        SIM_RDKIT_TANIMOTO("sim_rdkit_tanimoto"),
-        SIM_MORGAN2_TANIMOTO("sim_morgan2_tanimoto"),
-        SIM_MORGAN3_TANIMOTO("sim_morgan3_tanimoto");
+        MW("molw", "Mol weight", "number"),
+        LOGP("logp", "cLogP", "number"),
+        ROTB("rotb", "RotBonds", "integer"),
+        HBD("hbd", "HBond donors", "integer"),
+        HBA("hba", "HBond acceptors", "integer"),
+        TPSA("tpsa", "TPSA", "number"),
+        SIM_RDKIT_TANIMOTO("sim_rdkit_tanimoto", "Tanimoto sim (RDKit)", "number"),
+        SIM_MORGAN2_TANIMOTO("sim_morgan2_tanimoto", "Tanimoto sim (Morgan2)", "number"),
+        SIM_MORGAN3_TANIMOTO("sim_morgan3_tanimoto", "Tanimoto sim (Morgan3)", "number");
 
         public final String propname;
+        public final String description;
+        public final String type;
 
 
-        Calculation(String propname) {
+        Calculation(String propname, String description, String type) {
             this.propname = propname;
+            this.description = description;
+            this.type = type;
         }
     }
 
@@ -47,8 +55,24 @@ public class Calculator {
         return cooerceFloat(RDKFuncs.calcMolLogP(mol));
     }
 
+    public static Float calcMolWeight(@NotNull RWMol mol) {
+        return cooerceFloat(RDKFuncs.calcExactMW(mol));
+    }
+
+    public static Integer calcHydrogenBondDonors(@NotNull RWMol mol) {
+        return (int)RDKFuncs.calcNumHBD(mol);
+    }
+
+    public static Integer calcHydrogenBondAcceptors(@NotNull RWMol mol) {
+        return (int)RDKFuncs.calcNumHBA(mol);
+    }
+
     public static Float calcTPSA(@NotNull RWMol mol) {
         return cooerceFloat(RDKFuncs.calcTPSA(mol));
+    }
+
+    public static Integer calcRotatableBonds(@NotNull RWMol mol) {
+        return (int)RDKFuncs.calcNumRotatableBonds(mol);
     }
 
     public static ExplicitBitVect calcRDKitFingerprint(@NotNull RWMol mol) {

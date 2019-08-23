@@ -105,13 +105,20 @@ network data and always included. You can optionally include the following addit
 
 | Name | Description |
 |------|-------------|
-| LOGP | cLogP       |
+| MW   | Molecular weight |
+| LOGP | cLogP |
+| ROTB | Rotatable bonds |
+| HBD  | Hydrogen bond donors |
+| HBA  | Hydrogen bond acceptors |
 | TPSA | Topological polar surface area |
 | SIM_RDKIT_TANIMOTO | Tanimoto similarity to query molecule using standard RDKit fingerprints |
 | SIM_MORGAN2_TANIMOTO | Tanimoto similarity to query molecule using Morgan fingerprints of radius 2 |
 | SIM_MORGAN3_TANIMOTO | Tanimoto similarity to query molecule using Morgan fingerprints of radius 3 |
 
 All these properties are calculated with RDKit.
+
+The list of available calculations can be fetched using the `calcs` endpoint that is described below.
+It expected that additional calculations may be added in the future. 
 
 Specify the properties to caclulate as a comma separated list of values for the `calcs` property for queries that support
 this property. e.g. `calcs=LOGP,SIM_RDKIT_TANIMOTO`
@@ -193,6 +200,35 @@ each path from the query. If there are multiple paths then there are multiple el
 array of **edge** IDs that defines the path. Positive values describe the ID of a parent-to-child **edge** and negative values describe 
 the negative ID of a child-to-parent **edge**.
 
+### Calculations search
+
+The list of calculations that can be requests is available from the `fragnet-search/rest/v2/search/calcs` endpoint.
+The results look like this:
+```
+[
+{"id":"MW","name":"molw","description":"Mol weight","type":"number"},
+{"id":"LOGP","name":"logp","description":"cLogP","type":"number"},
+{"id":"ROTB","name":"rotb","description":"RotBonds","type":"integer"},
+{"id":"HBD","name":"hbd","description":"HBond donors","type":"integer"},
+{"id":"HBA","name":"hba","description":"HBond acceptors","type":"integer"},
+{"id":"TPSA","name":"tpsa","description":"TPSA","type":"number"},
+{"id":"SIM_RDKIT_TANIMOTO","name":"sim_rdkit_tanimoto","description":"Tanimoto sim (RDKit)","type":"number"},
+{"id":"SIM_MORGAN2_TANIMOTO","name":"sim_morgan2_tanimoto","description":"Tanimoto sim (Morgan2)","type":"number"},
+{"id":"SIM_MORGAN3_TANIMOTO","name":"sim_morgan3_tanimoto","description":"Tanimoto sim (Morgan3)","type":"number"}
+]
+```
+Additional calculations may be added in the future.
+
+The properties are as follows:
+
+* **id**: The ID of the calculation. 
+* **name** The name of the property in the query results
+* **description** A human friendly display name
+* **type** The JSON Schema data type of the result
+
+When requesting calculations to be performed as part of a query you need to specify the id properties as a comma
+separated list e.g. `calcs=LOGP,SIM_RDKIT_TANIMOTO`.
+
 ### Availability search
 
 This is available from the `fragnet-search/rest/v2/search/availability/{smiles}` endpoint.
@@ -203,8 +239,6 @@ availability search to find the exact forms that are available from the various 
 
 The only parameter for this endpoint is the SMILES string that is appended to the path. This is the SMILES for a molecule
 in the fragment network.
-
-#### Availability search results
 
 The results are in JSON format and look like this:
 ```
