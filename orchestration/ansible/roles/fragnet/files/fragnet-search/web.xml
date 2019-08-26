@@ -62,6 +62,14 @@
         <!-- no auth-constraint -->
     </security-constraint>
 
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>fragnet-search metrics</web-resource-name>
+            <url-pattern>/rest/metrics</url-pattern>
+        </web-resource-collection>
+        <!-- no auth-constraint -->
+    </security-constraint>
+
     <login-config>
         <auth-method>KEYCOAK</auth-method>
         <realm-name>squonk</realm-name>
