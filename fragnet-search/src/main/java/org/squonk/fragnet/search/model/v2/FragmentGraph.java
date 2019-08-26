@@ -54,6 +54,11 @@ public class FragmentGraph {
     private Long processingTime;
     private Long calculationTime;
 
+    /** Cache of molecules
+     *
+     */
+    protected Map<String,RWMol> molecules = new HashMap<>();
+
 
     public FragmentGraph() {
 
@@ -135,9 +140,18 @@ public class FragmentGraph {
         return edges.values();
     }
 
+    protected RWMol fetchMolecule(String smiles) {
+        RWMol mol = molecules.get(smiles);
+        if (mol == null) {
+            mol = RWMol.MolFromSmiles(smiles);
+            molecules.put(smiles, mol);
+        }
+        return mol;
+    }
+
     public void calculate(String refmolSmiles, Calculator.Calculation... calcs) {
         long t0 = new Date().getTime();
-        RWMol refmol = Calculator.createMol(refmolSmiles);
+        RWMol refmol = fetchMolecule(refmolSmiles);
         AtomicReference<ExplicitBitVect> rdkit1 = new AtomicReference<>();
         AtomicReference<SparseIntVectu32> morgan12 = new AtomicReference<>();
         AtomicReference<SparseIntVectu32> morgan13 = new AtomicReference<>();
@@ -145,7 +159,7 @@ public class FragmentGraph {
         nodes.values().stream().forEach((n) -> {
             count.incrementAndGet();
             String smiles = n.getSmiles();
-            RWMol mol = Calculator.createMol(smiles);
+            RWMol mol = fetchMolecule(smiles);
             for (Calculator.Calculation calc : calcs) {
                 switch (calc) {
 

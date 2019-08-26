@@ -259,6 +259,9 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 result.calculate(result.getRefmol(), calculations.toArray(new Calculator.Calculation[calculations.size()]));
             }
 
+            // generate the MCS info for each group
+            result.generateGroupMCS();
+
             message.setBody(result);
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
             long t1 = new Date().getTime();

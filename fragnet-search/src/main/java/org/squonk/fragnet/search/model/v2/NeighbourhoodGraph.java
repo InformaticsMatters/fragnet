@@ -17,6 +17,10 @@ package org.squonk.fragnet.search.model.v2;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.RDKit.MCSResult;
+import org.RDKit.RDKFuncs;
+import org.RDKit.ROMol_Vect;
+import org.RDKit.RWMol;
 import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Path;
 import org.neo4j.driver.v1.types.Relationship;
@@ -32,7 +36,7 @@ import java.util.stream.Collectors;
  * and will contain one or more nodes. Each group thus represents a transform 'vector' and can involve one or two edges.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"apiVersion","query","parameters","refmol","resultAvailableAfter","processingTime","calculationTime","nodeCount","edgeCount","groupCount","nodes","edges","groups"})
+@JsonPropertyOrder({"apiVersion", "query", "parameters", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "nodeCount", "edgeCount", "groupCount", "nodes", "edges", "groups"})
 public class NeighbourhoodGraph extends FragmentGraph {
 
     private static final Logger LOG = Logger.getLogger(NeighbourhoodGraph.class.getName());
@@ -72,7 +76,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
     }
 
     public Collection<Group> getGroups() {
-        return grouping.collectGroups();
+        return grouping.getGroups();
     }
 
     public int getGroupCount() {
@@ -148,9 +152,66 @@ public class NeighbourhoodGraph extends FragmentGraph {
         return label.split("\\|");
     }
 
+    /** Generate information about the groups.
+     * What is generated is an active area of development. Currently it comprises:
+     * - a prototype structure (SMILES) for the group
+     * - the number of atoms in the refmol that are not present in the MCS of the refmol and group members
+     *
+     * The aim is to generate a prototype structure that better represents the group, probably by creating an
+     * R-group representation, but currently the member with the smallest number of atoms is used.
+     *
+     */
+    public void generateGroupMCS() {
+        for (Group group : getGroups()) {
+
+            // TODO generate a more meaningful prototype structure such as an R-group representation of the group
+            long smallestAtoms = Long.MAX_VALUE;
+            String smallestSmiles = null;
+
+
+            // generate MCS so that we can determine how many atoms have been lost etc.v
+            ROMol_Vect mols = new ROMol_Vect();
+            RWMol m = fetchMolecule(refmol);
+            if (m == null) {
+                LOG.warning("Can't obtain the refmol for " + refmol + ". Can't continue");
+            } else {
+                mols.add(m);
+                int refMolAtoms = (int) m.getNumAtoms();
+                for (GroupMember member : group.getMembers()) {
+                    String smiles = member.getSmiles();
+                    RWMol mol = fetchMolecule(smiles);
+                    long atoms = mol.getNumAtoms();
+                    if (atoms < smallestAtoms) {
+                        smallestAtoms = atoms;
+                        smallestSmiles = smiles;
+                    }
+                    if (mol != null) {
+                        mols.add(mol);
+                    }
+                }
+
+                LOG.info("Setting prototype to " + smallestSmiles);
+                group.setPrototype(smallestSmiles);
+
+                if (mols.size() > 1) {
+                    long t0 = new Date().getTime();
+                    MCSResult mcs = RDKFuncs.findMCS(mols);
+                    long t1 = new Date().getTime();
+                    int mcsAtoms = (int) mcs.getNumAtoms();
+                    String smarts = mcs.getSmartsString();
+                    LOG.info("Refmol/MCS Atoms: " + refMolAtoms + "/" + mcsAtoms + " Took: " + (t1 - t0) +
+                            "ms Smarts: " + smarts);
+                    group.setRefmolAtomsMissing(refMolAtoms - mcsAtoms);
+                }
+            }
+        }
+    }
+
     protected class Grouping {
 
         private final Map<Long, GroupMember> members = new LinkedHashMap<>();
+
+        private Collection<Group> groups;
 
         /**
          * Fetch the GroupMember for the node, creating it if it doesn't yet exist.
@@ -185,14 +246,24 @@ public class NeighbourhoodGraph extends FragmentGraph {
             m.addEdges(edges);
         }
 
-        protected Collection<Group> collectGroups() {
+        protected Collection<Group> getGroups() {
+            if (groups == null) {
+                groups = collectGroups();
+            }
+            return groups;
+        }
+
+        protected void clearGroups() {
+            groups = null;
+        }
+
+        private Collection<Group> collectGroups() {
             Map<String, Group> result = new LinkedHashMap<>();
             members.values().forEach((m) -> {
                 String key = m.generateGroupingKey();
                 Group group = result.get(key);
                 if (group == null) {
-                    // TODO generate a more meaningful prototype structure such as an R-group representation of the group
-                    group = new Group(key, m.getSmiles());
+                    group = new Group(key);
                     result.put(key, group);
                 }
                 group.addMember(m);
@@ -215,18 +286,17 @@ public class NeighbourhoodGraph extends FragmentGraph {
     }
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @JsonPropertyOrder({"key","classification","prototype","members"})
-
+    @JsonPropertyOrder({"key", "classification", "prototype", "refmolAtomsMissing", "members"})
     public class Group {
 
         private final String key;
         private GroupingType classification;
-        private final String prototype;
+        private String prototype;
+        private Integer refmolAtomsMissing;
         private final List<GroupMember> members = new ArrayList<>();
 
-        protected Group(String key, String prototype) {
+        protected Group(String key) {
             this.key = key;
-            this.prototype = prototype;
         }
 
         public String getKey() {
@@ -237,12 +307,25 @@ public class NeighbourhoodGraph extends FragmentGraph {
             return members;
         }
 
-        /** A prototype structure (SMILES) for the group.
+        /**
+         * A prototype structure (SMILES) for the group.
          *
          * @return
          */
         public String getPrototype() {
             return prototype;
+        }
+
+        protected void setPrototype(String prototype) {
+            this.prototype = prototype;
+        }
+
+        public Integer getRefmolAtomsMissing() {
+            return refmolAtomsMissing;
+        }
+
+        protected void setRefmolAtomsMissing(Integer refmolAtomsMissing) {
+            this.refmolAtomsMissing = refmolAtomsMissing;
         }
 
         protected void addMember(GroupMember member) {
