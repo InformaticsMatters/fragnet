@@ -15,6 +15,9 @@
  */
 package org.squonk.fragnet.service.v2;
 
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.Counter;
+import io.prometheus.client.exporter.common.TextFormat;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.model.rest.RestBindingMode;
@@ -31,8 +34,9 @@ import org.squonk.fragnet.service.GraphDB;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,6 +52,42 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
     private List<Map<String, String>> suppliers;
     private Map<String, String> supplierMappings;
+
+    private final Counter neighbourhoodSearchRequestsTotal = Counter.build()
+            .name("requests_neighbourhood_total")
+            .help("Total number of neighbourhood search requests")
+            .register();
+
+    private final Counter neighbourhoodSearchErrorsTotal = Counter.build()
+            .name("requests_neighbourhood_errors")
+            .help("Total number of neighbourhood search errors")
+            .register();
+
+    private final Counter neighbourhoodSearchRequestsDuration = Counter.build()
+            .name("duration_neighbourhood_total_ns")
+            .help("Total duration of neighbourhood search requests")
+            .register();
+
+    private final Counter neighbourhoodSearchCalculationsDuration = Counter.build()
+            .name("duration_neighbourhood_calculations_ns")
+            .help("Total duration of calculations")
+            .register();
+
+    private final Counter neighbourhoodSearchNeo4jSearchDuration = Counter.build()
+            .name("duration_neighbourhood_neo4j_ns")
+            .help("Total duration of calculations")
+            .register();
+
+    private final Counter neighbourhoodSearchMCSDuration = Counter.build()
+            .name("duration_neighbourhood_mcs_ns")
+            .help("Total duration of mcs determination")
+            .register();
+
+    private final Counter neighbourhoodSearchHitsTotal = Counter.build()
+            .name("results_neighbourhood_hits_molecules")
+            .help("Total number of molecules found for neighbourhood search")
+            .register();
+
 
     public FragnetSearchRouteBuilder() {
         this(true);
@@ -69,6 +109,19 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .produces("text/plain")
                 .route()
                 .transform(constant("OK\n"))
+                .endRest();
+
+        rest("/metrics").description("Prometheus metrics")
+                .get()
+                .produces("text/plain")
+                .route()
+                .process((Exchange exch) -> {
+                    Message message = exch.getIn();
+                    Writer writer = new StringWriter();
+                    metrics(writer);
+                    String s = writer.toString();
+                    message.setBody(s);
+                })
                 .endRest();
 
 
@@ -160,12 +213,12 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             throw new IllegalArgumentException("No SMILES specified");
         }
 
-        long t0 = new Date().getTime();
+        long t0 = System.nanoTime();
         try (Session session = graphdb.getSession()) {
             AvailabilityQuery query = new AvailabilityQuery(session);
             Availability availability = query.getAvailability(smiles);
-            long t1 = new Date().getTime();
-            LOG.fine("Availability query took " + (t1 - t0) + "ms");
+            long t1 = System.nanoTime();
+            LOG.fine("Availability query took " + (t1 - t0) + "ns");
             return availability;
         }
     }
@@ -193,13 +246,13 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
     private List<Map<String, String>> getSuppliers() throws IOException {
         if (suppliers == null) {
-            long t0 = new Date().getTime();
+            long t0 = System.nanoTime();
             try (Session session = graphdb.getSession()) {
                 SuppliersQuery query = new SuppliersQuery(session);
                 suppliers = query.getSuppliers();
             }
-            long t1 = new Date().getTime();
-            LOG.info("Suppliers query took " + (t1 - t0) + "ms");
+            long t1 = System.nanoTime();
+            LOG.info("Suppliers query took " + (t1 - t0) + "ns");
             supplierMappings = new HashMap<>();
             suppliers.forEach((m) -> supplierMappings.put(m.get("name"), m.get("label")));
         }
@@ -215,13 +268,15 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
     void executeNeighbourhoodQuery(Exchange exch) {
 
+        neighbourhoodSearchRequestsTotal.inc();
+
         Message message = exch.getIn();
 
 //        message.getHeaders().forEach((k,v) -> {
 //            System.out.println(k + " -> " +v);
 //        });
 
-        long t0 = new Date().getTime();
+        long t0 = System.nanoTime();
         String username = getUsername(exch);
 
 
@@ -251,30 +306,49 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 if (limit != null) { // default limit is 1000
                     query.setLimit(limit);
                 }
+                long n0 = System.nanoTime();
                 result = query.executeNeighbourhoodQuery(smilesQuery, hops, hac, rac, suppliers);
+                long n1 = System.nanoTime();
+                neighbourhoodSearchNeo4jSearchDuration.inc((double)(n1-n0));
+                neighbourhoodSearchHitsTotal.inc((double)result.getNodes().size());
             }
             // if calculations have been specified then calculate them
             if (!calculations.isEmpty()) {
                 LOG.info("Running " + calculations.size() + " calculations");
+                long c0 = System.nanoTime();
                 result.calculate(result.getRefmol(), calculations.toArray(new Calculator.Calculation[calculations.size()]));
+                long c1 = System.nanoTime();
+                neighbourhoodSearchCalculationsDuration.inc((double)(c1-c0));
             }
 
             // generate the MCS info for each group
+            long m0 = System.nanoTime();
             result.generateGroupMCS();
+            long m1 = System.nanoTime();
+            neighbourhoodSearchMCSDuration.inc((double)(m1-m0));
 
             message.setBody(result);
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-            long t1 = new Date().getTime();
-            writeToQueryLog(username, "NeighbourhoodQuery", t1 - t0, result.getNodeCount(), result.getEdgeCount(), result.getGroupCount());
+            long t1 = System.nanoTime();
+            long duration = t1 - t0; //nanos
+            writeToQueryLog(username, "NeighbourhoodQuery", duration, result.getNodeCount(), result.getEdgeCount(), result.getGroupCount());
+            neighbourhoodSearchRequestsDuration.inc((double)duration);
 
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Query Failed", ex);
+            neighbourhoodSearchErrorsTotal.inc();
             message.setBody("{\"error\": \"Query Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
 
-            long t1 = new Date().getTime();
+            long t1 = System.nanoTime();
             writeErrorToQueryLog(username, "NeighbourhoodQuery", t1 - t0, ex.getLocalizedMessage());
         }
+    }
+
+
+    public void metrics(Writer responseWriter) throws IOException {
+        TextFormat.write004(responseWriter, CollectorRegistry.defaultRegistry.metricFamilySamples());
+        responseWriter.close();
     }
 
 }

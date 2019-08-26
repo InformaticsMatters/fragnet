@@ -47,6 +47,8 @@ dependencies {
     compile "org.apache.camel:camel-swagger:$camelVersion"
     compile "org.apache.camel:camel-swagger-java:$camelVersion"
 
+    implementation "io.prometheus:simpleclient_common:0.6.0"
+
     if (RDKitJava) {
         println "RDBASE defined as $RDBASE - using that location for RDKit"
         compile files(RDBASE + RDKitJarFile)

@@ -66,7 +66,6 @@ public class NeighbourhoodGraph extends FragmentGraph {
     private final String refmol;
     private Grouping grouping = new Grouping();
 
-
     public NeighbourhoodGraph(String refmol) {
         this.refmol = refmol;
     }
@@ -194,13 +193,13 @@ public class NeighbourhoodGraph extends FragmentGraph {
                 group.setPrototype(smallestSmiles);
 
                 if (mols.size() > 1) {
-                    long t0 = new Date().getTime();
+                    long t0 = System.nanoTime();
                     MCSResult mcs = RDKFuncs.findMCS(mols);
-                    long t1 = new Date().getTime();
+                    long t1 = System.nanoTime();
                     int mcsAtoms = (int) mcs.getNumAtoms();
                     String smarts = mcs.getSmartsString();
                     LOG.info("Refmol/MCS Atoms: " + refMolAtoms + "/" + mcsAtoms + " Took: " + (t1 - t0) +
-                            "ms Smarts: " + smarts);
+                            "ns Smarts: " + smarts);
                     group.setRefmolAtomsMissing(refMolAtoms - mcsAtoms);
                 }
             }
