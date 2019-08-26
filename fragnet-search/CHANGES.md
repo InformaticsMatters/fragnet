@@ -16,3 +16,6 @@
 
 ### 16-AUG-2019
 * Added availability endpoint for fetching information about molecule availability from suppliers.
+
+### 26-AUG-2019
+* Initial MCS implementation for groups giving the `refmolAtomsMissing` property
