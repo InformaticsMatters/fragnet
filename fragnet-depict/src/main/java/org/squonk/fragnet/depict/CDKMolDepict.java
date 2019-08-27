@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -45,12 +46,12 @@ import java.util.logging.Logger;
  * <p>
  * Options include:
  * <ul>
- *     <li>image width, height and margin</li>
- *     <li>various atom colour schemes</li>
- *     <li>specify background colour (including transparency)</li>
- *     <li>expand molecule to fit the available space</li>
- *     <li>highlight a substructure (defined as MSC)</li>
- *     <li>highlight user specified atoms</li>
+ * <li>image width, height and margin</li>
+ * <li>various atom colour schemes</li>
+ * <li>specify background colour (including transparency)</li>
+ * <li>expand molecule to fit the available space</li>
+ * <li>highlight a substructure (defined as MSC)</li>
+ * <li>highlight user specified atoms</li>
  * </ul>
  * <p>
  * See the moleculeToSVG and moleculeToImage methods for more details.
@@ -309,11 +310,17 @@ public class CDKMolDepict {
         List<Integer> atoms = new ArrayList<>();
         if (alignTo != null) {
             LOG.fine("Aligning molecule");
-            AtomAtomMapping mapping = alignMolecule(mol);
-            if (mapping != null) {
-                ChemUtils.alignMolecule(mol, mapping);
-                Map<Integer, Integer> indexMappings = mapping.getMappingsByIndex();
-                atoms.addAll(indexMappings.values());
+            try {
+                AtomAtomMapping mapping = determineMCS(mol);
+                if (mapping != null) {
+                    ChemUtils.alignMolecule(mol, mapping);
+                    Map<Integer, Integer> indexMappings = mapping.getMappingsByIndex();
+                    atoms.addAll(indexMappings.values());
+                }
+            } catch (Exception ex) {
+                // MCS generation and/or alignment can sometimes fail so make sure we cope with this
+                // by representing the molecule as unaligned
+                LOG.log(Level.WARNING, "Failed to align molecule", ex);
             }
         }
         // the remove stereo trick only works if 2D coordinates are already present so we make sure that is the case
@@ -347,7 +354,7 @@ public class CDKMolDepict {
         return mol;
     }
 
-    private AtomAtomMapping alignMolecule(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
+    private AtomAtomMapping determineMCS(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
         if (alignTo == null) {
             LOG.warning("No query molecule to align to");
             return null;

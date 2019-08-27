@@ -68,3 +68,4 @@ bonds and highlight the user specified atoms with outer glow. But it is possible
 * 13-AUG-2019 Atom/bond highlighting and show explicit hydrogens only added (v0.3.2)
 * 15-AUG-2019 MCS highlighting for depiction
 * 21-AUG-2019 Added noStereo option for depicting molecules as achiral
+* 27-AUG-2019 Handle case where MCS or alignment causes exception

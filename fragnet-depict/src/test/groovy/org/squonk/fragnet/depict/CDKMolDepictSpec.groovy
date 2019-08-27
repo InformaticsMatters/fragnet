@@ -16,17 +16,11 @@
 
 package org.squonk.fragnet.depict
 
-import org.openscience.cdk.depict.Depiction
-import org.openscience.cdk.depict.DepictionGenerator
+
 import org.openscience.cdk.interfaces.IAtomContainer
-import org.openscience.cdk.interfaces.IBond
-import org.openscience.cdk.layout.StructureDiagramGenerator
 import spock.lang.Specification
 
-import javax.imageio.ImageIO
-import javax.vecmath.Vector2d
 import java.awt.*
-import java.nio.file.Files
 
 class CDKMolDepictSpec extends Specification {
 
@@ -157,4 +151,26 @@ class CDKMolDepictSpec extends Specification {
         png != null
         png.length > 0
     }
+
+    void "alignment error"() {
+
+        // this alignment causes an error in CDK (probably bug).
+        // this test checks that the error is ignored and an image is still generated.
+
+        CDKMolDepict depict = new CDKMolDepict(
+                250, 250, 5, null, Color.WHITE, true, false)
+        IAtomContainer mol = ChemUtils.readSmiles("BrC1CCC(Cc2ccccc2)C1")
+        IAtomContainer query = ChemUtils.readSmiles("ClC1CCC(Cc2ccccc2)C1")
+        depict.setMCSAlignment(query, Color.ORANGE)
+
+        when:
+        def img = depict.moleculeToImage(mol)
+        byte[] png = depict.writeImage(img, 'png')
+        //Files.write(java.nio.file.Paths.get("/tmp/myimage6.png"), png)
+
+        then:
+        png != null
+        png.length > 0
+    }
+
 }
