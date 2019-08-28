@@ -147,18 +147,18 @@ public class NeighbourhoodGraph extends FragmentGraph {
         return smiles;
     }
 
-    private String[] splitLabel(String label) {
+    private static String[] splitLabel(String label) {
         return label.split("\\|");
     }
 
-    /** Generate information about the groups.
+    /**
+     * Generate information about the groups.
      * What is generated is an active area of development. Currently it comprises:
      * - a prototype structure (SMILES) for the group
      * - the number of atoms in the refmol that are not present in the MCS of the refmol and group members
-     *
+     * <p>
      * The aim is to generate a prototype structure that better represents the group, probably by creating an
      * R-group representation, but currently the member with the smallest number of atoms is used.
-     *
      */
     public void generateGroupMCS() {
         for (Group group : getGroups()) {
@@ -353,7 +353,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
 
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public class GroupMember {
+    public static class GroupMember {
 
         private final Long id;
         private final MoleculeNode node;
@@ -498,14 +498,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
                 } else if (onlyLabels.length == 2) {
                     String[] parts0 = splitLabel(onlyLabels[0]);
                     String[] parts1 = splitLabel(onlyLabels[1]);
-                    if (parts0[4].equals(parts1[4])) {
-                        // this happens when there are 2 edges between the same nodes
-                        // we only want one of them
-                        LOG.info("Duplicate path for " + getSmiles() + ": " + onlyLabels[0] + " and " + onlyLabels[1]);
-                        result = parts0[4];
-                    } else {
-                        result = parts0[4] + SEP + parts1[4];
-                    }
+                    result = parts0[4] + SEP + parts1[4];
                 }
             } else {
                 // the collection of first path elements defines the transformation,
@@ -518,9 +511,15 @@ public class NeighbourhoodGraph extends FragmentGraph {
                 for (String[] l : labels) {
                     parts04.add(splitLabel(l[0])[4]);
                 }
-
-                Collections.sort(parts04);
-                result = parts04.stream().collect(Collectors.joining("$$"));
+                if (parts04.get(0).equals(parts04.get(1))) {
+                    // this happens when there are 2 edges between the same nodes
+                    // we only want one of them
+                    LOG.info("Duplicate path for " + getSmiles() + ": " + parts04.get(0) + " and " + parts04.get(1));
+                    result = parts04.get(0);
+                } else {
+                    Collections.sort(parts04);
+                    result = parts04.stream().collect(Collectors.joining("$$"));
+                }
 
             }
             if (result == null) {
