@@ -1,10 +1,10 @@
 package org.squonk.fragnet.depict
 
 import org.openscience.cdk.geometry.GeometryUtil
+import org.openscience.cdk.interfaces.IAtom
 import org.openscience.cdk.interfaces.IAtomContainer
 import org.openscience.cdk.silent.SilentChemObjectBuilder
 import org.openscience.cdk.smiles.SmilesParser
-import org.openscience.smsd.AtomAtomMapping
 import spock.lang.Specification
 
 class ChemUtilsSpec extends Specification {
@@ -31,11 +31,9 @@ class ChemUtilsSpec extends Specification {
         ChemUtils.prepareForMCS(query)
         ChemUtils.prepareForMCS(target)
         def result = ChemUtils.determineMCS(query, target)
-        println "${result.getCount()} ${result.getCommonFragmentAsSMILES()}"
-
 
         then:
-        result.count == 7
+        result.size() == 7
     }
 
     void "alignMolecule"() {
@@ -46,10 +44,10 @@ class ChemUtilsSpec extends Specification {
         ChemUtils.prepareForMCS(query)
         ChemUtils.prepareForMCS(target)
 
-        AtomAtomMapping mapping = ChemUtils.determineMCS(query, target)
+        Map<IAtom,IAtom> mapping = ChemUtils.determineMCS(query, target)
 
         when:
-        ChemUtils.alignMolecule(target, mapping)
+        ChemUtils.alignMolecule(query, target, mapping)
 
         then:
         GeometryUtil.has2DCoordinates(target)

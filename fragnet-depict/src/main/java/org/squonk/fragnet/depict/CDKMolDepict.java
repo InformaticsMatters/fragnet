@@ -27,17 +27,14 @@ import org.openscience.cdk.renderer.RendererModel;
 import org.openscience.cdk.renderer.SymbolVisibility;
 import org.openscience.cdk.renderer.color.*;
 import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
-import org.openscience.smsd.AtomAtomMapping;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -311,11 +308,12 @@ public class CDKMolDepict {
         if (alignTo != null) {
             LOG.fine("Aligning molecule");
             try {
-                AtomAtomMapping mapping = determineMCS(mol);
+                Map<IAtom,IAtom> mapping = determineMCS(mol);
                 if (mapping != null) {
-                    ChemUtils.alignMolecule(mol, mapping);
-                    Map<Integer, Integer> indexMappings = mapping.getMappingsByIndex();
-                    atoms.addAll(indexMappings.values());
+                    ChemUtils.alignMolecule(alignTo, mol, mapping);
+                    for (IAtom a : mapping.values()) {
+                        atoms.add(mol.indexOf(a));
+                    }
                 }
             } catch (Exception ex) {
                 // MCS generation and/or alignment can sometimes fail so make sure we cope with this
@@ -354,13 +352,13 @@ public class CDKMolDepict {
         return mol;
     }
 
-    private AtomAtomMapping determineMCS(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
+    private Map<IAtom,IAtom> determineMCS(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
         if (alignTo == null) {
             LOG.warning("No query molecule to align to");
             return null;
         }
         ChemUtils.prepareForMCS(mol);
-        AtomAtomMapping mapping = ChemUtils.determineMCS(alignTo, mol);
+        Map<IAtom,IAtom> mapping = ChemUtils.determineMCS(alignTo, mol);
         return mapping;
     }
 

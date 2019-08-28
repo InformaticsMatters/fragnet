@@ -69,3 +69,4 @@ bonds and highlight the user specified atoms with outer glow. But it is possible
 * 15-AUG-2019 MCS highlighting for depiction
 * 21-AUG-2019 Added noStereo option for depicting molecules as achiral
 * 27-AUG-2019 Handle case where MCS or alignment causes exception
+* 28-AUG-2019 Switch to legacy (deprecated) CDK code for SMSD as external code is buggy and not maintained

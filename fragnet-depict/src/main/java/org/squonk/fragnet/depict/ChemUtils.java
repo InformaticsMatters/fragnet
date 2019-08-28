@@ -8,10 +8,9 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesParser;
-import org.openscience.smsd.AtomAtomMapping;
-import org.openscience.smsd.Isomorphism;
-import org.openscience.smsd.interfaces.Algorithm;
-import org.openscience.smsd.tools.ExtAtomContainerManipulator;
+import org.openscience.cdk.smsd.Isomorphism;
+import org.openscience.cdk.smsd.interfaces.Algorithm;
+import org.openscience.cdk.smsd.tools.ExtAtomContainerManipulator;
 
 import javax.vecmath.Point2d;
 import javax.vecmath.Vector2d;
@@ -64,6 +63,33 @@ public class ChemUtils {
         ExtAtomContainerManipulator.aromatizeMolecule(mol);
     }
 
+//    This is the external SMSD code that has problems
+//    /**
+//     * Determine the maximum common substructure (MCS) of the querey and target molecules.
+//     * Note: the query and target molecules should already have been prepared using the {@link #prepareForMCS(IAtomContainer)}
+//     * method.
+//     *
+//     * @param query
+//     * @param target
+//     * @return A mapping of the common atoms in the query to the target structures.
+//     * @throws CDKException
+//     */
+//    public static AtomAtomMapping determineMCS(IAtomContainer query, IAtomContainer target) throws CDKException {
+//
+//        boolean bondSensitive = true;
+//        boolean ringMatch = false;
+//        boolean stereoMatch = true;
+//        boolean fragmentMinimization = true;
+//        boolean energyMinimization = true;
+//
+//        Isomorphism comparison = new Isomorphism(query, target, Algorithm.DEFAULT, bondSensitive, ringMatch, false);
+//        //comparison.setChemFilters(stereoMatch, fragmentMinimization, energyMinimization);
+//        AtomAtomMapping firstAtomMapping = comparison.getFirstAtomMapping();
+//
+//        return firstAtomMapping;
+//    }
+
+//    This uses the CDK legacy SMSD code that is deprecated but avoids buts present in the external SMSD code (see above).
     /**
      * Determine the maximum common substructure (MCS) of the querey and target molecules.
      * Note: the query and target molecules should already have been prepared using the {@link #prepareForMCS(IAtomContainer)}
@@ -74,7 +100,7 @@ public class ChemUtils {
      * @return A mapping of the common atoms in the query to the target structures.
      * @throws CDKException
      */
-    public static AtomAtomMapping determineMCS(IAtomContainer query, IAtomContainer target) throws CDKException {
+    public static Map<IAtom, IAtom> determineMCS(IAtomContainer query, IAtomContainer target) throws CDKException {
 
         boolean bondSensitive = true;
         boolean ringMatch = false;
@@ -82,9 +108,10 @@ public class ChemUtils {
         boolean fragmentMinimization = true;
         boolean energyMinimization = true;
 
-        Isomorphism comparison = new Isomorphism(query, target, Algorithm.DEFAULT, bondSensitive, ringMatch, false);
+        Isomorphism comparison = new Isomorphism(Algorithm.DEFAULT, true);
+        comparison.init(query, target, false, false);
         //comparison.setChemFilters(stereoMatch, fragmentMinimization, energyMinimization);
-        AtomAtomMapping firstAtomMapping = comparison.getFirstAtomMapping();
+        Map<IAtom, IAtom> firstAtomMapping = comparison.getFirstAtomMapping();
 
         return firstAtomMapping;
     }
@@ -98,31 +125,30 @@ public class ChemUtils {
      * e.g. don't remove hydrogens from one and not the other.
      * If there is no mapping then the molecule is unchanged.
      *
-     * @param mol     The molecule to align. The coordinates of this molecule will be updated.
+     * @param query     The molecule to align to..
+     * @param target    The molecule to align to the query. The coordinates of this molecule will be updated.
      * @param mapping The mapping of atoms in the query to those in the target.
      * @throws CDKException
      * @throws CloneNotSupportedException
      */
-    public static void alignMolecule(IAtomContainer mol, AtomAtomMapping mapping) throws CDKException, CloneNotSupportedException {
+    public static void alignMolecule(IAtomContainer query, IAtomContainer target, Map<IAtom, IAtom> mapping) throws CDKException, CloneNotSupportedException {
 
-        if (mapping == null || mapping.getCount() == 0) {
+        if (mapping == null || mapping.size() == 0) {
             LOG.fine("No MCS found");
             return;
         } else {
-            String mcsSmiles = mapping.getCommonFragmentAsSMILES();
-            LOG.fine("MCS: " + mcsSmiles);
             Set<IAtom> fixedAtoms = new HashSet<>();
-            for (Map.Entry<IAtom, IAtom> e : mapping.getMappingsByAtoms().entrySet()) {
+            for (Map.Entry<IAtom, IAtom> e : mapping.entrySet()) {
                 IAtom qAtom = e.getKey();
                 IAtom tAtom = e.getValue();
-                int qIndex = mapping.getQuery().indexOf(qAtom);
-                int tIndex = mapping.getTarget().indexOf(tAtom);
+                int qIndex = query.indexOf(qAtom);
+                int tIndex = target.indexOf(tAtom);
                 if (qIndex < 0) {
                     throw new IllegalStateException("Atom not found in query molecule. Strange!");
                 } else if (tIndex < 0) {
                     throw new IllegalStateException("Atom not found in target molecule. Strange!");
                 } else {
-                    IAtom atom = mol.getAtom(tIndex);
+                    IAtom atom = target.getAtom(tIndex);
                     fixedAtoms.add(atom);
                     Point2d point = qAtom.getPoint2d();
                     LOG.finer("Setting atom " + qIndex + "->" + tIndex + " " + qAtom.getSymbol() + "->" + tAtom.getSymbol() + " to " + point);
@@ -130,8 +156,8 @@ public class ChemUtils {
                 }
             }
             StructureDiagramGenerator g = new StructureDiagramGenerator();
-            g.setMolecule(mol, false, fixedAtoms, null);
-            g.generateCoordinates(mol);
+            g.setMolecule(target, false, fixedAtoms, null);
+            g.generateCoordinates();
         }
     }
 
