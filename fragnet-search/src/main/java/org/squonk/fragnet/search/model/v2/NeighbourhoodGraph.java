@@ -498,7 +498,14 @@ public class NeighbourhoodGraph extends FragmentGraph {
                 } else if (onlyLabels.length == 2) {
                     String[] parts0 = splitLabel(onlyLabels[0]);
                     String[] parts1 = splitLabel(onlyLabels[1]);
-                    result = parts0[4] + SEP + parts1[4];
+                    if (parts0[4].equals(parts1[4])) {
+                        // this happens when there are 2 edges between the same nodes
+                        // we only want one of them
+                        LOG.info("Duplicate path for " + getSmiles() + ": " + onlyLabels[0] + " and " + onlyLabels[1]);
+                        result = parts0[4];
+                    } else {
+                        result = parts0[4] + SEP + parts1[4];
+                    }
                 }
             } else {
                 // the collection of first path elements defines the transformation,
@@ -511,6 +518,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
                 for (String[] l : labels) {
                     parts04.add(splitLabel(l[0])[4]);
                 }
+
                 Collections.sort(parts04);
                 result = parts04.stream().collect(Collectors.joining("$$"));
 

@@ -1,0 +1,6 @@
+MATCH p=(m:F2)-[:FRAG]-(e:Mol)
+WHERE m.smiles='Oc1ccc(-c2ccccc2)cc1'
+AND e.smiles <> 'Oc1ccc(-c2ccccc2)cc1'
+AND abs(m.hac - e.hac) <= 3
+AND abs(m.chac - e.chac) <= 1
+RETURN p
