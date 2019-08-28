@@ -1,8 +1,8 @@
 version: '3.1'
 services:
 
-  fragnet-search:
-    image: squonk/fragnet-search:latest
+  fragnet-services:
+    image: squonk/fragnet-services:latest
     environment:
       NEO4J_PASSWORD:
       NEO4J_SERVER: 100.25.105.8

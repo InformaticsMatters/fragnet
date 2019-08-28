@@ -18,10 +18,11 @@ services:
     - "7474:7474"
     - "7687:7687"
 
-  fragnet-search:
-    image: squonk/fragnet-search:latest
+  fragnet-services:
+    image: squonk/fragnet-services:latest
     environment:
       NEOJ4_PASSWORD: hts
+      CdkUseLegacyAtomContainer: 1
     ports:
     - "80:8080"
     depends_on:

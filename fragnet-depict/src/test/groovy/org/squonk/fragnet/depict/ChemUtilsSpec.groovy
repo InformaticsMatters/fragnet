@@ -54,4 +54,21 @@ class ChemUtilsSpec extends Specification {
         then:
         GeometryUtil.has2DCoordinates(target)
     }
+
+//    void "alignMolecule fail"() {
+//
+//        IAtomContainer query = ChemUtils.generate2D(smilesParser.parseSmiles('BrC1CCC(Cc2ccccc2)C1'))
+//        IAtomContainer target = smilesParser.parseSmiles('ClC1CCC(Cc2ccccc2)C1')
+//
+//        ChemUtils.prepareForMCS(query)
+//        ChemUtils.prepareForMCS(target)
+//
+//        AtomAtomMapping mapping = ChemUtils.determineMCS(query, target)
+//
+//        when:
+//        ChemUtils.alignMolecule(target, mapping)
+//
+//        then:
+//        GeometryUtil.has2DCoordinates(target)
+//    }
 }
