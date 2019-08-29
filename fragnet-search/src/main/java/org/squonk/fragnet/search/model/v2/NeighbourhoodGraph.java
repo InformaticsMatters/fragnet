@@ -372,6 +372,21 @@ public class NeighbourhoodGraph extends FragmentGraph {
             return node.getSmiles();
         }
 
+//        public int getNumPaths() {
+//            return edges == null ? 0 : edges.size();
+//        }
+
+        public String getPathLengths() {
+            StringBuffer buf = new StringBuffer();
+            for (MoleculeEdge[] e : edges) {
+                if (buf.length() > 0) {
+                    buf.append(",");
+                }
+                buf.append(e.length);
+            }
+            return buf.toString();
+        }
+
         GroupingType getClassification() {
             GroupingType result = null;
             for (MoleculeEdge[] es : edges) {
@@ -491,6 +506,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
 
             String result = null;
             if (edges.size() == 1) {
+                // only a single route between the query and the member
                 String[] onlyLabels = fetchLabels(edges.get(0));
                 if (onlyLabels.length == 1) {
                     String[] parts = splitLabel(onlyLabels[0]);
@@ -501,6 +517,12 @@ public class NeighbourhoodGraph extends FragmentGraph {
                     result = parts0[4] + SEP + parts1[4];
                 }
             } else {
+                // we have multiple routes between the query and the member. This need more care!
+                // An examples are:
+                // - a 2 hop scenario of 2 additions where the additions could be in both orders
+                // - ditto but for 2 deletions
+                // - a 1 hop scenario where there are two routes between the nodes (e.g. due to symmetry)
+                //
                 // the collection of first path elements defines the transformation,
                 // but we need to standardise the order by sorting so that this is canonical
                 List<String[]> labels = new ArrayList<>(edges.size());
@@ -509,12 +531,14 @@ public class NeighbourhoodGraph extends FragmentGraph {
                 }
                 List<String> parts04 = new ArrayList<>(edges.size());
                 for (String[] l : labels) {
-                    parts04.add(splitLabel(l[0])[4]);
+                    String s = splitLabel(l[0])[4];
+                    parts04.add(s);
                 }
-                if (parts04.get(0).equals(parts04.get(1))) {
-                    // this happens when there are 2 edges between the same nodes
+                // check if all the parts are the same
+                Set<String> set = new HashSet<>(parts04);
+                if (set.size() == 1) {
+                    // this happens when there are multiple edges between the same nodes
                     // we only want one of them
-                    LOG.info("Duplicate path for " + getSmiles() + ": " + parts04.get(0) + " and " + parts04.get(1));
                     result = parts04.get(0);
                 } else {
                     Collections.sort(parts04);
