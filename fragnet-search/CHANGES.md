@@ -19,3 +19,7 @@
 
 ### 26-AUG-2019
 * Initial MCS implementation for groups giving the `refmolAtomsMissing` property
+
+### 29-AUG-2019
+* Better handling of duplicate paths when generating groups
+* Added SMARTS for MCS to help with debugging 'duplicate' groups
