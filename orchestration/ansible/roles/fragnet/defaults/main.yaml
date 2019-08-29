@@ -84,7 +84,7 @@ fragent_search_domain_certbot_email: "{{ lookup('env', 'FRAGNET_CERTBOT_EMAIL') 
 fragent_search_pfx_password: "{{ lookup('env', 'FRAGNET_PFX_PASSWORD') }}"
 # The fragnet log root
 # (the directory on the host to mount into the fragnet container)
-fragnet_search_log_root: /logs/fragnet-search
+fragnet_search_log_root: /logs/fragnet
 
 # Keycloak variables...
 # --------
