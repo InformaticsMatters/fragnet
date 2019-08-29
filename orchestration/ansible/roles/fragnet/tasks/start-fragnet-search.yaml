@@ -31,6 +31,13 @@
   - fragnet-search/logging.properties
   - fragnet-search/web.xml
 
+- name: Ensure logging root
+  file:
+    path: "{{ fragnet_search_log_root }}"
+    state: directory
+    mode: '0777'
+  become: yes
+
 - name: Copy fragnet templates
   template:
     src: "{{ item }}"
@@ -54,6 +61,7 @@
       KEYCLOAK_SERVER_URL: "{{ keycloak_server_url }}"
       KEYCLOAK_PUBLIC_KEY: "{{ keycloak_public_key }}"
       KEYCLOAK_SECRET: "{{ keycloak_secret }}"
+      LOG_ROOT: /logs
       CATALINA_OPTS: >-
         -Dkeycloak.baseurl=$KEYCLOAK_SERVER_URL
         -Dkeycloak.publickey=$KEYCLOAK_PUBLIC_KEY
@@ -65,6 +73,7 @@
     - "./fragnet/context.xml:/usr/local/tomcat/webapps/fragnet-search/META-INF/context.xml:ro,Z"
     - "./fragnet/server.xml:/usr/local/tomcat/conf/server.xml:ro,Z"
     - "./fragnet/bundle.pfx:/usr/local/tomcat/conf/bundle.pfx:ro,Z"
+    - "{{ fragnet_search_log_root }}:/logs:Z"
     restart_policy: "{{ fragnet_restart_policy }}"
   vars:
     image_ref: squonk/fragnet-all:{{ fragnet_tag }}

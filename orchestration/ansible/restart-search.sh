@@ -6,5 +6,5 @@
 
 set -e
 
-ansible-playbook playbooks/fragnet/stop-fragnet-search.yaml
-ansible-playbook playbooks/fragnet/start-fragnet-search.yaml
+ansible-playbook -e '@parameters' playbooks/fragnet/stop-fragnet-search.yaml
+ansible-playbook -e '@parameters' playbooks/fragnet/start-fragnet-search.yaml
