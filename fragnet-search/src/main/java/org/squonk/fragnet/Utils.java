@@ -22,7 +22,6 @@ import java.nio.channels.FileLock;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 import java.util.logging.Logger;
 
 public class Utils {
@@ -81,12 +80,23 @@ public class Utils {
         return DATE_FORMAT.format(new Date());
     }
 
+    /**
+     * Creates a logfile. The logfile is placed in the directory indicated
+     * by the 'LOG_ROOT' environment variable or 'user.home' if that is not set.
+     *
+     * @param filename The filename to use
+     * @return A File instance, null if the file could not be created.
+     */
     public static File createLogfile(String filename) {
 
         File queryLogFile = null;
-        String home = System.getProperty("user.home");
-        if (home != null) {
-            File file = new File(home, filename);
+        String logPath = System.getProperty("LOG_ROOT");
+        if (logPath == null) {
+            LOG.warning("No LOG_ROOT defined, using user.home for log root");
+            logPath = System.getProperty("user.home");
+        }
+        if (logPath != null) {
+            File file = new File(logPath, filename);
             if (Utils.createFileIfNotPresent(file) == 1) {
                 try {
                     // test we can write to it
@@ -103,7 +113,7 @@ public class Utils {
             LOG.info("Writing query log to " + file.getPath());
 
         } else {
-            LOG.warning("No home dir found. Cannot create " + filename);
+            LOG.warning("No user.home defined. Cannot create " + filename);
         }
         return queryLogFile;
     }
