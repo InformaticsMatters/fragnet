@@ -90,9 +90,10 @@ public class Utils {
     public static File createLogfile(String filename) {
 
         File queryLogFile = null;
-        String logPath = System.getProperty("LOG_ROOT");
+        LOG.info("Trying LOG_ROOT...");
+        String logPath = System.getenv("LOG_ROOT");
         if (logPath == null) {
-            LOG.warning("No LOG_ROOT defined, using user.home for log root");
+            LOG.warning("No LOG_ROOT defined, trying user.home...");
             logPath = System.getProperty("user.home");
         }
         if (logPath != null) {
