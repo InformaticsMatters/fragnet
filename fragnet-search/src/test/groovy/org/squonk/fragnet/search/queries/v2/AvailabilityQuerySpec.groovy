@@ -18,10 +18,12 @@ package org.squonk.fragnet.search.queries.v2
 import org.neo4j.driver.v1.Session
 import org.squonk.fragnet.search.model.v2.Availability
 import org.squonk.fragnet.service.GraphDB
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class AvailabilityQuerySpec extends Specification {
 
+    @Ignore // need to find a mol that's in the test data
     void "simple search"() {
         GraphDB db = new GraphDB()
         Session session = db.getSession()

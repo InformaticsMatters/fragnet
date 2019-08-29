@@ -503,7 +503,6 @@ public class NeighbourhoodGraph extends FragmentGraph {
 
         protected String generateGroupingKey() {
 
-
             String result = null;
             if (edges.size() == 1) {
                 // only a single route between the query and the member
@@ -534,16 +533,22 @@ public class NeighbourhoodGraph extends FragmentGraph {
                     String s = splitLabel(l[0])[4];
                     parts04.add(s);
                 }
-                // check if all the parts are the same
-                Set<String> set = new HashSet<>(parts04);
-                if (set.size() == 1) {
-                    // this happens when there are multiple edges between the same nodes
-                    // we only want one of them
-                    result = parts04.get(0);
-                } else {
-                    Collections.sort(parts04);
-                    result = parts04.stream().collect(Collectors.joining("$$"));
-                }
+//
+                // remove duplicate paths that come multiple edges between the same nodes due to symmetry
+                // and ensure the paths are sorted
+                Set<String> unique = new TreeSet<>(parts04);
+                result = unique.stream().collect(Collectors.joining("$$"));
+
+//                // check if all the parts are the same
+//                Set<String> set = new HashSet<>(parts04);
+//                if (set.size() == 1) {
+//                    // this happens when there are multiple edges between the same nodes
+//                    // we only want one of them
+//                    result = parts04.get(0);
+//                } else {
+//                    Collections.sort(parts04);
+//                    result = parts04.stream().collect(Collectors.joining("$$"));
+//                }
 
             }
             if (result == null) {
