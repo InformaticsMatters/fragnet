@@ -201,6 +201,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
                     LOG.info("Refmol/MCS Atoms: " + refMolAtoms + "/" + mcsAtoms + " Took: " + (t1 - t0) +
                             "ns Smarts: " + smarts);
                     group.setRefmolAtomsMissing(refMolAtoms - mcsAtoms);
+                    group.setScaffold(smarts);
                 }
             }
         }
@@ -285,7 +286,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
     }
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @JsonPropertyOrder({"key", "classification", "prototype", "refmolAtomsMissing", "members"})
+    @JsonPropertyOrder({"key", "classification", "prototype", "scaffold", "refmolAtomsMissing", "members"})
     public class Group {
 
         private final String key;
@@ -293,6 +294,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
         private String prototype;
         private Integer refmolAtomsMissing;
         private final List<GroupMember> members = new ArrayList<>();
+        private String scaffold;
 
         protected Group(String key) {
             this.key = key;
@@ -317,6 +319,14 @@ public class NeighbourhoodGraph extends FragmentGraph {
 
         protected void setPrototype(String prototype) {
             this.prototype = prototype;
+        }
+
+        public String getScaffold() {
+            return scaffold;
+        }
+
+        public void setScaffold(String scaffold) {
+            this.scaffold = scaffold;
         }
 
         public Integer getRefmolAtomsMissing() {
