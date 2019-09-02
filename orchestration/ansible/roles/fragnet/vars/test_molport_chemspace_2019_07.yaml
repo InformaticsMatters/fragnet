@@ -1,0 +1,38 @@
+---
+
+# Test data for the 'molport_chemspace_2019_07' graph.
+
+# Suppliers expected in the deployed database.
+#
+# A list. If this is empty the test playbook does not check the suppliers
+# it finds in the database (other than always expected at least one supplier).
+#
+# If this list is set (by the user) the 'test-fragnet' play (which collects the
+# list of suppliers in the database) will insist that the collected set of
+# suppliers matches the provided list (order is unimportant).
+fragnet_expected_suppliers:
+- ChemSpace-BB
+- MolPort
+
+# Availability tests.
+#
+# Here we provide built-in availability results for a small set of 'significant'
+# molecules. For each 'molecule' we provide 'results' that are expected
+# for each of the 'known suppliers' in the deployed database. If this
+# set of results does not match the database you've deployed you must provide
+# your own.
+availability_tests:
+- molecule: NC1CCCNC1
+  results:
+  - supplier: MolPort
+    results:
+    - code: MOLPORT:000-000-371
+      smiles: Cl.Cl.N[C@H]1CCCNC1
+    - code: MOLPORT:000-861-523
+      smiles: N[C@@H]1CCCNC1
+    - code: MOLPORT:000-000-370
+      smiles: Cl.Cl.N[C@@H]1CCCNC1
+  - supplier: ChemSpace-BB
+    results:
+    - code: CHEMSPACE-BB:CSC011830386
+      smiles: N[C@H]1CCCNC1

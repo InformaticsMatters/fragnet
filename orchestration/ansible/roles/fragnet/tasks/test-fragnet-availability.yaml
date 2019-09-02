@@ -1,0 +1,123 @@
+---
+
+# Has the user defined suitable variables needed to run these tasks?
+
+- name: Assert availability variables
+  assert:
+    that:
+    - fragnet_token is defined
+    - fragnet_db_suppliers is defined
+    - molecule is defined
+
+- name: Display molecule being tested
+  debug:
+    msg: Testing availability for '{{ molecule.molecule }}'...
+
+# Collect the availability results into a flat list.
+# So...
+#
+#   molecule: NC1CCCNC1
+#   results:
+#   - vendor: molport
+#     results:
+#     - code: MOLPORT:000-000-371
+#       smiles: Cl.Cl.N[C@H]1CCCNC1
+#   - vendor: chemspace_bb
+#     results:
+#     - code: CHEMSPACE-BB:CSC011830386
+#       smiles: N[C@H]1CCCNC1
+#
+# Becomes...
+#
+# ['MOLPORT:000-000-371', 'CHEMSPACE-BB:CSC011830386']
+
+- name: Collect expected codes
+  set_fact:
+    expected_codes: "{{ molecule|json_query(query)|flatten }}"
+  vars:
+    query: "results[*].results[*].code"
+
+- name: Collect expected SMILES
+  set_fact:
+    expected_smiles: "{{ molecule|json_query(query)|flatten }}"
+  vars:
+    query: "results[*].results[*].smiles"
+
+# Splice code and SMILES together to form a string of "code/smiles"...
+# This just makes comparison of results a little easier.
+
+- name: Splice expected codes and SMILES
+  set_fact:
+    expected: "{{ expected|default([]) + [exp_values.0 + '/' + exp_values.1] }}"
+  with_together:
+  - "{{ expected_codes }}"
+  - "{{ expected_smiles }}"
+  loop_control:
+    loop_var: exp_values
+
+# Now run the availability query
+# for the supplied molecule...
+
+- name: Run availability query
+  uri:
+    url: https://{{ api }}/search/availability/{{ smiles|urlencode }}
+    headers:
+      Authorization: bearer {{ fragnet_token }}
+    timeout: "{{ fragnet_query_timeout_s|int }}"
+  vars:
+    api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ fragnet_api }}"
+    smiles: "{{ molecule.molecule }}"
+  register: availability_result
+
+# Collects the codes and SMILES strings returned
+# into flat lists (so we can easily compare with the expected results)
+
+- name: Collect available codes
+  set_fact:
+    available_codes: "{{ availability_result|json_query(query) }}"
+  vars:
+    query: "json.items[*].code"
+
+- name: Collect available SMILES
+  set_fact:
+    available_smiles: "{{ availability_result|json_query(query) }}"
+  vars:
+    query: "json.items[*].smiles"
+
+- name: Splice available codes and SMILES
+  set_fact:
+    available: "{{ available|default([]) + [av_values.0 + '/' + av_values.1] }}"
+  with_together:
+    - "{{ available_codes }}"
+    - "{{ available_smiles }}"
+  loop_control:
+    loop_var: av_values
+
+# Now display the expected and available results (ion case there's an error)
+# and then run the checks for this molecule's availability query...
+#
+# - Same number of results?
+# - Same combined (spliced) codes and SMILES?
+
+- name: Display expected (spliced) results
+  debug:
+    var: expected
+
+- name: Display available (spliced) results
+  debug:
+    var: available
+
+- name: Assert the number of expected results
+  assert:
+    that:
+    - available|length == expected|length
+
+- name: Assert the results are as expected
+  assert:
+    that:
+    - cmp_values.1 == cmp_values.0
+  with_together:
+  - "{{ expected }}"
+  - "{{ available }}"
+  loop_control:
+    loop_var: cmp_values

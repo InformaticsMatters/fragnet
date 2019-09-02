@@ -1,0 +1,4 @@
+---
+
+fragnet_api_endpoint: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ fragnet_api }}"
+fragnet_availability_method: search/availability

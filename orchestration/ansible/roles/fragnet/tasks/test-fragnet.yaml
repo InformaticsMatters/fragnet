@@ -7,22 +7,30 @@
     msg: You must define a FRAGNET_USERNAME and FRAGNET_PASSWORD
   when: fragnet_username == '' or fragnet_password == ''
 
+# First of all ... a basic test to check the engine's alive
+# by calling the REST 'ping' endpoint
+
 - name: Ping the search engine
   uri:
     url: https://{{ fragnet_search_domain }}/fragnet-search/rest/ping
 
-# A series of tasks to test the Fragnet service.
-# This relies on a suitable username and password that can be used
-# to obtain a Fragnet API access token.
-
-# To get an API token we POST to Squonk
-# and pass in a number of 'parameters'.
+# For more complex tests we'll need an API token.
 #
-# As the 'body' format is 'form-urlencoded'
-# the following will automatically add the header
+# To get an API token we POST to Squonk and pass in a number of 'parameters'
+# via the body. As the 'body' format is 'form-urlencoded' the following will
+# automatically add the header the required header: -
 # "Content-Type: application/x-www-form-urlencoded"
+#
+# Fro the sake of these tests, and the ones that follow, we assume
+# that the token lifespan is sufficient so it won't expire
+# before the tests have finished.
 
-- name: Get an API token
+- name: Display API username
+  debug:
+    var: fragnet_username
+  when: fragnet_debug|bool
+
+- name: Get API token
   uri:
     url: https://squonk.it/auth/realms/squonk/protocol/openid-connect/token
     body:
@@ -34,85 +42,80 @@
     method: POST
   register: fragnet_result
 
-- name: Display API username
-  debug:
-    var: fragnet_username
-  when: fragnet_debug|bool
+- name: Set token
+  set_fact:
+    fragnet_token: "{{ fragnet_result.json.access_token }}"
 
 - name: Display API token
   debug:
-    var: fragnet_result.json.access_token
+    var: fragnet_token
   when: fragnet_debug|bool
 
-# Test the search/suppliers query
+# Now get the list of suppliers in the deployed database.
+# This becomes a 'suppliers_in_db' fact (a list)
+# that we reply on in other tests...
 
-- name: Run search/suppliers query
+- name: Run suppliers query
   uri:
-    url: https://{{ api }}/{{ method }}
+    url: https://{{ api }}/search/suppliers
     headers:
-      Authorization: bearer {{ fragnet_result.json.access_token }}
+      Authorization: bearer {{ fragnet_token }}
     timeout: "{{ fragnet_query_timeout_s|int }}"
   vars:
     api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ fragnet_api }}"
-    method: search/suppliers
   register: suppliers_result
 
-- name: Collect suppliers
+- name: Collect result's suppliers (sorted)
   set_fact:
-    suppliers_in_db: "{{ suppliers_result|json_query('json[*].name')|flatten }}"
+    fragnet_db_suppliers: "{{ suppliers_result|json_query('json[*].name')|flatten|sort }}"
 
 - name: Display suppliers
   debug:
-    var: suppliers_in_db
+    var: fragnet_db_suppliers
 
-- name: Check suppliers
+# A simply sanity check before going any further...
+
+- name: Make sure there's at leat one supplier
   assert:
-    that: suppliers_in_db|length > 0
+    that: fragnet_db_suppliers|length > 0
 
-# Test the search/neighbourhood query (using the first supplier)
+# Now ...
+# Load graph-specific test variables
 
-- name: Construct search/neighbourhood query ({{ suppliers_in_db[0] }})
-  set_fact:
-    uri_string: "https://{{ api }}/{{ path }}/{{ smiles|urlencode }}?\
-                 {{ hac }}&{{ rac }}&{{ hops }}&{{ calcs }}&{{ suppliers }}"
+- name: Load graph-specific availability test variables
+  include_vars: "{{ lookup('first_found', possible_files) }}"
   vars:
-    api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ fragnet_api }}"
-    path: search/neighbourhood
-    smiles: c1ccc(Nc2nc3ccccc3o2)cc1
-    hac: hac=3
-    rac: rac=1
-    hops: hops=2
-    calcs: calcs=LOGP
-    suppliers: suppliers={{ suppliers_in_db[0] }}
+    possible_files:
+    - roles/fragnet/vars/test_{{ graph_name }}.yaml
+    - roles/fragnet/vars/test_default.yaml
 
-- name: Display query
-  debug:
-    var: uri_string
+# If the user's defined an expected set of suppliers, then
+# it, and the fragnet_db_suppliers must match.
+# We fist compare the size fo the lists and then their (sorted) content.
 
-- name: Run query
-  uri:
-    url: "{{ uri_string }}"
-    headers:
-      Authorization: bearer {{ fragnet_result.json.access_token }}
-    timeout: "{{ fragnet_query_timeout_s|int }}"
-  register: search_result
-
-- name: Check we have some nodes, edges and groups
+- name: Check supplier count
   assert:
-    that:
-    - search_result.json.nodes is defined
-    - search_result.json.edges is defined
-    - search_result.json.groups is defined
+    that: fragnet_expected_suppliers|length == fragnet_db_suppliers|length
+  when: fragnet_expected_suppliers|length > 0
 
-- name: Echo search result lengths
+- name: Display expected suppliers
   debug:
-    msg: >-
-      edges={{ search_result.json.edges|length }}
-      nodes={{ search_result.json.nodes|length }}
-      groups={{ search_result.json.groups|length }}
+    var: fragnet_expected_suppliers
 
-- name: Echo search result group keys (classification=='ADDITION')
+- name: Display actual suppliers
   debug:
-    var: search_result|json_query(query)
+    var: fragnet_db_suppliers
+
+- name: Check supplier content
+  assert:
+    that: fragnet_expected_suppliers|sort == fragnet_db_suppliers
+  when: fragnet_expected_suppliers|length > 0
+
+# Now, include more detailed tests
+# - that rely on the 'fragnet_token' and 'fragnet_db_suppliers' list.
+
+- name: Run Fragnet availability tests
+  include_tasks: test-fragnet-availability.yaml
   vars:
-    query: "json.groups[?classification=='ADDITION'].key"
+    molecule: "{{ item }}"
+  loop: "{{ availability_tests }}"
