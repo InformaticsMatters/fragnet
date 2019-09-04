@@ -8,12 +8,11 @@ import org.squonk.fragnet.chem.Calculator;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.logging.FileHandler;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
 
@@ -22,12 +21,16 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
     // The Q_LOG is used to log query events
     // anonymous events that record queries that are conducted.
     // We expect this to be a size-limited set of files.
-    private static final Logger Q_LOG = Logger.getLogger("QueryLog");
+    private Logger Q_LOG;
     private static final int LOG_FILE_SIZE = 64000;
     private static final int LOG_FILE_COUNT = 10;
     private static final boolean LOG_FILE_APPEND = true;
 
     public AbstractFragnetSearchRouteBuilder(String queryLogFileName) {
+
+        Q_LOG = Logger.getLogger(queryLogFileName);
+        Q_LOG.setUseParentHandlers(false);
+
         String utilsLogPath = Utils.getLogPath();
         if (queryLogFileName != null && utilsLogPath != null) {
             String fileAndPath = utilsLogPath + '/' + queryLogFileName;
@@ -41,6 +44,18 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
                 LOG.severe("Failed to create FileHandler (" + e.getMessage() + ")");
             }
             if (fh != null) {
+                // By default files are XML.
+                // Set to Simple (like the console)...
+                fh.setFormatter(new SimpleFormatter() {
+                    private static final String format = "[%1$tF %1$tT] %2$-7s | %3$s %n";
+                    @Override
+                    public synchronized String format(LogRecord lr) {
+                        return String.format(format,
+                                             new Date(lr.getMillis()),
+                                             lr.getLevel().getLocalizedName(),
+                                             lr.getMessage());
+                    }
+                });
                 LOG.info("Adding file handler (fileAndPath=" + fileAndPath + ")");
                 Q_LOG.addHandler(fh);
                 Q_LOG.info("OPENED");
@@ -49,6 +64,7 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
             LOG.warning("queryLogFileName=" + queryLogFileName +
                         " getLogPath=" + utilsLogPath);
         }
+
     }
 
     protected String getUsername(Exchange exch) {
@@ -91,17 +107,12 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
     }
 
     protected void writeToQueryLog(String user, String searchType, long executionTime, int nodes, int edges, int groups) {
-        String txt = String.format("%s\t%s\t%s\tnodes=%s,edges=%s,groups=%s\n", user, searchType, executionTime, nodes, edges, groups);
-        writeToQueryLog(txt);
+        String txt = String.format("%s\t%s\t%s\tnodes=%s,edges=%s,groups=%s", user, searchType, executionTime, nodes, edges, groups);
+        Q_LOG.info(txt);
     }
 
     protected void writeErrorToQueryLog(String user, String searchType, long executionTime, String msg) {
-        String txt = String.format("%s\t%s\t%s\terror=%s\n", user, searchType, executionTime, msg);
-        writeToQueryLog(txt);
-    }
-
-    protected void writeToQueryLog(String txt) {
-        LOG.info("QUERY | " + txt);
-        Q_LOG.info(txt);
+        String txt = String.format("%s\t%s\t%s\t%s", user, searchType, executionTime, msg);
+        Q_LOG.severe(txt);
     }
 }
