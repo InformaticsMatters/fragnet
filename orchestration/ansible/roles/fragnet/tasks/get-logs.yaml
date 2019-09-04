@@ -1,0 +1,19 @@
+---
+
+# Gets log files from the server...
+
+- name: Collect logfile names
+  shell: find . -type f | grep -v 'lck' | cut -d'/' -f2
+  args:
+    chdir: "{{ fragnet_search_log_root }}"
+  register: files_to_fetch
+  changed_when: false
+
+# The destination is relative to the 'playbooks/fragnet' directory.
+
+- name: Get logfiles
+  fetch:
+    dest: ../../
+    flat: yes
+    src: "{{ fragnet_search_log_root }}/{{ item }}"
+  loop: "{{ files_to_fetch.stdout_lines }}"
