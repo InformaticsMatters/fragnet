@@ -28,6 +28,7 @@ public class Utils {
 
     private static final Logger LOG = Logger.getLogger(Utils.class.getName());
     private static DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+    private static final String LOG_PATH;
 
     /**
      * Get a value that might be configured externally. Looks first for a system property
@@ -81,6 +82,17 @@ public class Utils {
     }
 
     /**
+     * Returns the configured LOG_PATH,
+     * which is either an environment variable (LOG_ROOT)
+     * or a property (user.home)
+     *
+     * @return A String, which may be NULL
+     */
+    public static String getLogPath() {
+        return LOG_PATH;
+    }
+
+    /**
      * Creates a logfile. The logfile is placed in the directory indicated
      * by the 'LOG_ROOT' environment variable or 'user.home' if that is not set.
      *
@@ -90,14 +102,8 @@ public class Utils {
     public static File createLogfile(String filename) {
 
         File queryLogFile = null;
-        LOG.info("Trying LOG_ROOT...");
-        String logPath = System.getenv("LOG_ROOT");
-        if (logPath == null) {
-            LOG.warning("No LOG_ROOT defined, trying user.home...");
-            logPath = System.getProperty("user.home");
-        }
-        if (logPath != null) {
-            File file = new File(logPath, filename);
+        if (LOG_PATH != null) {
+            File file = new File(LOG_PATH, filename);
             if (Utils.createFileIfNotPresent(file) == 1) {
                 try {
                     // test we can write to it
@@ -147,6 +153,14 @@ public class Utils {
             }
         }
         return 0;
+    }
+
+    static {
+        String logPath = System.getenv("LOG_ROOT");
+        if (logPath == null) {
+            logPath = System.getProperty("user.home");
+        }
+        LOG_PATH = logPath;
     }
 
 }

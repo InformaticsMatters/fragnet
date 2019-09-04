@@ -6,27 +6,47 @@ import org.squonk.fragnet.Utils;
 import org.squonk.fragnet.chem.Calculator;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 
 public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
 
     private static final Logger LOG = Logger.getLogger(AbstractFragnetSearchRouteBuilder.class.getName());
 
-    private final File queryLogFile;
+    // The Q_LOG is used to log query events
+    // anonymous events that record queries that are conducted.
+    // We expect this to be a size-limited set of files.
+    private static final Logger Q_LOG = Logger.getLogger("QueryLog");
+    private static final int LOG_FILE_SIZE = 64000;
+    private static final int LOG_FILE_COUNT = 10;
+    private static final boolean LOG_FILE_APPEND = true;
 
     public AbstractFragnetSearchRouteBuilder(String queryLogFileName) {
-        if (queryLogFileName != null) {
-            queryLogFile = Utils.createLogfile(queryLogFileName);
+        String utilsLogPath = Utils.getLogPath();
+        if (queryLogFileName != null && utilsLogPath != null) {
+            String fileAndPath = utilsLogPath + '/' + queryLogFileName;
+            FileHandler fh = null;
+            try {
+                fh = new FileHandler(fileAndPath,
+                                     LOG_FILE_SIZE,
+                                     LOG_FILE_COUNT,
+                                     LOG_FILE_APPEND);
+            } catch (IOException e) {
+                LOG.severe("Failed to create FileHandler (" + e.getMessage() + ")");
+            }
+            if (fh != null) {
+                LOG.info("Adding file handler (fileAndPath=" + fileAndPath + ")");
+                Q_LOG.addHandler(fh);
+            }
         } else {
-            queryLogFile = null;
+            LOG.warning("queryLogFileName=" + queryLogFileName +
+                        " getLogPath=" + utilsLogPath);
         }
     }
 
@@ -70,26 +90,16 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
     }
 
     protected void writeToQueryLog(String user, String searchType, long executionTime, int nodes, int edges, int groups) {
-        String date = Utils.getCurrentTime();
-        String txt = String.format("%s\t%s\t%s\t%s\tnodes=%s,edges=%s,groups=%s\n", user, date, searchType, executionTime, nodes, edges, groups);
+        String txt = String.format("%s\t%s\t%s\tnodes=%s,edges=%s,groups=%s\n", user, searchType, executionTime, nodes, edges, groups);
         writeToQueryLog(txt);
     }
 
     protected void writeErrorToQueryLog(String user, String searchType, long executionTime, String msg) {
-        String date = Utils.getCurrentTime();
-        String txt = String.format("%s\t%s\t%s\t%s\terror=%s\n", user, date, searchType, executionTime, msg);
+        String txt = String.format("%s\t%s\t%s\terror=%s\n", user, searchType, executionTime, msg);
         writeToQueryLog(txt);
     }
 
     protected void writeToQueryLog(String txt) {
-        if (queryLogFile != null) {
-            try {
-                Utils.appendToFile(queryLogFile, txt);
-            } catch (IOException e) {
-                LOG.log(Level.WARNING, "Failed to write to query log", e);
-            }
-        } else {
-            LOG.info(txt);
-        }
+        Q_LOG.info(txt);
     }
 }
