@@ -18,11 +18,11 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
 
     private static final Logger LOG = Logger.getLogger(AbstractFragnetSearchRouteBuilder.class.getName());
 
-    // The Q_LOG is used to log query events
+    // The Q_LOG is used to log query events,
     // anonymous events that record queries that are conducted.
     // We expect this to be a size-limited set of files.
     private Logger Q_LOG;
-    private static final int LOG_FILE_SIZE = 64000;
+    private static final int LOG_FILE_SIZE = 1000000;
     private static final int LOG_FILE_COUNT = 10;
     private static final boolean LOG_FILE_APPEND = true;
 
@@ -51,7 +51,7 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
                 //   [2019-09-04 15:05:27] INFO    | OPENED
                 //
                 fh.setFormatter(new SimpleFormatter() {
-                    private static final String format = "[%1$tF %1$tT] %2$-7s | %3$s %n";
+                    private static final String format = "[%1$tF %1$tT] %2$-7s | %3$s%n";
                     @Override
                     public synchronized String format(LogRecord lr) {
                         return String.format(format,
