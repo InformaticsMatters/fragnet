@@ -11,7 +11,7 @@
 
 # The destination is relative to the 'playbooks/fragnet' directory.
 
-- name: Get logfiles
+- name: Fetch logfiles
   fetch:
     dest: ../../
     flat: yes
