@@ -1,6 +1,6 @@
 ---
 
-- name: Stop (remove) fragnet-search
+- name: Stop (remove) fragnet container
   docker_container:
     name: fragnet-search
     state: absent

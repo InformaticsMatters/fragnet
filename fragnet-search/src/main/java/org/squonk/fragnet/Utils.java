@@ -101,6 +101,8 @@ public class Utils {
      */
     public static File createLogfile(String filename) {
 
+        LOG.info("LOG_PATH=" + getLogPath());
+
         File queryLogFile = null;
         if (LOG_PATH != null) {
             File file = new File(LOG_PATH, filename);
@@ -123,6 +125,7 @@ public class Utils {
             LOG.warning("No user.home defined. Cannot create " + filename);
         }
         return queryLogFile;
+
     }
 
     public static void appendToFile(File file, String text) throws IOException {

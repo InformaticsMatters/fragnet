@@ -43,6 +43,7 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
             if (fh != null) {
                 LOG.info("Adding file handler (fileAndPath=" + fileAndPath + ")");
                 Q_LOG.addHandler(fh);
+                Q_LOG.info("OPENED");
             }
         } else {
             LOG.warning("queryLogFileName=" + queryLogFileName +
@@ -100,6 +101,7 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
     }
 
     protected void writeToQueryLog(String txt) {
+        LOG.info("QUERY | " + txt);
         Q_LOG.info(txt);
     }
 }
