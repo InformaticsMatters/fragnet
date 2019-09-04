@@ -56,7 +56,7 @@ graph_pagecache_size_g: SetMe
 # Fragnet application variables...
 # -------
 
-# The Docker image tag for the 'squonk/fragnet-search' image.
+# The Docker image tag for the 'squonk/fragnet-all' image.
 fragnet_tag: latest
 # The port to expose the Fragnet service on.
 # Internally the port is expected to be on 8080,
