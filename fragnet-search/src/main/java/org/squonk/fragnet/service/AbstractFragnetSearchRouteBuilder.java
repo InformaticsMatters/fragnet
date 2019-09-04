@@ -45,7 +45,11 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
             }
             if (fh != null) {
                 // By default files are XML.
-                // Set to Simple (like the console)...
+                // Set to Simple (like the console) with the format
+                // that contains the date/time and the logging level like...
+                //
+                //   [2019-09-04 15:05:27] INFO    | OPENED
+                //
                 fh.setFormatter(new SimpleFormatter() {
                     private static final String format = "[%1$tF %1$tT] %2$-7s | %3$s %n";
                     @Override
