@@ -150,7 +150,7 @@ class TransformClassifier2Hops implements Constants {
 
         // generate MCS for the mols
         mcs123 = RDKFuncs.findMCS(mcsmols);
-        LOG.info("MCS SMARTS = " + mcs123.getSmartsString());
+        LOG.fine("MCS SMARTS = " + mcs123.getSmartsString());
         return mcs123;
     }
 
@@ -262,7 +262,7 @@ class TransformClassifier2Hops implements Constants {
 
     private Match_Vect_Vect getMatches(RWMol mol, RWMol smarts) {
         Match_Vect_Vect matches = mol.getSubstructMatches(smarts);
-        LOG.info("Num matches: " + matches.size());
+        LOG.fine("Num matches: " + matches.size());
         return matches;
     }
 
@@ -287,27 +287,32 @@ class TransformClassifier2Hops implements Constants {
 
     private MolTransform generateMolTransform(String scaffold, boolean isSubstitution) {
         GroupingType type = generateGroupingType(isSubstitution);
-        String s = (scaffold == null ? TransformClassifierUtils.createUndefinedScaffold(type): scaffold);
+        String s = (scaffold == null ? TransformClassifierUtils.createUndefinedScaffold(type) : scaffold);
         return generateMolTransform(s, type);
     }
 
     private MolTransform generateMolTransform(String scaffold, GroupingType type) {
-        String s = (scaffold == null ? TransformClassifierUtils.createUndefinedScaffold(type): scaffold);
+        String s = (scaffold == null ? TransformClassifierUtils.createUndefinedScaffold(type) : scaffold);
         return new MolTransform(s, type, 2);
     }
 
     MolTransform classifyTransform() {
+
+        MolTransform tx;
         if (isAddition1 && isAddition2) {
 
-            return classifyTransformUsingStartAndEndMCS();
+            tx = classifyTransformUsingStartAndEndMCS();
 
         } else if (!isAddition1 && !isAddition2) {
             // 2 deletions to the scaffold is the final mol
-            return new MolTransform(toSmiles, GroupingType.DELETIONS, 2);
+            tx = new MolTransform(toSmiles, GroupingType.DELETIONS, 2);
+        } else {
+            // so we need to use MCS to define this
+            tx = classifyTransformUsingMidSmilesMCS();
         }
 
-        // so we need to use MCS to define this
-        return classifyTransformUsingMidSmilesMCS();
+        LOG.info(tx.toString());
+        return tx;
     }
 
     MolTransform classifyTransformUsingStartAndEndMCS() {
@@ -316,7 +321,7 @@ class TransformClassifier2Hops implements Constants {
             Match_Vect_Vect matches = getMatches4vs04();
             RWMol mol = RWMol.MolFromSmiles(toSmiles);
             AttachmentInfo info = removeNonMappedAtomsWithAttachmentInfo(mol, matches.get(0));
-            LOG.info("Number of attachment points = " + info.attachmentPoints.size());
+            LOG.fine("Number of attachment points = " + info.attachmentPoints.size());
             for (Atom atom : info.attachmentPoints) {
                 addXenonAtom(mol, atom);
             }
@@ -330,7 +335,7 @@ class TransformClassifier2Hops implements Constants {
 
     MolTransform classifyTransformUsingMidSmilesMCS() {
 
-        log(Level.INFO, "Input.");
+        log(Level.FINER, "Input.");
 
         // find the locations on the Xenon atoms and their attachments. First item in array is Xe, second is atom it is attached to
         Atom[] mol1Atoms = findFirstXenonAndConnectedAtom(getMol1());
@@ -351,28 +356,28 @@ class TransformClassifier2Hops implements Constants {
             mol3AttachmentInMol2 = findMappedAtom(mol3Atoms[1], getMol3(), middleMol, getMatches3vs123().get(0), getMatches2vs123().get(0));
         }
 
-        LOG.info("Attached atoms in scaffold are " +
+        LOG.fine("Attached atoms in scaffold are " +
                 (mol1AttachmentInMol2 == null ? "none" : mol1AttachmentInMol2.getSymbol() + mol1AttachmentInMol2.getIdx()) +
                 " and " +
                 (mol3AttachmentInMol2 == null ? "none" : mol3AttachmentInMol2.getSymbol() + mol3AttachmentInMol2.getIdx()));
 
-        GroupingType type = null;
         String scaffold = null;
+        boolean isSubstitution = false;
 
         if (mol1AttachmentInMol2 == null && mol3AttachmentInMol2 == null) {
             log(Level.WARNING, "Neither attachment mapped. This is an error");
         } else if (mol1AttachmentInMol2 != null && mol3AttachmentInMol2 != null) {
             // remove atoms not in the scaffold
-            LOG.info("Before removal " + middleMol.MolToSmiles());
+            LOG.fine("Before removal " + middleMol.MolToSmiles());
             int numRemoved = removeNonMappedAtoms(middleMol, getMatches2vs123().get(0));
-            LOG.info("After removal " + middleMol.MolToSmiles() + SPACE + numRemoved + " atoms removed");
+            LOG.fine("After removal " + middleMol.MolToSmiles() + SPACE + numRemoved + " atoms removed");
 
             if (mol1AttachmentInMol2 == null) {
                 String msg = "Attached atom not mapped in mol1";
                 log(Level.WARNING, msg);
                 throw new RuntimeException(msg);
             } else if (isAddition1) {
-                LOG.info("Adding Xe to atom " + mol1AttachmentInMol2.getSymbol() + mol1AttachmentInMol2.getIdx());
+                LOG.fine("Adding Xe to atom " + mol1AttachmentInMol2.getSymbol() + mol1AttachmentInMol2.getIdx());
                 addXenonAtom(middleMol, mol1AttachmentInMol2);
             }
 
@@ -381,16 +386,11 @@ class TransformClassifier2Hops implements Constants {
                 log(Level.WARNING, msg);
                 throw new RuntimeException(msg);
             } else if (isAddition2) {
-                LOG.info("Adding Xe to atom " + mol3AttachmentInMol2.getSymbol() + mol3AttachmentInMol2.getIdx());
+                LOG.fine("Adding Xe to atom " + mol3AttachmentInMol2.getSymbol() + mol3AttachmentInMol2.getIdx());
                 addXenonAtom(middleMol, mol3AttachmentInMol2);
             }
 
-            if (mol1AttachmentInMol2.getIdx() == mol3AttachmentInMol2.getIdx()) {
-                type = TransformClassifierUtils.createGroupingType(
-                        new boolean[]{isAddition1, isAddition2},
-                        new String[][] {parts1, parts2},
-                        numMiddleComponents, true);
-            }
+            isSubstitution = (mol1AttachmentInMol2.getIdx() == mol3AttachmentInMol2.getIdx());
 
             if (!isAddition1 && !isAddition2) { // double deletion
                 scaffold = toSmiles;
@@ -406,12 +406,12 @@ class TransformClassifier2Hops implements Constants {
             }
         }
 
-        if (type == null) {
-            type = TransformClassifierUtils.createGroupingType(
-                    new boolean[]{isAddition1, isAddition2},
-                    new String[][] {parts1, parts2},
-                    numMiddleComponents, false);
-        }
+
+        GroupingType type = TransformClassifierUtils.createGroupingType(
+                new boolean[]{isAddition1, isAddition2},
+                new String[][]{parts1, parts2},
+                numMiddleComponents, isSubstitution);
+
 
         MolTransform tx = generateMolTransform(scaffold, type);
         return tx;
@@ -482,7 +482,7 @@ class TransformClassifier2Hops implements Constants {
 
         for (int i = atomsToRemove.size() - 1; i >= 0; i--) {
             Atom a = atomsToRemove.get(i);
-            LOG.info("Deleting atom " + a.getSymbol() + a.getIdx());
+            LOG.fine("Deleting atom " + a.getSymbol() + a.getIdx());
             mol.removeAtom(a);
         }
         return atomsToRemove.size();
@@ -505,7 +505,7 @@ class TransformClassifier2Hops implements Constants {
 
         for (int i = atomsToRemove.size() - 1; i >= 0; i--) {
             Atom a = atomsToRemove.get(i);
-            LOG.info("Deleting atom " + a.getSymbol() + a.getIdx());
+            LOG.fine("Deleting atom " + a.getSymbol() + a.getIdx());
             mol.removeAtom(a);
         }
         info.numAtomsDeleted = atomsToRemove.size();

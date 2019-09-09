@@ -132,7 +132,11 @@ public class TransformClassifierUtils implements Constants {
                 }
             } else if (isAddition[0] && !isAddition[1]) {
                 if (RING.equals(parts[0][0]) && RING.equals(parts[0][3]) && RING.equals(parts[1][0]) && RING.equals(parts[1][3])) {
-                    type = GroupingType.SUBSTITUTE_RING;
+                    if (isSubstitution) {
+                        type = GroupingType.SUBSTITUTE_RING;
+                    } else {
+                        type = GroupingType.RING_ADDITION_DELETION;
+                    }
                 } else if (isSubstitution) {
                     type = GroupingType.SUBSTITUTE_FG;
                 } else {
@@ -142,7 +146,11 @@ public class TransformClassifierUtils implements Constants {
                 if (FG.equals(parts[0][0]) && RING.equals(parts[0][3]) && FG.equals(parts[1][0]) && RING.equals(parts[1][3]) && numMiddleComponents == 2) {
                     type = GroupingType.SUBSTITUTE_LINKER;
                 } else if (RING.equals(parts[0][0]) && RING.equals(parts[0][3]) && RING.equals(parts[1][0]) && RING.equals(parts[1][3])) {
-                    type = GroupingType.SUBSTITUTE_RING;
+                    if (isSubstitution) {
+                        type = GroupingType.SUBSTITUTE_RING;
+                    } else {
+                        type = GroupingType.RING_ADDITION_DELETION;
+                    }
                 } else if (isSubstitution) {
                     type = GroupingType.SUBSTITUTE_FG;
                 } else {

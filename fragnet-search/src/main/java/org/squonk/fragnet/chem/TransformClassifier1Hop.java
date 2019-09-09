@@ -52,13 +52,13 @@ class TransformClassifier1Hop implements Constants {
         } else {
             scaffold = toSmiles;
         }
-        LOG.info(type + SPACE + scaffold);
 
         if (type == null) {
             type = TransformClassifierUtils.createGroupingType(new boolean[]{isAddition}, new String[][]{parts}, 0, false);
         }
-        return new MolTransform(scaffold, type, 1);
-
+        MolTransform tx =  new MolTransform(scaffold, type, 1);
+        LOG.info(tx.toString());
+        return tx;
     }
 
 }

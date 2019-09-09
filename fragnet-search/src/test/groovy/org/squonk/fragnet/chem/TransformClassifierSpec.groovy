@@ -249,8 +249,27 @@ class TransformClassifierSpec extends Specification {
         result1 == result2
     }
 
+    void "RING deletion addition 1"() {
 
-    void "RING substitute"() {
+        // transform involves addition of 2 FGs
+        // MATCH p=(m:F2)-[:FRAG*1..2]-(e:F2) WHERE m.smiles='Oc1ccc(-c2ccccc2)cc1' AND e.smiles='Oc1cccc(-n2cncn2)c1' RETURN p
+
+        when:
+        def result1 = TransformClassifierUtils.generateMolTransform(
+                "Oc1ccc(-c2ccccc2)cc1",
+                "RING|[Xe]c1ccccc1|[101Xe]C1CCCCC1|RING|Oc1ccc([Xe])cc1|OC1CCC([101Xe])CC1", false,
+                "Oc1ccccc1",
+                "RING|[Xe]n1cncn1|[101Xe]C1CCCC1|RING|Oc1cccc([Xe])c1|OC1CCCC([101Xe])C1", true,
+                "Oc1cccc(-n2cncn2)c1"
+        )
+
+        then:
+        result1.scaffold == "Oc1cccc([Xe])c1"
+        result1.classification == GroupingType.RING_ADDITION_DELETION
+    }
+
+
+    void "RING deletion addition 2"() {
 
         // see fragnet-transforms/replace-ring-1.png
 
@@ -286,12 +305,31 @@ class TransformClassifierSpec extends Specification {
 
         then:
         result1.scaffold == "Oc1ccccc1[Xe]"
-        result1.classification == GroupingType.SUBSTITUTE_RING
+        result1.classification == GroupingType.RING_ADDITION_DELETION
         result1 == result2
         result1 == result3
         result2 == result3
 
     }
+
+    void "RING substitution 1"() {
+
+        // transform involves removal of a ring and addition of another ring at the same site
+
+        when:
+        def result1 = TransformClassifierUtils.generateMolTransform(
+                "Oc1ccc(-c2ccccc2)cc1",
+                "RING|[Xe]c1ccccc1|[101Xe]C1CCCCC1|RING|Oc1ccc([Xe])cc1|OC1CCC([101Xe])CC1", false,
+                "Oc1ccccc1",
+                "RING|O=C1CC([Xe])CN1|OC1CCC([100Xe])C1|RING|Oc1ccc([Xe])cc1|OC1CCC([100Xe])CC1", true,
+                "O=C1CC(c2ccc(O)cc2)CN1"
+        )
+
+        then:
+        result1.scaffold == "Oc1ccc([Xe])cc1"
+        result1.classification == GroupingType.SUBSTITUTE_RING
+    }
+
 
     void "replace linker"() {
 
