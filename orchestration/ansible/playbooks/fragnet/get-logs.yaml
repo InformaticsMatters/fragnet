@@ -1,0 +1,8 @@
+---
+
+- hosts: graph
+
+  tasks:
+  - include_role:
+      name: fragnet
+      tasks_from: get-logs.yaml
