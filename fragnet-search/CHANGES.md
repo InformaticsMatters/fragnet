@@ -15,7 +15,7 @@
 * Added `nodeCount`, `edgeCount` and `groupCount` properties to result JSON
 
 ### 16-AUG-2019
-* Added availability endpoint for fetching information about molecule availability from suppliers.
+* Added availability endpoint for fetching information about molecule availability from suppliers
 
 ### 26-AUG-2019
 * Initial MCS implementation for groups giving the `refmolAtomsMissing` property
@@ -23,3 +23,6 @@
 ### 29-AUG-2019
 * Better handling of duplicate paths when generating groups
 * Added SMARTS for MCS to help with debugging 'duplicate' groups
+
+### 09-SEP-2019
+* Major change to grouping algorithm using MCS determinations where needed

@@ -25,8 +25,9 @@ plugins {
 description = 'Fragment network search'
 
 String RDBASE = System.getenv('RDBASE')
-String RDKitJarFile = '/Code/JavaWrappers/gmwrapper/org.RDKit.jar'
-boolean RDKitJava = RDBASE && file(RDBASE + RDKitJarFile).exists()
+String RDKitJarFile = RDBASE + '/Code/JavaWrappers/gmwrapper/org.RDKit.jar'
+boolean RDKitJava = RDBASE && file(RDKitJarFile).exists()
+println "jar $RDKitJarFile exists? $RDKitJava"
 
 apply plugin: 'war'
 apply plugin: 'groovy'
@@ -51,7 +52,8 @@ dependencies {
 
     if (RDKitJava) {
         println "RDBASE defined as $RDBASE - using that location for RDKit"
-        compile files(RDBASE + RDKitJarFile)
+        println "Using jar file " + RDKitJarFile
+        compile files(RDKitJarFile)
     } else {
         println "Using local org.RDKit.jar"
         compile files("../lib/rdkit/org.RDKit.jar")
@@ -101,7 +103,9 @@ task stopNeoContainer(type: DockerStopContainer) {
 test {
     environment = [
             'NEO4J_PASSWORD':'test123',
-            'NEO4J_SERVER':'localhost'
+            'NEO4J_SERVER':'localhost',
+            'LD_LIBRARY_PATH':'/home/timbo/github/rdkit/rdkit/Code/JavaWrappers/gmwrapper:/usr/x86_64-linux-gnu',
+            'RDBASE':'/home/timbo/github/rdkit/rdkit'
     ]
 //    beforeTest { descriptor ->
 //        logger.lifecycle("Running test: " + descriptor)
@@ -111,3 +115,17 @@ test {
 tasks.test.dependsOn("startNeoContainer")
 tasks.test.finalizedBy("stopNeoContainer")
 
+task runApp(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    main = 'org.squonk.fragnet.search.FragmentUtils'
+
+    environment = [
+            'NEO4J_PASSWORD':'test123',
+            'NEO4J_SERVER':'localhost',
+            'RDBASE':'/home/timbo/github/rdkit/rdkit',
+            'LD_LIBRARY_PATH':'/home/timbo/github/rdkit/rdkit/Code/JavaWrappers/gmwrapper:/usr/x86_64-linux-gnu',
+
+    ]
+
+}
