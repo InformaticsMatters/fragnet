@@ -174,7 +174,7 @@ class TransformClassifierSpec extends Specification {
 
         then:
         result1.scaffold == "[Xe]c1cccc(-c2ccccc2)c1"
-        result1.classification == GroupingType.ADDITION_DELETION
+        result1.classification == GroupingType.FG_ADDITION_DELETION
         result1 == result2
     }
 
@@ -212,7 +212,7 @@ class TransformClassifierSpec extends Specification {
 
         then:
         result1.scaffold == "[Xe]c1cccc(-c2ccccc2)c1"
-        result1.classification == GroupingType.ADDITION_DELETION
+        result1.classification == GroupingType.FG_ADDITION_DELETION
         result1 == result2
         result1 == result3
         result2 == result3

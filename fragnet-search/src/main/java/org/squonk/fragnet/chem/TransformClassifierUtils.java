@@ -29,12 +29,13 @@ public class TransformClassifierUtils implements Constants {
 
     private static final Logger LOG = Logger.getLogger(TransformClassifierUtils.class.getName());
 
-    /** Generate a 1-hop transform
+    /**
+     * Generate a 1-hop transform
      *
      * @param fromSmiles The query smiles
-     * @param edge Edge label
+     * @param edge       Edge label
      * @param isAddition Is this an addition
-     * @param toSmiles The result smiles
+     * @param toSmiles   The result smiles
      * @return
      */
     public static MolTransform generateMolTransform(String fromSmiles,
@@ -46,15 +47,16 @@ public class TransformClassifierUtils implements Constants {
     }
 
 
-    /** Generate a 2-hop transform
+    /**
+     * Generate a 2-hop transform
      *
-     * @param fromSmiles The query smiles
-     * @param edge1 First edge label
+     * @param fromSmiles  The query smiles
+     * @param edge1       First edge label
      * @param isAddition1 First hop is an addition
-     * @param midSmiles The intermediate smiles
-     * @param edge2 Second edge label
+     * @param midSmiles   The intermediate smiles
+     * @param edge2       Second edge label
      * @param isAddition2 Second hop is an addition
-     * @param toSmiles The result smiles
+     * @param toSmiles    The result smiles
      * @return
      */
     public static MolTransform generateMolTransform(String fromSmiles,
@@ -89,12 +91,13 @@ public class TransformClassifierUtils implements Constants {
         }
     }
 
-    /** Generate the grouping type for this transform
+    /**
+     * Generate the grouping type for this transform
      *
-     * @param isAddition Array of one or two booleans for whether each hop is an addition
-     * @param parts Array of one or two String[]s for the split edge labels
+     * @param isAddition          Array of one or two booleans for whether each hop is an addition
+     * @param parts               Array of one or two String[]s for the split edge labels
      * @param numMiddleComponents The number of disconnected components in the middle smiles (only used for a 2-hop transform)
-     * @param isSubstitution Is this an addition+deletion at the same site (only used for a 2-hop additions)
+     * @param isSubstitution      Is this an addition+deletion at the same site (only used for a 2-hop additions)
      * @return
      */
     public static GroupingType createGroupingType(boolean[] isAddition, String[][] parts, int numMiddleComponents, boolean isSubstitution) {
@@ -132,27 +135,21 @@ public class TransformClassifierUtils implements Constants {
                 }
             } else if (isAddition[0] && !isAddition[1]) {
                 if (RING.equals(parts[0][0]) && RING.equals(parts[0][3]) && RING.equals(parts[1][0]) && RING.equals(parts[1][3])) {
-                    if (isSubstitution) {
-                        type = GroupingType.SUBSTITUTE_RING;
-                    } else {
-                        type = GroupingType.RING_ADDITION_DELETION;
-                    }
-                } else if (isSubstitution) {
-                    type = GroupingType.SUBSTITUTE_FG;
+                    type = (isSubstitution ? GroupingType.SUBSTITUTE_RING : GroupingType.RING_ADDITION_DELETION);
+                } else if (FG.equals(parts[0][0]) && RING.equals(parts[0][3]) && FG.equals(parts[1][0]) && RING.equals(parts[1][3])) {
+                    type = (isSubstitution ? GroupingType.SUBSTITUTE_FG : GroupingType.FG_ADDITION_DELETION);
                 } else {
                     type = GroupingType.ADDITION_DELETION;
                 }
             } else if (!isAddition[0] && isAddition[1]) {
-                if (FG.equals(parts[0][0]) && RING.equals(parts[0][3]) && FG.equals(parts[1][0]) && RING.equals(parts[1][3]) && numMiddleComponents == 2) {
-                    type = GroupingType.SUBSTITUTE_LINKER;
-                } else if (RING.equals(parts[0][0]) && RING.equals(parts[0][3]) && RING.equals(parts[1][0]) && RING.equals(parts[1][3])) {
-                    if (isSubstitution) {
-                        type = GroupingType.SUBSTITUTE_RING;
+                if (FG.equals(parts[0][0]) && RING.equals(parts[0][3]) && FG.equals(parts[1][0]) && RING.equals(parts[1][3])) {
+                    if (numMiddleComponents == 2) {
+                        type = GroupingType.SUBSTITUTE_LINKER;
                     } else {
-                        type = GroupingType.RING_ADDITION_DELETION;
+                        type = (isSubstitution ? GroupingType.SUBSTITUTE_FG : GroupingType.FG_ADDITION_DELETION);
                     }
-                } else if (isSubstitution) {
-                    type = GroupingType.SUBSTITUTE_FG;
+                } else if (RING.equals(parts[0][0]) && RING.equals(parts[0][3]) && RING.equals(parts[1][0]) && RING.equals(parts[1][3])) {
+                    type = (isSubstitution ? GroupingType.SUBSTITUTE_RING : GroupingType.RING_ADDITION_DELETION);
                 } else {
                     type = GroupingType.ADDITION_DELETION;
                 }
