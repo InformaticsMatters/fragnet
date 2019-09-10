@@ -85,7 +85,7 @@ class TransformClassifierSpec extends Specification {
 
         then:
         result.scaffold == "Oc1ccc(-c2ccccc2)cc1"
-        result.classification == GroupingType.DELETIONS
+        result.classification == GroupingType.FG_DELETIONS
     }
 
     void "FG addition addition 1"() {
@@ -178,7 +178,7 @@ class TransformClassifierSpec extends Specification {
         result1 == result2
     }
 
-    void "FG addition deletion 3 paths"() {
+    void "FG addition deletion 3 paths 1"() {
 
         // transform involves deletion of one FG and addition of a FG at a different site, or addition followed by deletion
         // MATCH p=(m:F2)-[:FRAG*1..2]-(e:F2) WHERE m.smiles='Oc1ccc(-c2ccccc2)cc1' AND e.smiles='Cc1cccc(-c2ccccc2)c1' RETURN p
@@ -218,6 +218,52 @@ class TransformClassifierSpec extends Specification {
         result2 == result3
     }
 
+    void "FG addition deltion 3 paths 2"() {
+
+        // MATCH p=(m:F2)-[:FRAG*1..2]-(e:F2) WHERE m.smiles='Oc1ccc(-c2ccccc2)cc1' AND e.smiles='OCc1cccc(-c2ccccc2)c1' RETURN p
+        // see fragnet-transforms/addition-deletion-3.png
+
+        when:
+        def result1 = TransformClassifierUtils.generateMolTransform(
+                "Oc1ccc(-c2ccccc2)cc1",
+                "FG|OC[Xe]|OC[100Xe]|RING|Oc1ccc(-c2cccc([Xe])c2)cc1|OC1CCC(C2CCCC([100Xe])C2)CC1", true,
+                "OCc1cccc(-c2ccc(O)cc2)c1",
+                "FG|O[Xe]|O[102Xe]|RING|OCc1cccc(-c2ccc([Xe])cc2)c1|OCC1CCCC(C2CCC([102Xe])CC2)C1", false,
+                "OCc1cccc(-c2ccccc2)c1"
+        )
+
+        def result2 = TransformClassifierUtils.generateMolTransform(
+                "Oc1ccc(-c2ccccc2)cc1",
+                "FG|O[Xe]|O[100Xe]|RING|[Xe]c1ccc(-c2ccccc2)cc1|[100Xe]C1CCC(C2CCCCC2)CC1", false,
+                "c1ccc(-c2ccccc2)cc1",
+                "FG|OC[Xe]|OC[100Xe]|RING|[Xe]c1cccc(-c2ccccc2)c1|[100Xe]C1CCCC(C2CCCCC2)C1", true,
+                "OCc1cccc(-c2ccccc2)c1"
+        )
+
+        def result3 = TransformClassifierUtils.generateMolTransform(
+                "Oc1ccc(-c2ccccc2)cc1",
+                "FG|OC[Xe]|OC[100Xe]|RING|Oc1ccc(-c2ccccc2)cc1[Xe]|OC1CCC(C2CCCCC2)CC1[100Xe]", true,
+                "OCc1cc(-c2ccccc2)ccc1O",
+                "FG|O[Xe]|O[102Xe]|RING|OCc1cc(-c2ccccc2)ccc1[Xe]|OCC1CC(C2CCCCC2)CCC1[102Xe]", false,
+                "OCc1cccc(-c2ccccc2)c1"
+        )
+
+        //println "result1 $result1"
+        //println "result2 $result2"
+
+        then:
+        result1.scaffold == '[Xe]c1cccc(-c2ccccc2)c1'
+        result1.classification == GroupingType.FG_ADDITION_DELETION
+
+        result2.scaffold == '[Xe]c1cccc(-c2ccccc2)c1'
+        result2.classification == GroupingType.FG_ADDITION_DELETION
+
+        result3.scaffold == '[Xe]c1cccc(-c2ccccc2)c1'
+        result3.classification == GroupingType.FG_ADDITION_DELETION
+
+    }
+
+
     void "FG subsitute"() {
 
         // transform involves deletion of one FG and addition of a FG at the same site (or a symmetrical site)
@@ -249,7 +295,7 @@ class TransformClassifierSpec extends Specification {
         result1 == result2
     }
 
-    void "RING deletion addition 1"() {
+    void "RING addition deletion 1"() {
 
         // transform involves addition of 2 FGs
         // MATCH p=(m:F2)-[:FRAG*1..2]-(e:F2) WHERE m.smiles='Oc1ccc(-c2ccccc2)cc1' AND e.smiles='Oc1cccc(-n2cncn2)c1' RETURN p
@@ -269,9 +315,9 @@ class TransformClassifierSpec extends Specification {
     }
 
 
-    void "RING deletion addition 2"() {
+    void "RING addition deletion  2"() {
 
-        // see fragnet-transforms/replace-ring-1.png
+        // see fragnet-transforms/ring-addition-deletion-1.png
 
         when:
         // deletion followed by addition

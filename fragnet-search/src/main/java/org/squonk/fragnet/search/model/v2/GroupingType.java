@@ -18,29 +18,38 @@ package org.squonk.fragnet.search.model.v2;
 /**
  * The classifications of the types of transforms/vectors.
  */
-public enum GroupingType {
+public enum GroupingType{
 
-    DELETION,
-    DELETIONS,
-    FG_DELETION,
-    FG_DELETIONS,
-    RING_DELETION,
-    RING_DELETIONS,
+    FG_ADDITION(1),
+    RING_ADDITION(2),
+    ADDITION(3),
+    RING_ADDITIONS(4),
+    FG_ADDITIONS(5),
+    ADDITIONS(6),
 
-    ADDITION,
-    ADDITIONS,
-    FG_ADDITION,
-    FG_ADDITIONS,
-    RING_ADDITION,
-    RING_ADDITIONS,
+    FG_ADDITION_DELETION(7),
+    RING_ADDITION_DELETION(8),
+    ADDITION_DELETION(9),
 
-    ADDITION_DELETION,
-    FG_ADDITION_DELETION,
-    RING_ADDITION_DELETION,
+    SUBSTITUTE_FG(10),
+    SUBSTITUTE_LINKER(11),
+    SUBSTITUTE_RING(12),
 
-    SUBSTITUTE_FG,
-    SUBSTITUTE_LINKER,
-    SUBSTITUTE_RING,
+    FG_DELETION(13),
+    RING_DELETION(14),
+    DELETION(15),
+    FG_DELETIONS(16),
+    RING_DELETIONS(17),
+    DELETIONS(18),
 
-    UNDEFINED
+    UNDEFINED(19);
+
+    private final int order;
+    GroupingType(int order) {
+        this.order = order;
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
 }

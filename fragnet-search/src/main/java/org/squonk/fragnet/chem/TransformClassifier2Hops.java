@@ -149,7 +149,8 @@ class TransformClassifier2Hops implements Constants {
         }
 
         // generate MCS for the mols
-        mcs123 = RDKFuncs.findMCS(mcsmols);
+//        mcs123 = RDKFuncs.findMCS(mcsmols);
+        mcs123 = RDKFuncs.findMCS(mcsmols, true, 0d, 1, false, false, true, true);
         LOG.fine("MCS SMARTS = " + mcs123.getSmartsString());
         return mcs123;
     }
@@ -300,12 +301,11 @@ class TransformClassifier2Hops implements Constants {
 
         MolTransform tx;
         if (isAddition1 && isAddition2) {
-
+            // need to calculate the scaffold
             tx = classifyTransformUsingStartAndEndMCS();
-
         } else if (!isAddition1 && !isAddition2) {
-            // 2 deletions to the scaffold is the final mol
-            tx = new MolTransform(toSmiles, GroupingType.DELETIONS, 2);
+            // 2 deletions so the scaffold is the final mol
+            tx = generateMolTransform(toSmiles, false);
         } else {
             // so we need to use MCS to define this
             tx = classifyTransformUsingMidSmilesMCS();
@@ -337,23 +337,26 @@ class TransformClassifier2Hops implements Constants {
 
         log(Level.FINER, "Input.");
 
-        // find the locations on the Xenon atoms and their attachments. First item in array is Xe, second is atom it is attached to
+        // Find the locations on the Xe atoms and their attachments.
+        // First item in array is Xe, second is the atom the Xe is attached to
         Atom[] mol1Atoms = findFirstXenonAndConnectedAtom(getMol1());
         Atom[] mol3Atoms = findFirstXenonAndConnectedAtom(getMol3());
-
+        // Find the atom index of the attachment sites in the common MCS/SMARTS
         int attachment1InSmarts = mol1Atoms == null ? -1 : findAtomIndexInMatch((int) mol1Atoms[1].getIdx(), getMatches1vs123().get(0));
         int attachment3InSmarts = mol3Atoms == null ? -1 : findAtomIndexInMatch((int) mol3Atoms[1].getIdx(), getMatches3vs123().get(0));
 
-        // We're going to modify this mol so will work with a copy
-        RWMol middleMol = RWMol.MolFromSmiles(midSmiles);
+        // Create the mol that we're going to use to generate the scaffold
+        // We're going to modify this mol so must work with a new copy
+        RWMol workingMol = RWMol.MolFromSmiles(midSmiles);
 
+        // Map the attachment sites in the MCS to mol1 and mol3 (the two transforms) and then to the working Mol
         Atom mol1AttachmentInMol2 = null;
         Atom mol3AttachmentInMol2 = null;
         if (attachment1InSmarts >= 0) {
-            mol1AttachmentInMol2 = findMappedAtom(mol1Atoms[1], getMol1(), middleMol, getMatches1vs123().get(0), getMatches2vs123().get(0));
+            mol1AttachmentInMol2 = findMappedAtom(mol1Atoms[1], getMol1(), workingMol, getMatches1vs123().get(0), getMatches2vs123().get(0));
         }
         if (attachment3InSmarts >= 0) {
-            mol3AttachmentInMol2 = findMappedAtom(mol3Atoms[1], getMol3(), middleMol, getMatches3vs123().get(0), getMatches2vs123().get(0));
+            mol3AttachmentInMol2 = findMappedAtom(mol3Atoms[1], getMol3(), workingMol, getMatches3vs123().get(0), getMatches2vs123().get(0));
         }
 
         LOG.fine("Attached atoms in scaffold are " +
@@ -366,52 +369,48 @@ class TransformClassifier2Hops implements Constants {
 
         if (mol1AttachmentInMol2 == null && mol3AttachmentInMol2 == null) {
             log(Level.WARNING, "Neither attachment mapped. This is an error");
+            // scaffold will remain as null so transform will be undefined
         } else if (mol1AttachmentInMol2 != null && mol3AttachmentInMol2 != null) {
-            // remove atoms not in the scaffold
-            LOG.fine("Before removal " + middleMol.MolToSmiles());
-            int numRemoved = removeNonMappedAtoms(middleMol, getMatches2vs123().get(0));
-            LOG.fine("After removal " + middleMol.MolToSmiles() + SPACE + numRemoved + " atoms removed");
-
-            if (mol1AttachmentInMol2 == null) {
-                String msg = "Attached atom not mapped in mol1";
-                log(Level.WARNING, msg);
-                throw new RuntimeException(msg);
-            } else if (isAddition1) {
-                LOG.fine("Adding Xe to atom " + mol1AttachmentInMol2.getSymbol() + mol1AttachmentInMol2.getIdx());
-                addXenonAtom(middleMol, mol1AttachmentInMol2);
-            }
-
-            if (mol3AttachmentInMol2 == null) {
-                String msg = "Attached atom not mapped in mol3";
-                log(Level.WARNING, msg);
-                throw new RuntimeException(msg);
-            } else if (isAddition2) {
-                LOG.fine("Adding Xe to atom " + mol3AttachmentInMol2.getSymbol() + mol3AttachmentInMol2.getIdx());
-                addXenonAtom(middleMol, mol3AttachmentInMol2);
-            }
 
             isSubstitution = (mol1AttachmentInMol2.getIdx() == mol3AttachmentInMol2.getIdx());
 
-            if (!isAddition1 && !isAddition2) { // double deletion
-                scaffold = toSmiles;
-            } else if (!isAddition1 && isAddition2) { // deletion + addition
+            if (!isAddition1 && isAddition2) { // deletion + addition
+                // the second transform defines the scaffold
                 scaffold = parts2[4];
+
             } else { // addition + deletion or addition + addition
-                scaffold = middleMol.MolToSmiles();
+                // need to generate the scaffold
+                // 1. remove atoms not in the common MCS
+                LOG.fine("Before removal " + workingMol.MolToSmiles());
+                int numRemoved = removeNonMappedAtoms(workingMol, getMatches2vs123().get(0));
+                LOG.fine("After removal " + workingMol.MolToSmiles() + SPACE + numRemoved + " atoms removed");
+
+                // 2. add Xe to the first attachment point
+                if (isAddition1) {
+                    LOG.fine("Adding Xe to atom " + mol1AttachmentInMol2.getSymbol() + mol1AttachmentInMol2.getIdx());
+                    addXenonAtom(workingMol, mol1AttachmentInMol2);
+                }
+                // 3. add Xe to the second attachment point
+                if (isAddition2) {
+                    LOG.fine("Adding Xe to atom " + mol3AttachmentInMol2.getSymbol() + mol3AttachmentInMol2.getIdx());
+                    addXenonAtom(workingMol, mol3AttachmentInMol2);
+                }
+                scaffold = workingMol.MolToSmiles();
             }
+
         } else if (mol1AttachmentInMol2 != null && mol3AttachmentInMol2 == null) {
             if (isAddition1 && isAddition2) {
                 // then we are in the situation where the second addition adds to a position created by the first addition
+                // so all we need is the first transform
                 scaffold = parts1[4];
             }
         }
-
+        // else implied that leaves the scaffold as null
 
         GroupingType type = TransformClassifierUtils.createGroupingType(
                 new boolean[]{isAddition1, isAddition2},
                 new String[][]{parts1, parts2},
                 numMiddleComponents, isSubstitution);
-
 
         MolTransform tx = generateMolTransform(scaffold, type);
         return tx;
