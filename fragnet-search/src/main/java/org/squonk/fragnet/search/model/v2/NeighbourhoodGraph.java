@@ -62,8 +62,8 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
     }
 
     public Collection<Group> getGroups() {
-        Collection<Group> groups = grouping.getGroups();
-        Set<Group> sorted = new TreeSet<>(new Comparator<Group>() {
+        List<Group> groups = new ArrayList<>(grouping.getGroups());
+        Collections.sort(groups, new Comparator<Group>() {
 
             @Override
             public int compare(Group g1, Group g2) {
@@ -72,8 +72,7 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
                 return i1.compareTo(i2);
             }
         });
-        sorted.addAll(groups);
-        return sorted;
+        return groups;
     }
 
     public int getGroupCount() {
