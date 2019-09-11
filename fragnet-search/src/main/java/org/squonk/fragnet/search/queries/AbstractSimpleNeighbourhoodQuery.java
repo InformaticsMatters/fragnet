@@ -11,7 +11,7 @@ public abstract class AbstractSimpleNeighbourhoodQuery {
     private static final Logger LOG = Logger.getLogger(AbstractSimpleNeighbourhoodQuery.class.getName());
 
     private final Session session;
-    private int limit = 1000;
+    private int limit = 5000;
 
     public AbstractSimpleNeighbourhoodQuery(Session session) {
         this.session = session;

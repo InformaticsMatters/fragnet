@@ -302,7 +302,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             try (Session session = graphdb.getSession()) {
                 // execute the query
                 SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session, getSupplierMappings());
-                if (limit != null) { // default limit is 1000
+                if (limit != null) { // default limit is 5000
                     query.setLimit(limit);
                 }
                 long n0 = System.nanoTime();
