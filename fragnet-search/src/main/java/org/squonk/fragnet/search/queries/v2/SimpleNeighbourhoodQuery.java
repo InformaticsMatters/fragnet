@@ -28,6 +28,7 @@ import org.squonk.fragnet.service.GraphDB;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import static org.neo4j.driver.v1.Values.parameters;
@@ -147,6 +148,7 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
 
         NeighbourhoodGraph graph = new NeighbourhoodGraph(querySmiles);
         long t0 = new Date().getTime();
+        AtomicInteger pathCount = new AtomicInteger(0);
         result.stream().forEachOrdered((r) -> {
             LOG.finer("Handling record " + r);
             Map<String, Object> m = r.asMap();
@@ -154,8 +156,10 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
                 LOG.finer("Handling value " + k);
                 Path path = (Path) v;
                 graph.add(path);
+                pathCount.incrementAndGet();
             });
         });
+        graph.setPathCount(pathCount.get());
         long t1 = new Date().getTime();
         graph.setQuery(result.summary().statement().text());
         graph.setParameters(result.summary().statement().parameters().asMap());

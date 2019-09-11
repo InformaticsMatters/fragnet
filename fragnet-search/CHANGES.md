@@ -26,3 +26,6 @@
 
 ### 09-SEP-2019
 * Major change to grouping algorithm using MCS determinations where needed
+
+### 11-SEP-2019
+* Query which finds no results now throws 404 response

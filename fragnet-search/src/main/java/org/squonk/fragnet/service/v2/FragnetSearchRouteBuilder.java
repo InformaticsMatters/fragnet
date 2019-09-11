@@ -279,7 +279,6 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         long t0 = System.nanoTime();
         String username = getUsername(exch);
 
-
         try {
             String smilesQuery = message.getHeader("smiles", String.class);
             if (smilesQuery == null || smilesQuery.isEmpty()) {
@@ -312,27 +311,35 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 neighbourhoodSearchNeo4jSearchDuration.inc((double)(n1-n0));
                 neighbourhoodSearchHitsTotal.inc((double)result.getNodes().size());
             }
-            // if calculations have been specified then calculate them
-            if (!calculations.isEmpty()) {
-                LOG.info("Running " + calculations.size() + " calculations");
-                long c0 = System.nanoTime();
-                result.calculate(result.getRefmol(), calculations.toArray(new Calculator.Calculation[calculations.size()]));
-                long c1 = System.nanoTime();
-                neighbourhoodSearchCalculationsDuration.inc((double)(c1-c0));
+
+            if (result.getNodes().size() == 0) { // no results found
+                LOG.info("Query found no results");
+                message.setBody("{\"error\": \"No Results\",\"message\": \"Query molecule not found in the database\"}");
+                message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+
+            } else {
+                // if calculations have been specified then calculate them
+                if (!calculations.isEmpty()) {
+                    LOG.info("Running " + calculations.size() + " calculations");
+                    long c0 = System.nanoTime();
+                    result.calculate(result.getRefmol(), calculations.toArray(new Calculator.Calculation[calculations.size()]));
+                    long c1 = System.nanoTime();
+                    neighbourhoodSearchCalculationsDuration.inc((double) (c1 - c0));
+                }
+
+                // generate the MCS info for each group
+                long m0 = System.nanoTime();
+                result.generateGroupMCS();
+                long m1 = System.nanoTime();
+                neighbourhoodSearchMCSDuration.inc((double) (m1 - m0));
+
+                message.setBody(result);
+                message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+                long t1 = System.nanoTime();
+                long duration = t1 - t0; //nanos
+                writeToQueryLog(username, "NeighbourhoodQuery", duration, result.getNodeCount(), result.getEdgeCount(), result.getGroupCount());
+                neighbourhoodSearchRequestsDuration.inc((double) duration);
             }
-
-            // generate the MCS info for each group
-            long m0 = System.nanoTime();
-            result.generateGroupMCS();
-            long m1 = System.nanoTime();
-            neighbourhoodSearchMCSDuration.inc((double)(m1-m0));
-
-            message.setBody(result);
-            message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-            long t1 = System.nanoTime();
-            long duration = t1 - t0; //nanos
-            writeToQueryLog(username, "NeighbourhoodQuery", duration, result.getNodeCount(), result.getEdgeCount(), result.getGroupCount());
-            neighbourhoodSearchRequestsDuration.inc((double)duration);
 
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Query Failed", ex);

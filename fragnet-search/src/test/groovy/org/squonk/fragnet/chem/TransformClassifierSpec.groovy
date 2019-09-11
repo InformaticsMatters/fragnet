@@ -531,6 +531,75 @@ class TransformClassifierSpec extends Specification {
 
     }
 
+
+    void "[1,1'‐biphenyl]‐3‐ol"() {
+
+        // MATCH p=(m:F2)-[:FRAG*1..2]-(e:F2) WHERE m.smiles='Oc1ccc(-c2ccccc2)cc1' AND e.smiles = 'Oc1cccc(-c2ccccc2)c1' RETURN p
+
+        when:
+        def result1 = TransformClassifierUtils.generateMolTransform(
+                "Oc1ccc(-c2ccccc2)cc1",
+                "FG|O[Xe]|O[102Xe]|RING|Oc1ccc(-c2cccc([Xe])c2)cc1|OC1CCC(C2CCCC([102Xe])C2)CC1", true,
+                "Oc1ccc(-c2cccc(O)c2)cc1",
+                "FG|O[Xe]|O[100Xe]|RING|Oc1cccc(-c2ccc([Xe])cc2)c1|OC1CCCC(C2CCC([100Xe])CC2)C1", false,
+                "Oc1cccc(-c2ccccc2)c1"
+        )
+
+        def result2 = TransformClassifierUtils.generateMolTransform(
+                "Oc1ccc(-c2ccccc2)cc1",
+                "FG|O[Xe]|O[102Xe]|RING|Oc1ccc(-c2ccccc2)cc1[Xe]|OC1CCC(C2CCCCC2)CC1[102Xe]", true,
+                "Oc1ccc(-c2ccccc2)cc1O",
+                "FG|O[Xe]|O[100Xe]|RING|Oc1cc(-c2ccccc2)ccc1[Xe]|OC1CC(C2CCCCC2)CCC1[100Xe]", false,
+                "Oc1cccc(-c2ccccc2)c1"
+        )
+
+        def result3 = TransformClassifierUtils.generateMolTransform(
+                "Oc1ccc(-c2ccccc2)cc1",
+                "RING|[Xe]c1ccc([Xe])cc1|[100Xe]C1CCC([101Xe])CC1|RING|O[Xe].[Xe]c1ccccc1|O[100Xe].[101Xe]C1CCCCC1", false,
+                "O.c1ccccc1",
+                "RING|[Xe]c1cccc([Xe])c1|[100Xe]C1CCCC([101Xe])C1|RING|O[Xe].[Xe]c1ccccc1|O[100Xe].[101Xe]C1CCCCC1", true,
+                "Oc1cccc(-c2ccccc2)c1"
+        )
+
+        def result4 = TransformClassifierUtils.generateMolTransform(
+                "Oc1ccc(-c2ccccc2)cc1",
+                "RING|[Xe]c1ccccc1|[101Xe]C1CCCCC1|RING|Oc1ccc([Xe])cc1|OC1CCC([101Xe])CC1", false,
+                "Oc1ccccc1",
+                "RING|[Xe]c1ccccc1|[101Xe]C1CCCCC1|RING|Oc1cccc([Xe])c1|OC1CCCC([101Xe])C1", true,
+                "Oc1cccc(-c2ccccc2)c1"
+        )
+
+        def result5 = TransformClassifierUtils.generateMolTransform(
+                "Oc1ccc(-c2ccccc2)cc1",
+                "FG|[Xe]|[Xe]|RING|Oc1ccc([Xe])cc1.[Xe]c1ccccc1|OC1CCC([Xe])CC1.[Xe]C1CCCCC1", false,
+                "Oc1ccccc1.c1ccccc1",
+                "FG|[Xe]|[Xe]|RING|Oc1cccc([Xe])c1.[Xe]c1ccccc1|OC1CCCC([Xe])C1.[Xe]C1CCCCC1", true,
+                "Oc1cccc(-c2ccccc2)c1"
+        )
+
+        def result6 = TransformClassifierUtils.generateMolTransform(
+                "Oc1ccc(-c2ccccc2)cc1",
+                "FG|O[Xe]|O[100Xe]|RING|[Xe]c1ccc(-c2ccccc2)cc1|[100Xe]C1CCC(C2CCCCC2)CC1", false,
+                "c1ccc(-c2ccccc2)cc1",
+                "FG|O[Xe]|O[100Xe]|RING|[Xe]c1cccc(-c2ccccc2)c1|[100Xe]C1CCCC(C2CCCCC2)C1", true,
+                "Oc1cccc(-c2ccccc2)c1"
+        )
+
+
+        //println "result1 $result1"
+        //println "result2 $result2"
+
+        then:
+        result1.scaffold == '[Xe]c1cccc(-c2ccccc2)c1'
+        result1.classification == GroupingType.FG_ADDITION_DELETION
+        result2 == result1
+//        result3 == result1
+//        result4 == result1
+//        result5 == result1
+        result6 == result1
+
+    }
+
     void "triageMolTransforms remove undefined"() {
 
         when:
