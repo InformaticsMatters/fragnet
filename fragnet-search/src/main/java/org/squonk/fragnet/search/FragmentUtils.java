@@ -19,12 +19,19 @@ import org.neo4j.driver.v1.types.MapAccessor;
 import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Path;
 import org.neo4j.driver.v1.types.Relationship;
+import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.search.model.v1.MoleculeEdge;
 import org.squonk.fragnet.search.model.v1.MoleculeNode;
 
-public class FragmentUtils {
+import java.util.logging.Logger;
 
-    /** Get the start and end node of the relationship
+public class FragmentUtils implements Constants {
+
+    public static final Logger LOG = Logger.getLogger("FragmentUtils.class");
+
+
+    /**
+     * Get the start and end node of the relationship
      *
      * @param seg
      * @return
@@ -64,6 +71,10 @@ public class FragmentUtils {
 
     public static int getRingAtomCount(Node node) {
         return node.get(MoleculeNode.Property.RING_ATOM_COUNT.dbname).asInt();
+    }
+
+    public static String[] splitLabel(String label) {
+        return label.split("\\|");
     }
 
 }

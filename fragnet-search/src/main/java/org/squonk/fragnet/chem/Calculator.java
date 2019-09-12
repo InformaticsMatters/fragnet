@@ -28,12 +28,12 @@ public class Calculator {
         MW("molw", "Mol weight", "number"),
         LOGP("logp", "cLogP", "number"),
         ROTB("rotb", "RotBonds", "integer"),
-        HBD("hbd", "HBond donors", "integer"),
-        HBA("hba", "HBond acceptors", "integer"),
+        HBD("hbd", "HBD", "integer"),
+        HBA("hba", "HBA", "integer"),
         TPSA("tpsa", "TPSA", "number"),
-        SIM_RDKIT_TANIMOTO("sim_rdkit_tanimoto", "Tanimoto sim (RDKit)", "number"),
-        SIM_MORGAN2_TANIMOTO("sim_morgan2_tanimoto", "Tanimoto sim (Morgan2)", "number"),
-        SIM_MORGAN3_TANIMOTO("sim_morgan3_tanimoto", "Tanimoto sim (Morgan3)", "number");
+        SIM_RDKIT_TANIMOTO("sim_rdkit_tanimoto", "Sim (RDKit)", "number"),
+        SIM_MORGAN2_TANIMOTO("sim_morgan2_tanimoto", "Sim (Morgan2)", "number"),
+        SIM_MORGAN3_TANIMOTO("sim_morgan3_tanimoto", "Sim (Morgan3)", "number");
 
         public final String propname;
         public final String description;

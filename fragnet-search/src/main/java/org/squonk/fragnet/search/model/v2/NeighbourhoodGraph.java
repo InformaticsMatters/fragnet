@@ -24,11 +24,13 @@ import org.RDKit.RWMol;
 import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Path;
 import org.neo4j.driver.v1.types.Relationship;
+import org.squonk.fragnet.Constants;
+import org.squonk.fragnet.chem.TransformClassifierUtils;
 import org.squonk.fragnet.search.FragmentUtils;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Represents the results of a neighbourhood search, containing nodes, edges and groupings that are classified by the
@@ -36,26 +38,11 @@ import java.util.stream.Collectors;
  * and will contain one or more nodes. Each group thus represents a transform 'vector' and can involve one or two edges.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"apiVersion", "query", "parameters", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "nodeCount", "edgeCount", "groupCount", "nodes", "edges", "groups"})
-public class NeighbourhoodGraph extends FragmentGraph {
+@JsonPropertyOrder({"apiVersion", "query", "parameters", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "pathCount", "nodeCount", "edgeCount", "groupCount", "nodes", "edges", "groups"})
+public class NeighbourhoodGraph extends FragmentGraph implements Constants {
 
     private static final Logger LOG = Logger.getLogger(NeighbourhoodGraph.class.getName());
     private static final String SEP = "::";
-
-    /**
-     * The classifications of the types of transforms/vectors.
-     */
-    public enum GroupingType {
-        DELETION,
-        DELETIONS,
-        ADDITION,
-        ADDITIONS,
-        SUBSTITUTE_FG,
-        SUBSTITUTE_LINKER,
-        SUBSTITUTE_RING,
-        ADDITION_DELETION,
-        UNDEFINED
-    }
 
     private static final String SUBSTITUTION_FG = "FG";
     private static final String SUBSTITUTION_RING = "RING";
@@ -65,6 +52,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
      */
     private final String refmol;
     private Grouping grouping = new Grouping();
+    private int pathCount;
 
     public NeighbourhoodGraph(String refmol) {
         this.refmol = refmol;
@@ -74,8 +62,26 @@ public class NeighbourhoodGraph extends FragmentGraph {
         return refmol;
     }
 
+    public int getPathCount() {
+        return pathCount;
+    }
+
+    public void setPathCount(int pathCount) {
+        this.pathCount = pathCount;
+    }
+
     public Collection<Group> getGroups() {
-        return grouping.getGroups();
+        List<Group> groups = new ArrayList<>(grouping.getGroups());
+        Collections.sort(groups, new Comparator<Group>() {
+
+            @Override
+            public int compare(Group g1, Group g2) {
+                Integer i1 = g1.molTransform.getClassification().getOrder();
+                Integer i2 = g2.molTransform.getClassification().getOrder();
+                return i1.compareTo(i2);
+            }
+        });
+        return groups;
     }
 
     public int getGroupCount() {
@@ -147,10 +153,6 @@ public class NeighbourhoodGraph extends FragmentGraph {
         return smiles;
     }
 
-    private static String[] splitLabel(String label) {
-        return label.split("\\|");
-    }
-
     /**
      * Generate information about the groups.
      * What is generated is an active area of development. Currently it comprises:
@@ -201,7 +203,6 @@ public class NeighbourhoodGraph extends FragmentGraph {
                     LOG.info("Refmol/MCS Atoms: " + refMolAtoms + "/" + mcsAtoms + " Took: " + (t1 - t0) +
                             "ns Smarts: " + smarts);
                     group.setRefmolAtomsMissing(refMolAtoms - mcsAtoms);
-                    group.setScaffold(smarts);
                 }
             }
         }
@@ -209,7 +210,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
 
     protected class Grouping {
 
-        private final Map<Long, GroupMember> members = new LinkedHashMap<>();
+        private final Map<Long, GroupMember> members = new HashMap<>();
 
         private Collection<Group> groups;
 
@@ -258,13 +259,13 @@ public class NeighbourhoodGraph extends FragmentGraph {
         }
 
         private Collection<Group> collectGroups() {
-            Map<String, Group> result = new LinkedHashMap<>();
+            Map<MolTransform, Group> result = new LinkedHashMap<>();
             members.values().forEach((m) -> {
-                String key = m.generateGroupingKey();
-                Group group = result.get(key);
+                MolTransform transform = m.getMolTransform();
+                Group group = result.get(transform);
                 if (group == null) {
-                    group = new Group(key);
-                    result.put(key, group);
+                    group = new Group(transform);
+                    result.put(transform, group);
                 }
                 group.addMember(m);
             });
@@ -289,19 +290,17 @@ public class NeighbourhoodGraph extends FragmentGraph {
     @JsonPropertyOrder({"key", "classification", "prototype", "scaffold", "refmolAtomsMissing", "members"})
     public class Group {
 
-        private final String key;
-        private GroupingType classification;
+        private final MolTransform molTransform;
         private String prototype;
         private Integer refmolAtomsMissing;
         private final List<GroupMember> members = new ArrayList<>();
-        private String scaffold;
 
-        protected Group(String key) {
-            this.key = key;
+        protected Group(MolTransform molTransform) {
+            this.molTransform = molTransform;
         }
 
         public String getKey() {
-            return key;
+            return molTransform.getScaffold();
         }
 
         public List<GroupMember> getMembers() {
@@ -321,14 +320,6 @@ public class NeighbourhoodGraph extends FragmentGraph {
             this.prototype = prototype;
         }
 
-        public String getScaffold() {
-            return scaffold;
-        }
-
-        public void setScaffold(String scaffold) {
-            this.scaffold = scaffold;
-        }
-
         public Integer getRefmolAtomsMissing() {
             return refmolAtomsMissing;
         }
@@ -342,32 +333,18 @@ public class NeighbourhoodGraph extends FragmentGraph {
         }
 
         public GroupingType getClassification() {
-
-            if (classification == null) {
-                GroupingType result = null;
-                for (GroupMember member : members) {
-                    GroupingType gt = member.getClassification();
-                    result = determineGroupingType(result, gt);
-                    if (result == GroupingType.UNDEFINED) {
-                        LOG.warning("Inconsistent classification encountered for group " + key);
-                        classification = result;
-                        return GroupingType.UNDEFINED;
-                    }
-                }
-                classification = result;
-            }
-
-            return classification;
+            return molTransform.getClassification();
         }
     }
 
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public static class GroupMember {
+    public class GroupMember {
 
         private final Long id;
         private final MoleculeNode node;
         private final List<MoleculeEdge[]> edges = new ArrayList<>();
+        private MolTransform molTransform;
 
         protected GroupMember(MoleculeNode node) {
             this.id = node.getId();
@@ -398,84 +375,7 @@ public class NeighbourhoodGraph extends FragmentGraph {
         }
 
         GroupingType getClassification() {
-            GroupingType result = null;
-            for (MoleculeEdge[] es : edges) {
-                GroupingType gt = classifyPath(es);
-                result = determineGroupingType(result, gt);
-                if (result == GroupingType.UNDEFINED) {
-                    LOG.warning("Inconsistent GroupingType for member " + this.toString());
-                    return GroupingType.UNDEFINED;
-                }
-            }
-            return result;
-        }
-
-        GroupingType classifyPath(MoleculeEdge[] es) {
-            Long[] edgeIds = edgeIdsForPath(es);
-            GroupingType result = null;
-            if (edgeIds.length == 1) {
-                if (edgeIds[0] > 0) {
-                    result = GroupingType.DELETION;
-                } else {
-                    result = GroupingType.ADDITION;
-                }
-            } else if (edgeIds.length == 2) {
-                String[][] parts = new String[es.length][];
-                int i = 0;
-                for (MoleculeEdge edge : es) {
-                    String label = edge.getLabel();
-                    parts[i] = splitLabel(label);
-                    i++;
-                }
-
-                if (edgeIds[0] > 0 && edgeIds[1] > 0) {
-                    result = GroupingType.DELETIONS;
-                } else if (edgeIds[0] < 0 && edgeIds[1] < 0) {
-                    result = GroupingType.ADDITIONS;
-                } else {
-                    // TODO - this can sometimes be better classified as SUBSTITUTE_FG and SUBSTITUTE_LINKER
-                    if (arePartsTheSame(parts, new int[]{0, 3}, new String[]{SUBSTITUTION_RING, SUBSTITUTION_RING})) {
-                        result = GroupingType.SUBSTITUTE_RING;
-                    } else if (arePartsTheSame(parts, new int[]{0, 3}, new String[]{SUBSTITUTION_FG, SUBSTITUTION_FG})) {
-                        result = GroupingType.SUBSTITUTE_FG;
-                    } else {
-                        result = GroupingType.ADDITION_DELETION;
-                    }
-                }
-            } else {
-                LOG.warning("Unexpected number of edges to classify: " + edgeIds.length);
-            }
-            return result;
-        }
-
-        private boolean arePartsTheSame(String[][] parts, int[] indexes, String[] values) {
-            for (String[] part : parts) {
-                for (int i = 0; i < indexes.length; i++) {
-                    if (!part[indexes[i]].equals(values[i])) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-
-        /**
-         * Get the IDs of the edges.
-         * This is a List of Long[] values. The list is typically of size 1, except for 2-hop scenarios when there are
-         * multiple paths from the query to the node e.g. in the case of an addition followed by a deletion, or vice-versa.
-         * The Long[] array is the IDs of the edges that are traversed from the query node to this node, with the ID being
-         * positive for parent to child edges (e.g. a molecule to its fragment) or negative for child to parent edges.
-         *
-         * @return
-         */
-        public List<Long[]> getEdgeIds() {
-            List<Long[]> result = new ArrayList<>();
-            for (MoleculeEdge[] es : this.edges) {
-                Long[] ids = edgeIdsForPath(es);
-                result.add(ids);
-            }
-            return result;
+            return getMolTransform().getClassification();
         }
 
         private Long[] edgeIdsForPath(MoleculeEdge[] es) {
@@ -511,63 +411,129 @@ public class NeighbourhoodGraph extends FragmentGraph {
             return labels;
         }
 
-        protected String generateGroupingKey() {
-
-            String result = null;
-            if (edges.size() == 1) {
-                // only a single route between the query and the member
-                String[] onlyLabels = fetchLabels(edges.get(0));
-                if (onlyLabels.length == 1) {
-                    String[] parts = splitLabel(onlyLabels[0]);
-                    result = parts[4];
-                } else if (onlyLabels.length == 2) {
-                    String[] parts0 = splitLabel(onlyLabels[0]);
-                    String[] parts1 = splitLabel(onlyLabels[1]);
-                    result = parts0[4] + SEP + parts1[4];
+        List<TransformData> getTransformData() {
+            List<TransformData> results = new ArrayList<>();
+            for (MoleculeEdge[] path : edges) {
+                TransformData data = null;
+                if (path.length == 1) {
+                    boolean isAddition = path[0].getChildId() != getId();
+                    data = new TransformData(
+                            getRefmol(),
+                            path[0].getLabel(),
+                            isAddition,
+                            getSmiles());
+                } else if (path.length == 2) {
+                    boolean isDeletion2 = path[1].getChildId() == getId();
+                    long midNodeId = isDeletion2 ? path[1].getParentId() : path[1].getChildId();
+                    boolean isDeletion1 = path[0].getChildId() == midNodeId;
+                    data = new TransformData(
+                            getRefmol(),
+                            path[0].getLabel(),
+                            !isDeletion1,
+                            nodes.get(midNodeId).getSmiles(),
+                            path[1].getLabel(),
+                            !isDeletion2,
+                            getSmiles()
+                    );
+                } else {
+                    throw new IllegalStateException("Only hops of 1 or 2 are supported");
                 }
-            } else {
-                // we have multiple routes between the query and the member. This need more care!
-                // An examples are:
-                // - a 2 hop scenario of 2 additions where the additions could be in both orders
-                // - ditto but for 2 deletions
-                // - a 1 hop scenario where there are two routes between the nodes (e.g. due to symmetry)
-                //
-                // the collection of first path elements defines the transformation,
-                // but we need to standardise the order by sorting so that this is canonical
-                List<String[]> labels = new ArrayList<>(edges.size());
-                for (MoleculeEdge[] es : edges) {
-                    labels.add(fetchLabels(es));
-                }
-                List<String> parts04 = new ArrayList<>(edges.size());
-                for (String[] l : labels) {
-                    String s = splitLabel(l[0])[4];
-                    parts04.add(s);
-                }
-//
-                // remove duplicate paths that come multiple edges between the same nodes due to symmetry
-                // and ensure the paths are sorted
-                Set<String> unique = new TreeSet<>(parts04);
-                result = unique.stream().collect(Collectors.joining("$$"));
-
-//                // check if all the parts are the same
-//                Set<String> set = new HashSet<>(parts04);
-//                if (set.size() == 1) {
-//                    // this happens when there are multiple edges between the same nodes
-//                    // we only want one of them
-//                    result = parts04.get(0);
-//                } else {
-//                    Collections.sort(parts04);
-//                    result = parts04.stream().collect(Collectors.joining("$$"));
-//                }
+                results.add(data);
 
             }
-            if (result == null) {
-                LOG.warning("Failed to generate grouping key");
-            }
-
-            LOG.fine("KEY: " + result + "\n");
-            return result;
+            return results;
         }
+
+
+        protected MolTransform getMolTransform() {
+
+            try {
+                List<TransformData> paths = getTransformData();
+                TransformData best = TransformClassifierUtils.determineSimplestTransform(paths);
+                MolTransform tf = TransformClassifierUtils.generateMolTransform(best);
+                return tf;
+            } catch (Exception ex) {
+                LOG.log(Level.WARNING, "Failed to classify molecule. Resorting to undefined.");
+                return new MolTransform("undefined-undefined", GroupingType.UNDEFINED, 0);
+            }
+
+        }
+
+//        protected MolTransform getMolTransform() {
+//            if (molTransform == null) {
+//                List<MolTransform> transforms = new ArrayList<>();
+//                int numErrors = 0;
+//                boolean[] directions = null;
+//
+//                for (MoleculeEdge[] edges : edges) {
+//                    MolTransform tf = null;
+//                    if (edges.length == 1) {
+//                        boolean isAddition = edges[0].getChildId() != getId();
+//                        directions = new boolean[]{isAddition};
+//                        try {
+//                            tf = TransformClassifierUtils.generateMolTransform(
+//                                    getRefmol(),
+//                                    edges[0].getLabel(),
+//                                    isAddition,
+//                                    getSmiles());
+//
+//                        } catch (Exception ex) {
+//                            numErrors++;
+//                            LOG.log(Level.WARNING, "Failed to generate transform for " +
+//                                            getRefmol() + SPACE +
+//                                            edges[0].getLabel() + SPACE +
+//                                            isAddition + SPACE +
+//                                            getSmiles()
+//                                    , ex);
+//                        }
+//
+//                    } else if (edges.length == 2) {
+//                        boolean isDeletion2 = edges[1].getChildId() == getId();
+//                        long midNodeId = isDeletion2 ? edges[1].getParentId() : edges[1].getChildId();
+//                        boolean isDeletion1 = edges[0].getChildId() == midNodeId;
+//                        directions = new boolean[]{!isDeletion1, !isDeletion2};
+//
+//                        try {
+//
+//                            tf = TransformClassifierUtils.generateMolTransform(
+//                                    getRefmol(),
+//                                    edges[0].getLabel(),
+//                                    !isDeletion1,
+//                                    nodes.get(midNodeId).getSmiles(),
+//                                    edges[1].getLabel(),
+//                                    !isDeletion2,
+//                                    getSmiles());
+//                        } catch (Exception ex) {
+//                            numErrors++;
+//                            LOG.log(Level.WARNING, "Failed to generate transform for " +
+//                                            getRefmol() + SPACE +
+//                                            edges[0].getLabel() + SPACE +
+//                                            !isDeletion1 + SPACE +
+//                                            nodes.get(midNodeId).getSmiles() + SPACE +
+//                                            edges[1].getLabel() + SPACE +
+//                                            !isDeletion2 + SPACE +
+//                                            getSmiles()
+//                                    , ex);
+//                        }
+//                    } else {
+//                        throw new IllegalStateException("Hops greater than 2 are not supported");
+//                    }
+//                    if (tf != null) {
+//                        transforms.add(tf);
+//                    }
+//                }
+//                if (numErrors > 0) {
+//                    LOG.warning("There were errors in classifying the transform. See earlier entries for details");
+//                }
+//                if (transforms.size() == 1) {
+//                    molTransform = transforms.get(0);
+//                } else {
+//                    molTransform = TransformClassifierUtils.triageMolTransforms(transforms, directions);
+//                }
+//                LOG.info("Transform for " + getSmiles() + " is " + molTransform);
+//            }
+//            return molTransform;
+//        }
 
         @Override
         public String toString() {
@@ -581,24 +547,20 @@ public class NeighbourhoodGraph extends FragmentGraph {
                 for (MoleculeEdge e : earr) {
                     String label = e.getLabel();
                     //b.append("\n").append(label);
-                    String[] parts = splitLabel(label);
+                    String[] parts = FragmentUtils.splitLabel(label);
                     b.append("\n" + i + j + "\t" + parts[0] + " " + parts[3] + "\t" + parts[1] + "\t" + parts[4]);
                     j++;
                 }
                 b.append("\n");
                 Long[] eids = edgeIdsForPath(earr);
                 for (Long eid : eids) {
-                    b.append(eid).append(" ");
+                    b.append(eid);
                 }
-
-                GroupingType classification = classifyPath(earr);
-                b.append(classification);
                 i++;
             }
 
-            String key = generateGroupingKey();
-
-            b.append("\nGrouping Key: ").append(key).append("]\n");
+            MolTransform tx = getMolTransform();
+            b.append("\nGrouping Key: ").append(tx.getScaffold()).append(" ").append(tx.getClassification()).append("]\n");
 
             return b.toString();
         }
