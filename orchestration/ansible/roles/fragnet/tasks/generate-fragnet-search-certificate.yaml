@@ -14,10 +14,15 @@
     - fragent_search_pfx_password|length > 0
     - fragent_search_pfx_password != 'SetMe'
 
-- name: Install packages
+- name: Install packages (epel-release)
   package:
     name:
     - epel-release
+  become: yes
+
+- name: Install packages (other)
+  package:
+    name:
     - openssl
     - certbot
   become: yes
