@@ -7,8 +7,8 @@ export TF_VAR_aws_secret_key="SetMe"
 export TF_VAR_aws_key_name="SetMe"
 
 # AWS credentials
-export AWS_ACCESS_KEY_ID="SetMe"
-export AWS_SECRET_ACCESS_KEY="SetMe"
+export AWS_ACCESS_KEY_ID="${TF_VAR_aws_access_key}"
+export AWS_SECRET_ACCESS_KEY="${TF_VAR_aws_secret_key}"
 # The region of the S3 bucket
 export AWS_DEFAULT_REGION=eu-west-1
 
