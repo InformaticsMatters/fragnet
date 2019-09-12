@@ -18,7 +18,6 @@
   package:
     name:
     - epel-release
-    - openssl
   become: yes
 
 - name: Install certbot role
