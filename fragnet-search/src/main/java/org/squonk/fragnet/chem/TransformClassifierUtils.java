@@ -18,16 +18,28 @@ package org.squonk.fragnet.chem;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.search.model.v2.GroupingType;
 import org.squonk.fragnet.search.model.v2.MolTransform;
+import org.squonk.fragnet.search.model.v2.TransformData;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class TransformClassifierUtils implements Constants {
 
     private static final Logger LOG = Logger.getLogger(TransformClassifierUtils.class.getName());
+
+    public static MolTransform generateMolTransform(TransformData data) {
+        if (data.getNumHops() == 1) {
+            return generateMolTransform(data.getFromSmiles(), data.getEdges()[0], data.getIsAdditions()[0], data.getToSmiles());
+        } else {
+            return generateMolTransform(
+                    data.getFromSmiles(),
+                    data.getEdges()[0], data.getIsAdditions()[0],
+                    data.getMidSmiles(),
+                    data.getEdges()[1], data.getIsAdditions()[1],
+                    data.getToSmiles());
+        }
+    }
 
     /**
      * Generate a 1-hop transform
@@ -228,5 +240,37 @@ public class TransformClassifierUtils implements Constants {
         }
     }
 
+    public static TransformData determineSimplestTransform(List<TransformData> data) {
+        List<TransformData> oneHops = getOneHopTransforms(data);
+        if (oneHops.size() > 0) {
+            // for one hop transform there will probably be only one transform and there is no difference in processing
+            // for an addition or a deletion so just send back the first one
+            return oneHops.get(0);
+        } else {
+            // determine best 2 hop
+            // we know we only have 2 hop transforms at this stage
+            GroupingType bestType = null;
+            TransformData bestData = null;
+            for (TransformData d : data) {
+                // at this stage we can't tell if it's a substitution but we know everything else
+                GroupingType type = createGroupingType(d.getIsAdditions(), d.getParts(), d.getNumMidComponents(), false);
+                if (bestData != null) {
+                    TransformData better = bestType.prioritise(type, bestData, d);
+                    if (better != bestData) {
+                        bestData = better;
+                        bestType = type;
+                    }
+                } else {
+                    bestData = d;
+                    bestType = type;
+                }
+            }
+            return bestData;
+        }
+    }
+
+    public static List<TransformData> getOneHopTransforms(List<TransformData> data) {
+        return data.stream().filter((tx) -> tx.getNumHops() == 1).collect(Collectors.toList());
+    }
 
 }

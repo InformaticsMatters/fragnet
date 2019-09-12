@@ -411,81 +411,129 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
             return labels;
         }
 
-        protected MolTransform getMolTransform() {
-            if (molTransform == null) {
-                List<MolTransform> transforms = new ArrayList<>();
-                int numErrors = 0;
-                boolean[] directions = null;
-
-                for (MoleculeEdge[] edges : edges) {
-                    MolTransform tf = null;
-                    if (edges.length == 1) {
-                        boolean isAddition = edges[0].getChildId() != getId();
-                        directions = new boolean[]{isAddition};
-                        try {
-                            tf = TransformClassifierUtils.generateMolTransform(
-                                    getRefmol(),
-                                    edges[0].getLabel(),
-                                    isAddition,
-                                    getSmiles());
-
-                        } catch (Exception ex) {
-                            numErrors++;
-                            LOG.log(Level.WARNING, "Failed to generate transform for " +
-                                            getRefmol() + SPACE +
-                                            edges[0].getLabel() + SPACE +
-                                            isAddition + SPACE +
-                                            getSmiles()
-                                    , ex);
-                        }
-
-                    } else if (edges.length == 2) {
-                        boolean isDeletion2 = edges[1].getChildId() == getId();
-                        long midNodeId = isDeletion2 ? edges[1].getParentId() : edges[1].getChildId();
-                        boolean isDeletion1 = edges[0].getChildId() == midNodeId;
-                        directions = new boolean[]{!isDeletion1, !isDeletion2};
-
-                        try {
-
-                            tf = TransformClassifierUtils.generateMolTransform(
-                                    getRefmol(),
-                                    edges[0].getLabel(),
-                                    !isDeletion1,
-                                    nodes.get(midNodeId).getSmiles(),
-                                    edges[1].getLabel(),
-                                    !isDeletion2,
-                                    getSmiles());
-                        } catch (Exception ex) {
-                            numErrors++;
-                            LOG.log(Level.WARNING, "Failed to generate transform for " +
-                                            getRefmol() + SPACE +
-                                            edges[0].getLabel() + SPACE +
-                                            !isDeletion1 + SPACE +
-                                            nodes.get(midNodeId).getSmiles() + SPACE +
-                                            edges[1].getLabel() + SPACE +
-                                            !isDeletion2 + SPACE +
-                                            getSmiles()
-                                    , ex);
-                        }
-                    } else {
-                        throw new IllegalStateException("Hops greater than 2 are not supported");
-                    }
-                    if (tf != null) {
-                        transforms.add(tf);
-                    }
-                }
-                if (numErrors > 0) {
-                    LOG.warning("There were errors in classifying the transform. See earlier entries for details");
-                }
-                if (transforms.size() == 1) {
-                    molTransform = transforms.get(0);
+        List<TransformData> getTransformData() {
+            List<TransformData> results = new ArrayList<>();
+            for (MoleculeEdge[] path : edges) {
+                TransformData data = null;
+                if (path.length == 1) {
+                    boolean isAddition = path[0].getChildId() != getId();
+                    data = new TransformData(
+                            getRefmol(),
+                            path[0].getLabel(),
+                            isAddition,
+                            getSmiles());
+                } else if (path.length == 2) {
+                    boolean isDeletion2 = path[1].getChildId() == getId();
+                    long midNodeId = isDeletion2 ? path[1].getParentId() : path[1].getChildId();
+                    boolean isDeletion1 = path[0].getChildId() == midNodeId;
+                    data = new TransformData(
+                            getRefmol(),
+                            path[0].getLabel(),
+                            !isDeletion1,
+                            nodes.get(midNodeId).getSmiles(),
+                            path[1].getLabel(),
+                            !isDeletion2,
+                            getSmiles()
+                    );
                 } else {
-                    molTransform = TransformClassifierUtils.triageMolTransforms(transforms, directions);
+                    throw new IllegalStateException("Only hops of 1 or 2 are supported");
                 }
-                LOG.info("Transform for " + getSmiles() + " is " + molTransform);
+                results.add(data);
+
             }
-            return molTransform;
+            return results;
         }
+
+
+        protected MolTransform getMolTransform() {
+
+            try {
+                List<TransformData> paths = getTransformData();
+                TransformData best = TransformClassifierUtils.determineSimplestTransform(paths);
+                MolTransform tf = TransformClassifierUtils.generateMolTransform(best);
+                return tf;
+            } catch (Exception ex) {
+                LOG.log(Level.WARNING, "Failed to classify molecule. Resorting to undefined.");
+                return new MolTransform("undefined-undefined", GroupingType.UNDEFINED, 0);
+            }
+
+        }
+
+//        protected MolTransform getMolTransform() {
+//            if (molTransform == null) {
+//                List<MolTransform> transforms = new ArrayList<>();
+//                int numErrors = 0;
+//                boolean[] directions = null;
+//
+//                for (MoleculeEdge[] edges : edges) {
+//                    MolTransform tf = null;
+//                    if (edges.length == 1) {
+//                        boolean isAddition = edges[0].getChildId() != getId();
+//                        directions = new boolean[]{isAddition};
+//                        try {
+//                            tf = TransformClassifierUtils.generateMolTransform(
+//                                    getRefmol(),
+//                                    edges[0].getLabel(),
+//                                    isAddition,
+//                                    getSmiles());
+//
+//                        } catch (Exception ex) {
+//                            numErrors++;
+//                            LOG.log(Level.WARNING, "Failed to generate transform for " +
+//                                            getRefmol() + SPACE +
+//                                            edges[0].getLabel() + SPACE +
+//                                            isAddition + SPACE +
+//                                            getSmiles()
+//                                    , ex);
+//                        }
+//
+//                    } else if (edges.length == 2) {
+//                        boolean isDeletion2 = edges[1].getChildId() == getId();
+//                        long midNodeId = isDeletion2 ? edges[1].getParentId() : edges[1].getChildId();
+//                        boolean isDeletion1 = edges[0].getChildId() == midNodeId;
+//                        directions = new boolean[]{!isDeletion1, !isDeletion2};
+//
+//                        try {
+//
+//                            tf = TransformClassifierUtils.generateMolTransform(
+//                                    getRefmol(),
+//                                    edges[0].getLabel(),
+//                                    !isDeletion1,
+//                                    nodes.get(midNodeId).getSmiles(),
+//                                    edges[1].getLabel(),
+//                                    !isDeletion2,
+//                                    getSmiles());
+//                        } catch (Exception ex) {
+//                            numErrors++;
+//                            LOG.log(Level.WARNING, "Failed to generate transform for " +
+//                                            getRefmol() + SPACE +
+//                                            edges[0].getLabel() + SPACE +
+//                                            !isDeletion1 + SPACE +
+//                                            nodes.get(midNodeId).getSmiles() + SPACE +
+//                                            edges[1].getLabel() + SPACE +
+//                                            !isDeletion2 + SPACE +
+//                                            getSmiles()
+//                                    , ex);
+//                        }
+//                    } else {
+//                        throw new IllegalStateException("Hops greater than 2 are not supported");
+//                    }
+//                    if (tf != null) {
+//                        transforms.add(tf);
+//                    }
+//                }
+//                if (numErrors > 0) {
+//                    LOG.warning("There were errors in classifying the transform. See earlier entries for details");
+//                }
+//                if (transforms.size() == 1) {
+//                    molTransform = transforms.get(0);
+//                } else {
+//                    molTransform = TransformClassifierUtils.triageMolTransforms(transforms, directions);
+//                }
+//                LOG.info("Transform for " + getSmiles() + " is " + molTransform);
+//            }
+//            return molTransform;
+//        }
 
         @Override
         public String toString() {

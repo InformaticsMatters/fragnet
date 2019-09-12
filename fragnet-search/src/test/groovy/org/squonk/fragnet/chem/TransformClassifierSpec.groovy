@@ -18,6 +18,7 @@ package org.squonk.fragnet.chem
 import org.RDKit.RWMol
 import org.squonk.fragnet.search.model.v2.GroupingType
 import org.squonk.fragnet.search.model.v2.MolTransform
+import org.squonk.fragnet.search.model.v2.TransformData
 import spock.lang.Specification
 
 class TransformClassifierSpec extends Specification {
@@ -95,25 +96,28 @@ class TransformClassifierSpec extends Specification {
         // see fragnet-transforms/addition-addition-1.png
 
         when:
-        def result1 = TransformClassifierUtils.generateMolTransform(
-                "Oc1ccc(-c2ccccc2)cc1",
+        def txdata1 = new TransformData("Oc1ccc(-c2ccccc2)cc1",
                 "FG|C[Xe]|C[100Xe]|RING|Oc1ccc(-c2ccccc2)cc1[Xe]|OC1CCC(C2CCCCC2)CC1[100Xe]", true,
                 "Cc1cc(-c2ccccc2)ccc1O",
                 "FG|CC[Xe]|CC[100Xe]|RING|Cc1cc(-c2cccc([Xe])c2)ccc1O|CC1CC(C2CCCC([100Xe])C2)CCC1O", true,
-                "CCc1cccc(-c2ccc(O)c(C)c2)c1"
-        )
-        def result2 = TransformClassifierUtils.generateMolTransform(
+                "CCc1cccc(-c2ccc(O)c(C)c2)c1")
+
+        def txdata2 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|CC[Xe]|CC[100Xe]|RING|Oc1ccc(-c2cccc([Xe])c2)cc1|OC1CCC(C2CCCC([100Xe])C2)CC1", true,
                 "CCc1cccc(-c2ccc(O)cc2)c1",
                 "FG|C[Xe]|C[103Xe]|RING|CCc1cccc(-c2ccc(O)c([Xe])c2)c1|CCC1CCCC(C2CCC(O)C([103Xe])C2)C1", true,
-                "CCc1cccc(-c2ccc(O)c(C)c2)c1"
-        )
+                "CCc1cccc(-c2ccc(O)c(C)c2)c1")
+
+        def result1 = TransformClassifierUtils.generateMolTransform(txdata1)
+        def result2 = TransformClassifierUtils.generateMolTransform(txdata2)
+        def best = TransformClassifierUtils.determineSimplestTransform([txdata1, txdata2])
 
         then:
         result1.scaffold == "Oc1ccc(-c2cccc([Xe])c2)cc1[Xe]"
         result1.classification == GroupingType.FG_ADDITIONS
         result1 == result2
+        best.equals(txdata1)
     }
 
     void "FG addition addition 2"() {
@@ -131,19 +135,19 @@ class TransformClassifierSpec extends Specification {
                 "COc1ccccc1CN1CC(OC)CC1CO"
         )
 
-//        def result2 = TransformClassifierUtils.generateMolTransform(
-//                "COc1ccccc1CN1CCCC1",
-//                "FG|OC[Xe]|OC[103Xe]|RING|COc1ccccc1CN1CCCC1[Xe]|COC1CCCCC1CC1CCCC1[103Xe]", true,
-//                "COc1ccccc1CN1CCCC1CO",
-//                "FG|CO[Xe]|CO[103Xe]|RING|COc1ccccc1CN1CC([Xe])CC1CO|COC1CCCCC1CC1CC([103Xe])CC1CO", true,
-//                "COc1ccccc1CN1CC(OC)CC1CO"
-//        )
+        def result2 = TransformClassifierUtils.generateMolTransform(
+                "COc1ccccc1CN1CCCC1",
+                "FG|OC[Xe]|OC[103Xe]|RING|COc1ccccc1CN1CCCC1[Xe]|COC1CCCCC1CC1CCCC1[103Xe]", true,
+                "COc1ccccc1CN1CCCC1CO",
+                "FG|CO[Xe]|CO[103Xe]|RING|COc1ccccc1CN1CC([Xe])CC1CO|COC1CCCCC1CC1CC([103Xe])CC1CO", true,
+                "COc1ccccc1CN1CC(OC)CC1CO"
+        )
 
         then:
         result1.scaffold == "COc1ccccc1CN1CC([Xe])CC1[Xe]"
         result1.classification == GroupingType.FG_ADDITIONS
-//        result2.scaffold == "COc1ccccc1CN1CC([Xe])CC1[Xe]"
-//        result2.classification == GroupingType.ADDITIONS
+        result2.scaffold == "COc1ccccc1CN1CC([Xe])CC1[Xe]"
+        result2.classification == GroupingType.FG_ADDITIONS
 
     }
 
@@ -155,27 +159,30 @@ class TransformClassifierSpec extends Specification {
 
         when:
         // deletion followed by addition
-        def result1 = TransformClassifierUtils.generateMolTransform(
+        def txdata1 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|O[Xe]|O[100Xe]|RING|[Xe]c1ccc(-c2ccccc2)cc1|[100Xe]C1CCC(C2CCCCC2)CC1", false,
                 "c1ccc(-c2ccccc2)cc1",
                 "FG|I[Xe]|I[100Xe]|RING|[Xe]c1cccc(-c2ccccc2)c1|[100Xe]C1CCCC(C2CCCCC2)C1", true,
-                "Ic1cccc(-c2ccccc2)c1"
-        )
+                "Ic1cccc(-c2ccccc2)c1")
         // addition followed by deletion
-        def result2 = TransformClassifierUtils.generateMolTransform(
+        def txdata2 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|I[Xe]|I[102Xe]|RING|Oc1ccc(-c2ccccc2)cc1[Xe]|OC1CCC(C2CCCCC2)CC1[102Xe]", true,
                 "Oc1ccc(-c2ccccc2)cc1I",
                 "FG|O[Xe]|O[100Xe]|RING|Ic1cc(-c2ccccc2)ccc1[Xe]|IC1CC(C2CCCCC2)CCC1[100Xe]", false,
-                "Ic1cccc(-c2ccccc2)c1"
-        )
+                "Ic1cccc(-c2ccccc2)c1")
+
+        def result1 = TransformClassifierUtils.generateMolTransform(txdata1)
+        def result2 = TransformClassifierUtils.generateMolTransform(txdata2)
+        def best = TransformClassifierUtils.determineSimplestTransform([txdata1, txdata2])
 
 
         then:
         result1.scaffold == "[Xe]c1cccc(-c2ccccc2)c1"
         result1.classification == GroupingType.FG_ADDITION_DELETION
         result1 == result2
+        best.equals(txdata1) // deletion+addition is better than addition+deletion
     }
 
     void "FG addition deletion 3 paths 1"() {
@@ -186,29 +193,31 @@ class TransformClassifierSpec extends Specification {
 
         when:
         // addition followed by deletion
-        def result1 = TransformClassifierUtils.generateMolTransform(
+        def txdata1 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|C[Xe]|C[100Xe]|RING|Oc1ccc(-c2cccc([Xe])c2)cc1|OC1CCC(C2CCCC([100Xe])C2)CC1", true,
                 "Cc1cccc(-c2ccc(O)cc2)c1",
                 "FG|O[Xe]|O[102Xe]|RING|Cc1cccc(-c2ccc([Xe])cc2)c1|CC1CCCC(C2CCC([102Xe])CC2)C1", false,
-                "Cc1cccc(-c2ccccc2)c1"
-        )
+                "Cc1cccc(-c2ccccc2)c1")
         // deletion followed by addition
-        def result2 = TransformClassifierUtils.generateMolTransform(
+        def txdata2 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|O[Xe]|O[100Xe]|RING|[Xe]c1ccc(-c2ccccc2)cc1|[100Xe]C1CCC(C2CCCCC2)CC1", false,
                 "c1ccc(-c2ccccc2)cc1",
                 "FG|C[Xe]|C[100Xe]|RING|[Xe]c1cccc(-c2ccccc2)c1|[100Xe]C1CCCC(C2CCCCC2)C1", true,
-                "Cc1cccc(-c2ccccc2)c1"
-        )
+                "Cc1cccc(-c2ccccc2)c1")
         // addition followed by deletion
-        def result3 = TransformClassifierUtils.generateMolTransform(
+        def txdata3 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|C[Xe]|C[100Xe]|RING|Oc1ccc(-c2ccccc2)cc1[Xe]|OC1CCC(C2CCCCC2)CC1[100Xe]", true,
                 "Cc1cccc(-c2ccc(O)cc2)c1",
                 "FG|O[Xe]|O[102Xe]|RING|Cc1cc(-c2ccccc2)ccc1[Xe]|CC1CC(C2CCCCC2)CCC1[102Xe]", false,
-                "Cc1cccc(-c2ccccc2)c1"
-        )
+                "Cc1cccc(-c2ccccc2)c1")
+
+        def result1 = TransformClassifierUtils.generateMolTransform(txdata1)
+        def result2 = TransformClassifierUtils.generateMolTransform(txdata2)
+        def result3 = TransformClassifierUtils.generateMolTransform(txdata3)
+        def best = TransformClassifierUtils.determineSimplestTransform([txdata1, txdata2, txdata3])
 
         then:
         result1.scaffold == "[Xe]c1cccc(-c2ccccc2)c1"
@@ -216,6 +225,7 @@ class TransformClassifierSpec extends Specification {
         result1 == result2
         result1 == result3
         result2 == result3
+        best.equals(txdata2)
     }
 
     void "FG addition deltion 3 paths 2"() {
@@ -224,32 +234,31 @@ class TransformClassifierSpec extends Specification {
         // see fragnet-transforms/addition-deletion-3.png
 
         when:
-        def result1 = TransformClassifierUtils.generateMolTransform(
+        def txdata1 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|OC[Xe]|OC[100Xe]|RING|Oc1ccc(-c2cccc([Xe])c2)cc1|OC1CCC(C2CCCC([100Xe])C2)CC1", true,
                 "OCc1cccc(-c2ccc(O)cc2)c1",
                 "FG|O[Xe]|O[102Xe]|RING|OCc1cccc(-c2ccc([Xe])cc2)c1|OCC1CCCC(C2CCC([102Xe])CC2)C1", false,
-                "OCc1cccc(-c2ccccc2)c1"
-        )
+                "OCc1cccc(-c2ccccc2)c1")
 
-        def result2 = TransformClassifierUtils.generateMolTransform(
+        def txdata2 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|O[Xe]|O[100Xe]|RING|[Xe]c1ccc(-c2ccccc2)cc1|[100Xe]C1CCC(C2CCCCC2)CC1", false,
                 "c1ccc(-c2ccccc2)cc1",
                 "FG|OC[Xe]|OC[100Xe]|RING|[Xe]c1cccc(-c2ccccc2)c1|[100Xe]C1CCCC(C2CCCCC2)C1", true,
-                "OCc1cccc(-c2ccccc2)c1"
-        )
+                "OCc1cccc(-c2ccccc2)c1")
 
-        def result3 = TransformClassifierUtils.generateMolTransform(
+        def txdata3 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|OC[Xe]|OC[100Xe]|RING|Oc1ccc(-c2ccccc2)cc1[Xe]|OC1CCC(C2CCCCC2)CC1[100Xe]", true,
                 "OCc1cc(-c2ccccc2)ccc1O",
                 "FG|O[Xe]|O[102Xe]|RING|OCc1cc(-c2ccccc2)ccc1[Xe]|OCC1CC(C2CCCCC2)CCC1[102Xe]", false,
-                "OCc1cccc(-c2ccccc2)c1"
-        )
+                "OCc1cccc(-c2ccccc2)c1")
 
-        //println "result1 $result1"
-        //println "result2 $result2"
+        def result1 = TransformClassifierUtils.generateMolTransform(txdata1)
+        def result2 = TransformClassifierUtils.generateMolTransform(txdata2)
+        def result3 = TransformClassifierUtils.generateMolTransform(txdata3)
+        def best = TransformClassifierUtils.determineSimplestTransform([txdata1, txdata2, txdata3])
 
         then:
         result1.scaffold == '[Xe]c1cccc(-c2ccccc2)c1'
@@ -261,6 +270,7 @@ class TransformClassifierSpec extends Specification {
         result3.scaffold == '[Xe]c1cccc(-c2ccccc2)c1'
         result3.classification == GroupingType.FG_ADDITION_DELETION
 
+        best.equals(txdata2)
     }
 
 
@@ -272,27 +282,30 @@ class TransformClassifierSpec extends Specification {
 
         when:
         // deletion followed by addition
-        def result1 = TransformClassifierUtils.generateMolTransform(
+        def txdata1 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|O[Xe]|O[100Xe]|RING|[Xe]c1ccc(-c2ccccc2)cc1|[100Xe]C1CCC(C2CCCCC2)CC1", false,
                 "c1ccc(-c2ccccc2)cc1",
                 "FG|CC[Xe]|CC[100Xe]|RING|[Xe]c1ccc(-c2ccccc2)cc1|[100Xe]C1CCC(C2CCCCC2)CC1", true,
-                "CCc1ccc(-c2ccccc2)cc1"
-        )
+                "CCc1ccc(-c2ccccc2)cc1")
+
         // addition at a symmetrical site followed by deletion
-        def result2 = TransformClassifierUtils.generateMolTransform(
+        def txdata2 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|CC[Xe]|CC[100Xe]|RING|Oc1ccc(-c2ccc([Xe])cc2)cc1|OC1CCC(C2CCC([100Xe])CC2)CC1", true,
                 "CCc1ccc(-c2ccc(O)cc2)cc1",
                 "FG|O[Xe]|O[102Xe]|RING|CCc1ccc(-c2ccc([Xe])cc2)cc1|CCC1CCC(C2CCC([102Xe])CC2)CC1", false,
-                "CCc1ccc(-c2ccccc2)cc1"
-        )
+                "CCc1ccc(-c2ccccc2)cc1")
 
+        def result1 = TransformClassifierUtils.generateMolTransform(txdata1)
+        def result2 = TransformClassifierUtils.generateMolTransform(txdata2)
+        def best = TransformClassifierUtils.determineSimplestTransform([txdata1, txdata2])
 
         then:
         result1.scaffold == "[Xe]c1ccc(-c2ccccc2)cc1"
         result1.classification == GroupingType.SUBSTITUTE_FG
         result1 == result2
+        best.equals(txdata1)
     }
 
     void "RING addition deletion 1"() {
@@ -322,31 +335,33 @@ class TransformClassifierSpec extends Specification {
         when:
         // deletion followed by addition
         // MATCH p=(m:F2)-[:FRAG*1..2]-(e:F2) WHERE m.smiles='Oc1ccc(-c2ccccc2)cc1' AND e.smiles='Oc1ccccc1C1CC=NO1' RETURN p
-        def result1 = TransformClassifierUtils.generateMolTransform(
+        def txdata1 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "RING|[Xe]c1ccccc1|[101Xe]C1CCCCC1|RING|Oc1ccc([Xe])cc1|OC1CCC([101Xe])CC1", false,
                 "Oc1ccccc1",
                 "RING|[Xe]C1CC=NO1|[101Xe]C1CCCC1|RING|Oc1ccccc1[Xe]|OC1CCCCC1[101Xe]", true,
-                "Oc1ccccc1C1CC=NO1"
-        )
+                "Oc1ccccc1C1CC=NO1")
 
         // the next two are 2 paths to a different molecule but with the same transform
         // MATCH p=(m:F2)-[:FRAG*1..2]-(e:F2) WHERE m.smiles='Oc1ccc(-c2ccccc2)cc1' AND e.smiles='Oc1ccccc1-n1cnnc1' RETURN p
-        def result2 = TransformClassifierUtils.generateMolTransform(
+        def txdata2 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "RING|[Xe]c1ccccc1|[101Xe]C1CCCCC1|RING|Oc1ccc([Xe])cc1|OC1CCC([101Xe])CC1", false,
                 "Oc1ccccc1",
                 "RING|[Xe]n1cnnc1|[101Xe]C1CCCC1|RING|Oc1ccccc1[Xe]|OC1CCCCC1[101Xe]", true,
-                "Oc1ccccc1-n1cnnc1"
-        )
+                "Oc1ccccc1-n1cnnc1")
 
-        def result3 = TransformClassifierUtils.generateMolTransform(
+        def txdata3 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "RING|[Xe]n1cnnc1|[102Xe]C1CCCC1|RING|Oc1ccc(-c2ccccc2)cc1[Xe]|OC1CCC(C2CCCCC2)CC1[102Xe]", true,
                 "Oc1ccc(-c2ccccc2)cc1-n1cnnc1",
                 "RING|[Xe]c1ccccc1|[101Xe]C1CCCCC1|RING|Oc1ccc([Xe])cc1-n1cnnc1|OC1CCC([101Xe])CC1C1CCCC1", false,
-                "Oc1ccccc1-n1cnnc1"
-        )
+                "Oc1ccccc1-n1cnnc1")
+
+        def result1 = TransformClassifierUtils.generateMolTransform(txdata1)
+        def result2 = TransformClassifierUtils.generateMolTransform(txdata2)
+        def result3 = TransformClassifierUtils.generateMolTransform(txdata3)
+        def best = TransformClassifierUtils.determineSimplestTransform([txdata2, txdata3])
 
 
         then:
@@ -355,6 +370,7 @@ class TransformClassifierSpec extends Specification {
         result1 == result2
         result1 == result3
         result2 == result3
+        best.equals(txdata2)
 
     }
 
@@ -443,28 +459,29 @@ class TransformClassifierSpec extends Specification {
         // see fragnet-transforms/fg-addition-to-added-ring-1.png
 
         when:
-        def result1 = TransformClassifierUtils.generateMolTransform(
+        def txdata1 = new TransformData(
                 "COc1ccccc1CN1CCCC1",
                 "RING|[Xe]c1cn[nH]c1|[103Xe]C1CCCC1|RING|COc1ccccc1CN1CCC([Xe])C1|COC1CCCCC1CC1CCC([103Xe])C1", true,
                 "COc1ccccc1CN1CCC(c2cn[nH]c2)C1",
                 "FG|C[Xe]|C[104Xe]|RING|COc1ccccc1CN1CCC(c2cnn([Xe])c2)C1|COC1CCCCC1CC1CCC(C2CCC([104Xe])C2)C1", true,
-                "COc1ccccc1CN1CCC(c2cnn(C)c2)C1"
-        )
+                "COc1ccccc1CN1CCC(c2cnn(C)c2)C1")
 
-        def result2 = TransformClassifierUtils.generateMolTransform(
+        def txdata2 = new TransformData(
                 "COc1ccccc1CN1CCCC1",
                 "FG|C|C|RING|COc1ccccc1CN1CCCC1|COC1CCCCC1CC1CCCC1", true,
                 "C.COc1ccccc1CN1CCCC1",
                 "RING|[Xe]c1cnn([Xe])c1|[103Xe]C1CCC([104Xe])C1|RING|COc1ccccc1CN1CCC([Xe])C1.C[Xe]|COC1CCCCC1CC1CCC([103Xe])C1.C[104Xe]", true,
-                "COc1ccccc1CN1CCC(c2cnn(C)c2)C1"
-        )
+                "COc1ccccc1CN1CCC(c2cnn(C)c2)C1")
 
-        //println "result1 $result1"
+        def result1 = TransformClassifierUtils.generateMolTransform(txdata1)
+        def result2 = TransformClassifierUtils.generateMolTransform(txdata2)
+        def best = TransformClassifierUtils.determineSimplestTransform([txdata1, txdata2])
 
         then:
         result1.scaffold == "COc1ccccc1CN1CCC([Xe])C1"
         result1.classification == GroupingType.ADDITIONS
         result1 == result2
+        best.equals(txdata1)
     }
 
 
@@ -474,29 +491,29 @@ class TransformClassifierSpec extends Specification {
         // see fragnet-transforms/fg-addition-to-added-ring-2.png
 
         when:
-        def result1 = TransformClassifierUtils.generateMolTransform(
+        def txdata1 = new TransformData(
                 "COc1ccccc1CN1CCCC1",
                 "FG|C|C|RING|COc1ccccc1CN1CCCC1|COC1CCCCC1CC1CCCC1", true,
                 "C.COc1ccccc1CN1CCCC1",
                 "RING|[Xe]c1ccc2oc([Xe])nc2c1|[103Xe]C1CC2CCC([104Xe])CC2C1|RING|COc1ccccc1CN1CCC([Xe])C1.C[Xe]|COC1CCCCC1CC1CCC([103Xe])C1.C[104Xe]", true,
-                "COc1ccccc1CN1CCC(c2nc3cc(C)ccc3o2)C1"
-        )
+                "COc1ccccc1CN1CCC(c2nc3cc(C)ccc3o2)C1")
 
-        def result2 = TransformClassifierUtils.generateMolTransform(
+        def txdata2 = new TransformData(
                 "COc1ccccc1CN1CCCC1",
                 "RING|[Xe]c1nc2ccccc2o1|[103Xe]C1CC2CCCCC2C1|RING|COc1ccccc1CN1CCC([Xe])C1|COC1CCCCC1CC1CCC([103Xe])C1", true,
                 "COc1ccccc1CN1CCC(c2nc3ccccc3o2)C1",
                 "FG|C[Xe]|C[104Xe]|RING|COc1ccccc1CN1CCC(c2nc3cc([Xe])ccc3o2)C1|COC1CCCCC1CC1CCC(C2CC3CCC([104Xe])CC3C2)C1", true,
-                "COc1ccccc1CN1CCC(c2nc3cc(C)ccc3o2)C1"
-        )
+                "COc1ccccc1CN1CCC(c2nc3cc(C)ccc3o2)C1")
 
-        //println "result1 $result1"
-        //println "result2 $result2"
+        def result1 = TransformClassifierUtils.generateMolTransform(txdata1)
+        def result2 = TransformClassifierUtils.generateMolTransform(txdata2)
+        def best = TransformClassifierUtils.determineSimplestTransform([txdata1, txdata2])
 
         then:
         result1.scaffold == 'COc1ccccc1CN1CCC([Xe])C1'
         result1.classification == GroupingType.ADDITIONS
         result1 == result2
+        best.equals(txdata2)
     }
 
     void "RING addition 1 and 2 paths"() {
@@ -505,22 +522,21 @@ class TransformClassifierSpec extends Specification {
         // see fragnet-transforms/
 
         when:
-        def result1 = TransformClassifierUtils.generateMolTransform(
+        def txdata1 = new TransformData(
                 "COc1ccccc1CN1CCCC1",
                 "RING|c1ccncc1|C1CCCCC1|RING|COc1ccccc1CN1CCCC1|COC1CCCCC1CC1CCCC1", true,
                 "COc1ccccc1CN1CCCC1.c1ccncc1",
                 "FG|[Xe]|[Xe]|RING|COc1ccccc1CN1CCCC1[Xe].[Xe]c1cccnc1|COC1CCCCC1CC1CCCC1[Xe].[Xe]C1CCCCC1", true,
-                "COc1ccccc1CN1CCCC1c1cccnc1"
-        )
+                "COc1ccccc1CN1CCCC1c1cccnc1")
 
-        def result2 = TransformClassifierUtils.generateMolTransform(
+        def txdata2 = new TransformData(
                 "COc1ccccc1CN1CCCC1",
                 "RING|[Xe]c1cccnc1|[103Xe]C1CCCCC1|RING|COc1ccccc1CN1CCCC1[Xe]|COC1CCCCC1CC1CCCC1[103Xe]", true,
-                "COc1ccccc1CN1CCCC1c1cccnc1"
-        )
+                "COc1ccccc1CN1CCCC1c1cccnc1")
 
-        //println "result1 $result1"
-        //println "result2 $result2"
+        def result1 = TransformClassifierUtils.generateMolTransform(txdata1)
+        def result2 = TransformClassifierUtils.generateMolTransform(txdata2)
+        def best = TransformClassifierUtils.determineSimplestTransform([txdata1, txdata2])
 
         then:
         result1.scaffold == 'COc1ccccc1CN1CCCC1[Xe]'
@@ -528,6 +544,7 @@ class TransformClassifierSpec extends Specification {
 
         result2.scaffold == 'COc1ccccc1CN1CCCC1[Xe]'
         result2.classification == GroupingType.RING_ADDITION
+        best.equals(txdata2) // 1 hop better than 2
 
     }
 
@@ -537,57 +554,56 @@ class TransformClassifierSpec extends Specification {
         // MATCH p=(m:F2)-[:FRAG*1..2]-(e:F2) WHERE m.smiles='Oc1ccc(-c2ccccc2)cc1' AND e.smiles = 'Oc1cccc(-c2ccccc2)c1' RETURN p
 
         when:
-        def result1 = TransformClassifierUtils.generateMolTransform(
+        def txdata1 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|O[Xe]|O[102Xe]|RING|Oc1ccc(-c2cccc([Xe])c2)cc1|OC1CCC(C2CCCC([102Xe])C2)CC1", true,
                 "Oc1ccc(-c2cccc(O)c2)cc1",
                 "FG|O[Xe]|O[100Xe]|RING|Oc1cccc(-c2ccc([Xe])cc2)c1|OC1CCCC(C2CCC([100Xe])CC2)C1", false,
-                "Oc1cccc(-c2ccccc2)c1"
-        )
+                "Oc1cccc(-c2ccccc2)c1")
 
-        def result2 = TransformClassifierUtils.generateMolTransform(
+        def txdata2 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|O[Xe]|O[102Xe]|RING|Oc1ccc(-c2ccccc2)cc1[Xe]|OC1CCC(C2CCCCC2)CC1[102Xe]", true,
                 "Oc1ccc(-c2ccccc2)cc1O",
                 "FG|O[Xe]|O[100Xe]|RING|Oc1cc(-c2ccccc2)ccc1[Xe]|OC1CC(C2CCCCC2)CCC1[100Xe]", false,
-                "Oc1cccc(-c2ccccc2)c1"
-        )
+                "Oc1cccc(-c2ccccc2)c1")
 
-        def result3 = TransformClassifierUtils.generateMolTransform(
+        def txdata3 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "RING|[Xe]c1ccc([Xe])cc1|[100Xe]C1CCC([101Xe])CC1|RING|O[Xe].[Xe]c1ccccc1|O[100Xe].[101Xe]C1CCCCC1", false,
                 "O.c1ccccc1",
                 "RING|[Xe]c1cccc([Xe])c1|[100Xe]C1CCCC([101Xe])C1|RING|O[Xe].[Xe]c1ccccc1|O[100Xe].[101Xe]C1CCCCC1", true,
-                "Oc1cccc(-c2ccccc2)c1"
-        )
+                "Oc1cccc(-c2ccccc2)c1")
 
-        def result4 = TransformClassifierUtils.generateMolTransform(
+        def txdata4 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "RING|[Xe]c1ccccc1|[101Xe]C1CCCCC1|RING|Oc1ccc([Xe])cc1|OC1CCC([101Xe])CC1", false,
                 "Oc1ccccc1",
                 "RING|[Xe]c1ccccc1|[101Xe]C1CCCCC1|RING|Oc1cccc([Xe])c1|OC1CCCC([101Xe])C1", true,
-                "Oc1cccc(-c2ccccc2)c1"
-        )
+                "Oc1cccc(-c2ccccc2)c1")
 
-        def result5 = TransformClassifierUtils.generateMolTransform(
+        def txdata5 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|[Xe]|[Xe]|RING|Oc1ccc([Xe])cc1.[Xe]c1ccccc1|OC1CCC([Xe])CC1.[Xe]C1CCCCC1", false,
                 "Oc1ccccc1.c1ccccc1",
                 "FG|[Xe]|[Xe]|RING|Oc1cccc([Xe])c1.[Xe]c1ccccc1|OC1CCCC([Xe])C1.[Xe]C1CCCCC1", true,
-                "Oc1cccc(-c2ccccc2)c1"
-        )
+                "Oc1cccc(-c2ccccc2)c1")
 
-        def result6 = TransformClassifierUtils.generateMolTransform(
+        def txdata6 = new TransformData(
                 "Oc1ccc(-c2ccccc2)cc1",
                 "FG|O[Xe]|O[100Xe]|RING|[Xe]c1ccc(-c2ccccc2)cc1|[100Xe]C1CCC(C2CCCCC2)CC1", false,
                 "c1ccc(-c2ccccc2)cc1",
                 "FG|O[Xe]|O[100Xe]|RING|[Xe]c1cccc(-c2ccccc2)c1|[100Xe]C1CCCC(C2CCCCC2)C1", true,
-                "Oc1cccc(-c2ccccc2)c1"
-        )
+                "Oc1cccc(-c2ccccc2)c1")
 
 
-        //println "result1 $result1"
-        //println "result2 $result2"
+        def result1 = TransformClassifierUtils.generateMolTransform(txdata1)
+        def result2 = TransformClassifierUtils.generateMolTransform(txdata2)
+        def result3 = TransformClassifierUtils.generateMolTransform(txdata3)
+        def result4 = TransformClassifierUtils.generateMolTransform(txdata4)
+        def result5 = TransformClassifierUtils.generateMolTransform(txdata5)
+        def result6 = TransformClassifierUtils.generateMolTransform(txdata6)
+        def best = TransformClassifierUtils.determineSimplestTransform([txdata1, txdata2, txdata3, txdata4, txdata5, txdata6])
 
         then:
         result1.scaffold == '[Xe]c1cccc(-c2ccccc2)c1'
@@ -597,7 +613,7 @@ class TransformClassifierSpec extends Specification {
 //        result4 == result1
 //        result5 == result1
         result6 == result1
-
+        best.equals(txdata6)
     }
 
     void "triageMolTransforms remove undefined"() {
