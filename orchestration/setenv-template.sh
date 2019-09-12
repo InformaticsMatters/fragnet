@@ -1,6 +1,11 @@
 # Copy as 'setenv.sh'
 # then 'source setenv.sh' before orchestrating.
 
+# AWS credentials for Terraform
+export TF_VAR_aws_access_key="SetMe"
+export TF_VAR_aws_secret_key="SetMe"
+export TF_VAR_aws_key_name="SetMe"
+
 # AWS credentials
 export AWS_ACCESS_KEY_ID="SetMe"
 export AWS_SECRET_ACCESS_KEY="SetMe"

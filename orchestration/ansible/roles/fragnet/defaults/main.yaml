@@ -46,7 +46,7 @@ graph_restart_policy: always
 synchronise_origin: yes
 # Set to clear the database.
 # Used during initial deployment to remove the graph database directory.
-clear_graph: yes
+clear_graph: no
 # Heap (min and max G)
 graph_heap_g: 8
 # The user is required to define the graph page cache size,
