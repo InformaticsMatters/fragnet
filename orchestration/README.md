@@ -4,7 +4,7 @@ This directory contains early Terraform and Ansible files.
 You will need: -
 
 - Python 3 (ideally a virtual/conda environment)
-- Terraform
+- Terraform 0.11.11
 
 ## The Squonk Keycloak Server
 The Squonk Keycloak server needs: -
@@ -25,6 +25,7 @@ latest Python 3. From your environment you will need to install
 requirements as listed in `orchestration/requirements.txt`: -
 
     $ cd orchestration
+    $ pip install --upgrade pip
     $ pip install -r requirements.txt
     $ ansible-galaxy install -r requirements.yml
     
@@ -37,8 +38,9 @@ To create the cluster (and write the ansible inventory file): -
 
 >   Terraform state is preserved in an AWS S3 bucket.
 
-The cluster creation renders the corresponding `ansible/inventory` file
-so Ansible playbooks (executed form the `ansible` directory) are ready to run.
+The cluster creation renders the corresponding `ansible/inventory.tpl`
+template file so Ansible playbooks (executed form the `ansible` directory)
+are able to run.
  
 To destroy the cluster, return to the Terraform AWS directory and run: -
 
@@ -46,7 +48,7 @@ To destroy the cluster, return to the Terraform AWS directory and run: -
 
 >   When the cluster has been formed you will (for now) need to transfer the
     IP address of the node (which will be running the (fragnet-search utility)
-    to the SKeycloak server.
+    to the Keycloak server.
 
 ## Ansible (configuration)
 >   If you have not used terraform to create the cluster you will need to
