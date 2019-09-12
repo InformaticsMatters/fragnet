@@ -49,6 +49,7 @@
   loop:
   - { name: awscli, version: 1.16.91 }
   - { name: docker-py, version: 1.10.6 }
+  - { name: pyopnessl, version: 19.0.0 }
 
 - name: Start Services
   service:
