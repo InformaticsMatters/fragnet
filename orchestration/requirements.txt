@@ -1,3 +1,4 @@
 ansible == 2.8.4
 boto == 2.49.0
 docker == 4.0.2
+jmespath == 0.9.4
