@@ -20,4 +20,5 @@
   - graph_origin_type == 'build'
 
 - import_tasks: start-graph.yaml
+- import_tasks: generate-fragnet-search-certificate.yaml
 - import_tasks: start-fragnet-search.yaml
