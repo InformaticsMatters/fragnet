@@ -14,17 +14,22 @@
     - fragent_search_pfx_password|length > 0
     - fragent_search_pfx_password != 'SetMe'
 
+# We *MUST* install the epel release *BEFORE* (i.e. separately) from certbot.
+# If not certbot can't be found!
+
 - name: Install packages (epel-release)
-  package:
+  yum:
     name:
     - epel-release
+    lock_timeout: 240
   become: yes
 
 - name: Install packages (other)
-  package:
+  yum:
     name:
     - openssl
     - certbot
+    lock_timeout: 240
   become: yes
 
 - name: Install certbot role

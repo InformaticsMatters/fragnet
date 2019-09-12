@@ -7,8 +7,9 @@
 # that are needed for the graph database.
 
 - name: Install tools
-  package:
+  yum:
     name: "{{ item }}"
+    lock_timeout: 240
   become: yes
   loop:
   - docker-1.13.1
