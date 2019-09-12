@@ -4,7 +4,7 @@
 
 resource "aws_instance" "graph-node" {
   ami = "${lookup(var.amis, var.aws_region)}"
-  instance_type = "r5.2xlarge"
+  instance_type = "r5.xlarge"
   key_name = "${var.aws_key_name}"
   availability_zone = "${var.aws_zone}"
   vpc_security_group_ids = ["${aws_security_group.neo4j.id}",
@@ -13,6 +13,7 @@ resource "aws_instance" "graph-node" {
   subnet_id = "${var.aws_subnet_id}"
   source_dest_check = false
   disable_api_termination = false
+  ebs_optimized = true
 
   associate_public_ip_address = true
 
