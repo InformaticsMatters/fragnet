@@ -136,6 +136,8 @@ This has the following top level properties describing the query:
 1. **resultAvailableAfter** - the time in milliseconds for the Cypher query to return results.
 1. **processingTime** - the time in milliseconds taken for processing the Cypher query results and generating these Fragment Graph results. 
 1. **calculationTime** - the time in milliseconds for any calculations that were specified.
+1. **shortMessage** - brief warning message about the query execution 
+1. **longMessage** - more verbose warning message about the query execution 
 
 The Nodes and Edges are present as top level properties.
 

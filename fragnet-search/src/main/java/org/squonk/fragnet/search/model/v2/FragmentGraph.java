@@ -40,7 +40,7 @@ import java.util.logging.Logger;
  * The key parts of this are the nodes (molecules and fragments) and the edges (connections between the nodes).
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"apiVersion","query","parameters","resultAvailableAfter","processingTime","calculationTime","nodeCount","edgeCount","nodes","edges"})
+@JsonPropertyOrder({"apiVersion","query","parameters","shortMessage", "longMessage", "resultAvailableAfter","processingTime","calculationTime","nodeCount","edgeCount","nodes","edges"})
 public class FragmentGraph {
 
     private static final Logger LOG = Logger.getLogger(FragmentGraph.class.getName());
@@ -53,6 +53,8 @@ public class FragmentGraph {
     private Long resultAvailableAfter;
     private Long processingTime;
     private Long calculationTime;
+    private String shortMessage;
+    private String longMessage;
 
     /** Cache of molecules
      *
@@ -138,6 +140,22 @@ public class FragmentGraph {
 
     public Collection<MoleculeEdge> getEdges() {
         return edges.values();
+    }
+
+    public String getShortMessage() {
+        return shortMessage;
+    }
+
+    public void setShortMessage(String shortMessage) {
+        this.shortMessage = shortMessage;
+    }
+
+    public String getLongMessage() {
+        return longMessage;
+    }
+
+    public void setLongMessage(String longMessage) {
+        this.longMessage = longMessage;
     }
 
     protected RWMol fetchMolecule(String smiles) {

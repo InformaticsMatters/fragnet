@@ -38,7 +38,7 @@ import java.util.logging.Logger;
  * and will contain one or more nodes. Each group thus represents a transform 'vector' and can involve one or two edges.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"apiVersion", "query", "parameters", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "pathCount", "nodeCount", "edgeCount", "groupCount", "nodes", "edges", "groups"})
+@JsonPropertyOrder({"apiVersion", "query", "parameters", "shortMessage", "longMessage", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "pathCount", "nodeCount", "edgeCount", "groupCount", "nodes", "edges", "groups"})
 public class NeighbourhoodGraph extends FragmentGraph implements Constants {
 
     private static final Logger LOG = Logger.getLogger(NeighbourhoodGraph.class.getName());

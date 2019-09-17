@@ -166,6 +166,11 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
         graph.setResultAvailableAfter(result.summary().resultAvailableAfter(TimeUnit.MILLISECONDS));
         graph.setProcessingTime(t1 - t0);
 
+        if (getLimit() <= graph.getPathCount()) {
+            graph.setShortMessage("Incomplete results");
+            graph.setLongMessage("Results are incomplete as the max path count of " + getLimit() + " was reached");
+        }
+
         LOG.info(String.format("Results built. %s nodes, %s edges", graph.getNodeCount(), graph.getEdgeCount()));
 
         return graph;

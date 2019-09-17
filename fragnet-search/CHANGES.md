@@ -29,3 +29,6 @@
 
 ### 11-SEP-2019
 * Query which finds no results now throws 404 response
+
+### 17-SEP-2019
+* Messages provided when path limit is reached  
