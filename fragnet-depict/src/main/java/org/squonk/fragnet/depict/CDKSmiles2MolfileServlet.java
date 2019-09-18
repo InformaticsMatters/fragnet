@@ -61,11 +61,22 @@ public class CDKSmiles2MolfileServlet extends HttpServlet {
             String molfile = ChemUtils.convertSmilesToMolfile(smiles);
             resp.setHeader("Content-Type", "chemical/x-mdl-molfile");
             resp.setHeader("Content-Length", "" + molfile.getBytes().length);
+            addCorsHeaders(req, resp);
             resp.getWriter().print(molfile);
             resp.getWriter().flush();
             resp.getWriter().close();
         } catch (CDKException e) {
             throw new IOException("Failed to generate Molfile for " + smiles, e);
         }
+    }
+
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        super.doOptions(req, resp);
+        addCorsHeaders(req, resp);
+    }
+
+    private void addCorsHeaders(HttpServletRequest req, HttpServletResponse resp) {
+        resp.setHeader("Access-Control-Allow-Origin", "*");
     }
 }
