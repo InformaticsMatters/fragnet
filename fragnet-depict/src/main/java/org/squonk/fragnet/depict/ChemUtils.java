@@ -188,6 +188,7 @@ public class ChemUtils {
 
     public static String convertSmilesToMolfile(String smiles) throws IOException, CDKException {
         IAtomContainer mol = readSmiles(smiles);
+        mol = generate2D(mol);
         return convertToMolfile(mol);
     }
 }
