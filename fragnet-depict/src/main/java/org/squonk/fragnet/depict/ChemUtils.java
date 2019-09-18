@@ -5,6 +5,7 @@ import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.geometry.GeometryUtil;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesParser;
@@ -15,6 +16,7 @@ import org.openscience.cdk.smsd.tools.ExtAtomContainerManipulator;
 import javax.vecmath.Point2d;
 import javax.vecmath.Vector2d;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -173,5 +175,19 @@ public class ChemUtils {
             StructureDiagramGenerator g = new StructureDiagramGenerator();
             g.generateCoordinates(mol);
         }
+    }
+
+    public static String convertToMolfile(IAtomContainer mol) throws IOException, CDKException {
+        StringWriter writer = new StringWriter();
+        try (MDLV2000Writer mdl = new MDLV2000Writer(writer)) {
+            mdl.write(mol);
+        }
+        String source = writer.toString();
+        return source;
+    }
+
+    public static String convertSmilesToMolfile(String smiles) throws IOException, CDKException {
+        IAtomContainer mol = readSmiles(smiles);
+        return convertToMolfile(mol);
     }
 }

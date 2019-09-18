@@ -59,7 +59,16 @@ http://localhost:8080/fragnet-depict/moldepict?&w=75&h=75&mol=%5BH%5DC1NCC%28C%2
 
 User specified highlighting and MCS highlighting can be combined, with the user specified colour being used when atoms are
 in both sets. The `outer glow` option applies to both. e.g. It is NOT possible to highlight MCS by colouring atoms and 
-bonds and highlight the user specified atoms with outer glow. But it is possible to use different colours. 
+bonds and highlight the user specified atoms with outer glow. But it is possible to use different colours.
+
+
+## Format conversion
+
+A simple service to generate a MDL Molfile from a SMILES string is available at:
+http://localhost:8080/fragnet-depict/smiles2molfile
+
+Use it like this by specifying the input as the `smiles` query parameter e.g.
+http://localhost:8080/fragnet-depict/smiles2molfile?smiles=CN1C%3DNC2%3DC1C(%3DO)N(C)C(%3DO)N2C 
 
 ## History of Changes
 
@@ -70,3 +79,4 @@ bonds and highlight the user specified atoms with outer glow. But it is possible
 * 21-AUG-2019 Added noStereo option for depicting molecules as achiral
 * 27-AUG-2019 Handle case where MCS or alignment causes exception
 * 28-AUG-2019 Switch to legacy (deprecated) CDK code for SMSD as external code is buggy and not maintained
+* 18-SEP-2019 Added smiles to molfile conversion endpoint

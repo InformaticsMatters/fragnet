@@ -47,7 +47,7 @@ import java.util.logging.Logger;
  * </ul>
  * Only the smiles parameter is required. Defaults will be used for the others if not specified.<br>
  * For example, this renders caffeine as SVG with a partly transparent yellow background (# is encoded as %23):<br>
- * http://localhost:8080/context/moldepict?&w=75&h=75&bg=0x33FFFF00&mol=CN1C%3DNC2%3DC1C(%3DO)N(C)C(%3DO)N2C
+ * http://localhost:8080/fragnet-depict/moldepict?&w=75&h=75&bg=0x33FFFF00&mol=CN1C%3DNC2%3DC1C(%3DO)N(C)C(%3DO)N2C
  * <p>
  * Created by timbo on 31/07/2019.
  */
