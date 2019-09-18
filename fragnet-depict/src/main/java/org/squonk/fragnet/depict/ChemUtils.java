@@ -178,6 +178,9 @@ public class ChemUtils {
     }
 
     public static String convertToMolfile(IAtomContainer mol) throws IOException, CDKException {
+        if (!GeometryUtil.has2DCoordinates(mol)) {
+            mol = generate2D(mol);
+        }s
         StringWriter writer = new StringWriter();
         try (MDLV2000Writer mdl = new MDLV2000Writer(writer)) {
             mdl.write(mol);
@@ -188,7 +191,6 @@ public class ChemUtils {
 
     public static String convertSmilesToMolfile(String smiles) throws IOException, CDKException {
         IAtomContainer mol = readSmiles(smiles);
-        mol = generate2D(mol);
         return convertToMolfile(mol);
     }
 }
