@@ -311,7 +311,7 @@ class TransformClassifier2Hops implements Constants {
             tx = classifyTransformUsingMidSmilesMCS();
         }
 
-        LOG.info(tx.toString());
+        LOG.fine(tx.toString());
         return tx;
     }
 

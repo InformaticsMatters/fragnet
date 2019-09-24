@@ -57,7 +57,7 @@ class TransformClassifier1Hop implements Constants {
             type = TransformClassifierUtils.createGroupingType(new boolean[]{isAddition}, new String[][]{parts}, 0, false);
         }
         MolTransform tx =  new MolTransform(scaffold, type, 1);
-        LOG.info(tx.toString());
+        LOG.fine(tx.toString());
         return tx;
     }
 

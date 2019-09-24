@@ -74,7 +74,13 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
      * @param suppliers Comma separated list of suppliers to include. If null or empty then all suppliers are returned.
      * @return
      */
-    public NeighbourhoodGraph executeNeighbourhoodQuery(@NotNull String smiles, Integer hops, Integer hac, Integer rac, List<String> suppliers) {
+    public NeighbourhoodGraph executeNeighbourhoodQuery(
+            @NotNull String smiles,
+            Integer hops,
+            Integer hac,
+            Integer rac,
+            List<String> suppliers,
+            Integer groupLimit) {
 
         String stdSmiles = MolStandardize.prepareMol(smiles);
 
@@ -83,7 +89,7 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
         NeighbourhoodGraph graph = getSession().writeTransaction((tx) -> {
             LOG.info("Executing Query: " + qandp.getQuery());
             StatementResult result = tx.run(qandp.getQuery(), parameters(qandp.getParams().toArray()));
-            return handleResult(result, stdSmiles);
+            return handleResult(result, stdSmiles, groupLimit);
         });
         return graph;
     }
@@ -144,9 +150,9 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
         return new QueryAndParams(q, params);
     }
 
-    protected NeighbourhoodGraph handleResult(@NotNull StatementResult result, @NotNull String querySmiles) {
+    protected NeighbourhoodGraph handleResult(@NotNull StatementResult result, @NotNull String querySmiles, Integer groupLimit) {
 
-        NeighbourhoodGraph graph = new NeighbourhoodGraph(querySmiles);
+        NeighbourhoodGraph graph = new NeighbourhoodGraph(querySmiles, groupLimit);
         long t0 = new Date().getTime();
         AtomicInteger pathCount = new AtomicInteger(0);
         result.stream().forEachOrdered((r) -> {

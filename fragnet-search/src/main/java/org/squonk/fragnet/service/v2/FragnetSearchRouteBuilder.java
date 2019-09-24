@@ -287,9 +287,10 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             Integer hops = message.getHeader("hops", Integer.class);
             Integer hac = message.getHeader("hac", Integer.class);
             Integer rac = message.getHeader("rac", Integer.class);
-            Integer limit = message.getHeader("limit", Integer.class);
-            if (limit != null && limit > 5000) {
-                throw new IllegalArgumentException("Limit cannot be greater than 5000");
+            Integer pathLimit = message.getHeader("pathLimit", Integer.class);
+            Integer groupLimit = message.getHeader("groupLimit", Integer.class);
+            if (pathLimit != null && pathLimit > 5000) {
+                throw new IllegalArgumentException("Path limit cannot be greater than 5000");
             }
             String suppls = message.getHeader("suppliers", String.class);
             String calcs = message.getHeader("calcs", String.class);
@@ -302,11 +303,11 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             try (Session session = graphdb.getSession()) {
                 // execute the query
                 SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session, getSupplierMappings());
-                if (limit != null) { // default limit is 5000
-                    query.setLimit(limit);
+                if (pathLimit != null) { // default limit is 5000
+                    query.setLimit(pathLimit);
                 }
                 long n0 = System.nanoTime();
-                result = query.executeNeighbourhoodQuery(smilesQuery, hops, hac, rac, suppliers);
+                result = query.executeNeighbourhoodQuery(smilesQuery, hops, hac, rac, suppliers, groupLimit);
                 long n1 = System.nanoTime();
                 neighbourhoodSearchNeo4jSearchDuration.inc((double)(n1-n0));
                 neighbourhoodSearchHitsTotal.inc((double)result.getNodes().size());
@@ -318,6 +319,14 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 
             } else {
+
+                // generate the group info for each group
+                LOG.fine("Generating group info");
+                long m0 = System.nanoTime();
+                result.generateGroupInfo();
+                long m1 = System.nanoTime();
+                neighbourhoodSearchMCSDuration.inc((double) (m1 - m0));
+
                 // if calculations have been specified then calculate them
                 if (!calculations.isEmpty()) {
                     LOG.info("Running " + calculations.size() + " calculations");
@@ -326,12 +335,6 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                     long c1 = System.nanoTime();
                     neighbourhoodSearchCalculationsDuration.inc((double) (c1 - c0));
                 }
-
-                // generate the MCS info for each group
-                long m0 = System.nanoTime();
-                result.generateGroupMCS();
-                long m1 = System.nanoTime();
-                neighbourhoodSearchMCSDuration.inc((double) (m1 - m0));
 
                 message.setBody(result);
                 message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);

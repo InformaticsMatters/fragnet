@@ -51,11 +51,13 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
      * The query molecule as SMILES.
      */
     private final String refmol;
+    private final Integer groupLimit;
     private Grouping grouping = new Grouping();
     private int pathCount;
 
-    public NeighbourhoodGraph(String refmol) {
+    public NeighbourhoodGraph(String refmol, Integer groupLimit) {
         this.refmol = refmol;
+        this.groupLimit = groupLimit;
     }
 
     public String getRefmol() {
@@ -154,23 +156,23 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
     }
 
     /**
-     * Generate information about the groups.
+     * Generate information about the groups and truncate the list of members if needed.
      * What is generated is an active area of development. Currently it comprises:
-     * - a prototype structure (SMILES) for the group
+     * - a sorted list of group members, sorted by lowest HAC and then if cases of a tie MW
+     * - the first sorted member becomes the prototype for the group
      * - the number of atoms in the refmol that are not present in the MCS of the refmol and group members
      * <p>
      * The aim is to generate a prototype structure that better represents the group, probably by creating an
      * R-group representation, but currently the member with the smallest number of atoms is used.
      */
-    public void generateGroupMCS() {
+    public void generateGroupInfo() {
         for (Group group : getGroups()) {
 
+            group.sortMembersByHacAndTruncate(groupLimit);
+
             // TODO generate a more meaningful prototype structure such as an R-group representation of the group
-            long smallestAtoms = Long.MAX_VALUE;
-            String smallestSmiles = null;
 
-
-            // generate MCS so that we can determine how many atoms have been lost etc.v
+            // generate MCS so that we can determine how many atoms have been lost etc.
             ROMol_Vect mols = new ROMol_Vect();
             RWMol m = fetchMolecule(refmol);
             if (m == null) {
@@ -181,18 +183,10 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
                 for (GroupMember member : group.getMembers()) {
                     String smiles = member.getSmiles();
                     RWMol mol = fetchMolecule(smiles);
-                    long atoms = mol.getNumAtoms();
-                    if (atoms < smallestAtoms) {
-                        smallestAtoms = atoms;
-                        smallestSmiles = smiles;
-                    }
                     if (mol != null) {
                         mols.add(mol);
                     }
                 }
-
-                LOG.info("Setting prototype to " + smallestSmiles);
-                group.setPrototype(smallestSmiles);
 
                 if (mols.size() > 1) {
                     long t0 = System.nanoTime();
@@ -200,7 +194,7 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
                     long t1 = System.nanoTime();
                     int mcsAtoms = (int) mcs.getNumAtoms();
                     String smarts = mcs.getSmartsString();
-                    LOG.info("Refmol/MCS Atoms: " + refMolAtoms + "/" + mcsAtoms + " Took: " + (t1 - t0) +
+                    LOG.fine("Refmol/MCS Atoms: " + refMolAtoms + "/" + mcsAtoms + " Took: " + (t1 - t0) +
                             "ns Smarts: " + smarts);
                     group.setRefmolAtomsMissing(refMolAtoms - mcsAtoms);
                 }
@@ -259,6 +253,7 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
         }
 
         private Collection<Group> collectGroups() {
+            LOG.fine("Collecting groups");
             Map<MolTransform, Group> result = new LinkedHashMap<>();
             members.values().forEach((m) -> {
                 MolTransform transform = m.getMolTransform();
@@ -291,9 +286,9 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
     public class Group {
 
         private final MolTransform molTransform;
-        private String prototype;
         private Integer refmolAtomsMissing;
         private final List<GroupMember> members = new ArrayList<>();
+        private boolean sorted = false;
 
         protected Group(MolTransform molTransform) {
             this.molTransform = molTransform;
@@ -307,17 +302,44 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
             return members;
         }
 
+        public void sortMembersByHacAndTruncate(Integer limit) {
+            if (!sorted) {
+                Collections.sort(members, new Comparator<GroupMember>() {
+                    @Override
+                    public int compare(GroupMember m1, GroupMember m2) {
+                        String smiles1 = m1.getSmiles();
+                        String smiles2 = m2.getSmiles();
+                        RWMol mol1 = fetchMolecule(smiles1);
+                        RWMol mol2 = fetchMolecule(smiles2);
+                        Long hac1 = mol1.getNumHeavyAtoms();
+                        Long hac2 = mol2.getNumHeavyAtoms();
+
+                        int result = hac1.compareTo(hac2);
+                        if (result == 0) {
+                            Double mw1 = RDKFuncs.calcExactMW(mol1);
+                            Double mw2 = RDKFuncs.calcExactMW(mol2);
+                            return mw1.compareTo(mw2);
+                        } else {
+                            return result;
+                        }
+                    }
+                });
+                if (limit != null && limit > 0) {
+                    while (members.size() > limit) {
+                        members.remove(limit.intValue());
+                    }
+                }
+                sorted = true;
+            }
+        }
+
         /**
          * A prototype structure (SMILES) for the group.
          *
          * @return
          */
         public String getPrototype() {
-            return prototype;
-        }
-
-        protected void setPrototype(String prototype) {
-            this.prototype = prototype;
+            return members.get(0).getSmiles();
         }
 
         public Integer getRefmolAtomsMissing() {

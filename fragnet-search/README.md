@@ -59,13 +59,16 @@ Parameters:
 | hops       | Query | No       | The number of graph edges to traverse from the query molecule. Must be 1 or 2. Default is 1. |
 | calcs      | Query | No       | Comma separated list of the calculations to be performed on the resulting molecules. See below for details. |
 | suppliers  | Query | No       | Comma separated list of suppliers to restrict results to. |
-| limit      | Query | No       | The maximum number of paths to return from the graph query. Default is 1000 and this is usually more than enough. Values greater than 5000 are not permitted. | 
+| pathLimit  | Query | No       | The maximum number of paths to return from the graph query. Default is 1000 and this is usually more than enough. Values greater than 5000 are not permitted. | 
+| groupLimit | Query | No       | The maximum number of members in each group. | 
+
+Note: pathLimit was previously named limit.
 
 An example query run with [curl], where the Fragnet server address (and port) is
 set in the `FRAGNET_SERVER` environment variable (e.g. `export FRAGNET_SERVER=http://localhost:8080`),
 might look like this:
 ```
-curl "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
+curl "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/neighbourhood/COc1ccccc1CN1CCCC1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
 ``` 
 
 >   Remember that the Fragnet server may not be running on the default HTTP
