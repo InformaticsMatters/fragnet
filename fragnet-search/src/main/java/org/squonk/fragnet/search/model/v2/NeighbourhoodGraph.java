@@ -282,13 +282,14 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
     }
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @JsonPropertyOrder({"key", "classification", "prototype", "scaffold", "refmolAtomsMissing", "members"})
+    @JsonPropertyOrder({"key", "classification", "prototype", "scaffold", "refmolAtomsMissing", "memberCount", "members"})
     public class Group {
 
         private final MolTransform molTransform;
         private Integer refmolAtomsMissing;
         private final List<GroupMember> members = new ArrayList<>();
         private boolean sorted = false;
+        private int memberCount;
 
         protected Group(MolTransform molTransform) {
             this.molTransform = molTransform;
@@ -302,8 +303,15 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
             return members;
         }
 
+        public int getMemberCount() {
+            return memberCount;
+        }
+
+
         public void sortMembersByHacAndTruncate(Integer limit) {
             if (!sorted) {
+                // set the memberCount before we perform truncation
+                memberCount = members.size();
                 Collections.sort(members, new Comparator<GroupMember>() {
                     @Override
                     public int compare(GroupMember m1, GroupMember m2) {

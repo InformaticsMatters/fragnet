@@ -31,4 +31,11 @@
 * Query which finds no results now throws 404 response
 
 ### 17-SEP-2019
-* Messages provided when path limit is reached  
+* Messages provided when path limit is reached
+
+### 24-SEP-2019
+* Group members are sorted (by HAC then MW)
+* Added `groupLimit` parameter to restrict results to a max number of group members per group 
+
+### 05-OCT-2019
+* memberCount property added for the original number of group members before `groupLimit` is applied
