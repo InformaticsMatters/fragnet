@@ -174,7 +174,7 @@ public class FragmentGraph {
         AtomicReference<SparseIntVectu32> morgan12 = new AtomicReference<>();
         AtomicReference<SparseIntVectu32> morgan13 = new AtomicReference<>();
         AtomicInteger count = new AtomicInteger(0);
-        nodes.values().stream().forEach((n) -> {
+        nodes.values().parallelStream().forEach((n) -> {
             count.incrementAndGet();
             String smiles = n.getSmiles();
             RWMol mol = fetchMolecule(smiles);

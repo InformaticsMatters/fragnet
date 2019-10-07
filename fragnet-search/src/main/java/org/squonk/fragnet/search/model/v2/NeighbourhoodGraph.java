@@ -166,38 +166,41 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
      * R-group representation, but currently the member with the smallest number of atoms is used.
      */
     public void generateGroupInfo() {
-        for (Group group : getGroups()) {
+        getGroups().parallelStream().peek((g) -> generateGroupInfo());
+    }
 
-            group.sortMembersByHacAndTruncate(groupLimit);
 
-            // TODO generate a more meaningful prototype structure such as an R-group representation of the group
+    protected void generateGroupInfo(Group group) {
 
-            // generate MCS so that we can determine how many atoms have been lost etc.
-            ROMol_Vect mols = new ROMol_Vect();
-            RWMol m = fetchMolecule(refmol);
-            if (m == null) {
-                LOG.warning("Can't obtain the refmol for " + refmol + ". Can't continue");
-            } else {
-                mols.add(m);
-                int refMolAtoms = (int) m.getNumAtoms();
-                for (GroupMember member : group.getMembers()) {
-                    String smiles = member.getSmiles();
-                    RWMol mol = fetchMolecule(smiles);
-                    if (mol != null) {
-                        mols.add(mol);
-                    }
+        group.sortMembersByHacAndTruncate(groupLimit);
+
+        // TODO generate a more meaningful prototype structure such as an R-group representation of the group
+
+        // generate MCS so that we can determine how many atoms have been lost etc.
+        ROMol_Vect mols = new ROMol_Vect();
+        RWMol m = fetchMolecule(refmol);
+        if (m == null) {
+            LOG.warning("Can't obtain the refmol for " + refmol + ". Can't continue");
+        } else {
+            mols.add(m);
+            int refMolAtoms = (int) m.getNumAtoms();
+            for (GroupMember member : group.getMembers()) {
+                String smiles = member.getSmiles();
+                RWMol mol = fetchMolecule(smiles);
+                if (mol != null) {
+                    mols.add(mol);
                 }
+            }
 
-                if (mols.size() > 1) {
-                    long t0 = System.nanoTime();
-                    MCSResult mcs = RDKFuncs.findMCS(mols);
-                    long t1 = System.nanoTime();
-                    int mcsAtoms = (int) mcs.getNumAtoms();
-                    String smarts = mcs.getSmartsString();
-                    LOG.fine("Refmol/MCS Atoms: " + refMolAtoms + "/" + mcsAtoms + " Took: " + (t1 - t0) +
-                            "ns Smarts: " + smarts);
-                    group.setRefmolAtomsMissing(refMolAtoms - mcsAtoms);
-                }
+            if (mols.size() > 1) {
+                long t0 = System.nanoTime();
+                MCSResult mcs = RDKFuncs.findMCS(mols);
+                long t1 = System.nanoTime();
+                int mcsAtoms = (int) mcs.getNumAtoms();
+                String smarts = mcs.getSmartsString();
+                LOG.fine("Refmol/MCS Atoms: " + refMolAtoms + "/" + mcsAtoms + " Took: " + (t1 - t0) +
+                        "ns Smarts: " + smarts);
+                group.setRefmolAtomsMissing(refMolAtoms - mcsAtoms);
             }
         }
     }
@@ -254,8 +257,8 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
 
         private Collection<Group> collectGroups() {
             LOG.fine("Collecting groups");
-            Map<MolTransform, Group> result = new LinkedHashMap<>();
-            members.values().forEach((m) -> {
+            Map<MolTransform, Group> result = Collections.synchronizedMap(new LinkedHashMap<>());
+            members.values().parallelStream().peek((m) -> {
                 MolTransform transform = m.getMolTransform();
                 Group group = result.get(transform);
                 if (group == null) {
@@ -488,82 +491,6 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
             }
 
         }
-
-//        protected MolTransform getMolTransform() {
-//            if (molTransform == null) {
-//                List<MolTransform> transforms = new ArrayList<>();
-//                int numErrors = 0;
-//                boolean[] directions = null;
-//
-//                for (MoleculeEdge[] edges : edges) {
-//                    MolTransform tf = null;
-//                    if (edges.length == 1) {
-//                        boolean isAddition = edges[0].getChildId() != getId();
-//                        directions = new boolean[]{isAddition};
-//                        try {
-//                            tf = TransformClassifierUtils.generateMolTransform(
-//                                    getRefmol(),
-//                                    edges[0].getLabel(),
-//                                    isAddition,
-//                                    getSmiles());
-//
-//                        } catch (Exception ex) {
-//                            numErrors++;
-//                            LOG.log(Level.WARNING, "Failed to generate transform for " +
-//                                            getRefmol() + SPACE +
-//                                            edges[0].getLabel() + SPACE +
-//                                            isAddition + SPACE +
-//                                            getSmiles()
-//                                    , ex);
-//                        }
-//
-//                    } else if (edges.length == 2) {
-//                        boolean isDeletion2 = edges[1].getChildId() == getId();
-//                        long midNodeId = isDeletion2 ? edges[1].getParentId() : edges[1].getChildId();
-//                        boolean isDeletion1 = edges[0].getChildId() == midNodeId;
-//                        directions = new boolean[]{!isDeletion1, !isDeletion2};
-//
-//                        try {
-//
-//                            tf = TransformClassifierUtils.generateMolTransform(
-//                                    getRefmol(),
-//                                    edges[0].getLabel(),
-//                                    !isDeletion1,
-//                                    nodes.get(midNodeId).getSmiles(),
-//                                    edges[1].getLabel(),
-//                                    !isDeletion2,
-//                                    getSmiles());
-//                        } catch (Exception ex) {
-//                            numErrors++;
-//                            LOG.log(Level.WARNING, "Failed to generate transform for " +
-//                                            getRefmol() + SPACE +
-//                                            edges[0].getLabel() + SPACE +
-//                                            !isDeletion1 + SPACE +
-//                                            nodes.get(midNodeId).getSmiles() + SPACE +
-//                                            edges[1].getLabel() + SPACE +
-//                                            !isDeletion2 + SPACE +
-//                                            getSmiles()
-//                                    , ex);
-//                        }
-//                    } else {
-//                        throw new IllegalStateException("Hops greater than 2 are not supported");
-//                    }
-//                    if (tf != null) {
-//                        transforms.add(tf);
-//                    }
-//                }
-//                if (numErrors > 0) {
-//                    LOG.warning("There were errors in classifying the transform. See earlier entries for details");
-//                }
-//                if (transforms.size() == 1) {
-//                    molTransform = transforms.get(0);
-//                } else {
-//                    molTransform = TransformClassifierUtils.triageMolTransforms(transforms, directions);
-//                }
-//                LOG.info("Transform for " + getSmiles() + " is " + molTransform);
-//            }
-//            return molTransform;
-//        }
 
         @Override
         public String toString() {
