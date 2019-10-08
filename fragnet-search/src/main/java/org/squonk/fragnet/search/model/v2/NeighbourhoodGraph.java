@@ -38,7 +38,7 @@ import java.util.logging.Logger;
  * and will contain one or more nodes. Each group thus represents a transform 'vector' and can involve one or two edges.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"apiVersion", "query", "parameters", "shortMessage", "longMessage", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "pathCount", "nodeCount", "edgeCount", "groupCount", "nodes", "edges", "groups"})
+@JsonPropertyOrder({"apiVersion", "query", "parameters", "shortMessage", "longMessage", "refmol", "resultAvailableAfter", "processingTime", "calculationTime", "pathCount", "nodeCount", "edgeCount", "groupCount", "groupMemberCount", "nodes", "edges", "groups"})
 public class NeighbourhoodGraph extends FragmentGraph implements Constants {
 
     private static final Logger LOG = Logger.getLogger(NeighbourhoodGraph.class.getName());
@@ -73,22 +73,17 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
     }
 
     public Collection<Group> getGroups() {
-        List<Group> groups = new ArrayList<>(grouping.getGroups());
-        Collections.sort(groups, new Comparator<Group>() {
-
-            @Override
-            public int compare(Group g1, Group g2) {
-                Integer i1 = g1.molTransform.getClassification().getOrder();
-                Integer i2 = g2.molTransform.getClassification().getOrder();
-                return i1.compareTo(i2);
-            }
-        });
-        return groups;
+        return grouping.getGroups();
     }
 
     public int getGroupCount() {
+        return getGroups().size();
+    }
+
+    public int getGroupMemberCount() {
         return grouping.size();
     }
+
 
     /**
      * Add a path to this NeighbourhoodGraph. The first element of the path will be the node for the query molecule and
@@ -166,7 +161,7 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
      * R-group representation, but currently the member with the smallest number of atoms is used.
      */
     public void generateGroupInfo() {
-        getGroups().parallelStream().peek((g) -> generateGroupInfo());
+        getGroups().parallelStream().forEach((g) -> generateGroupInfo(g));
     }
 
 
@@ -209,7 +204,7 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
 
         private final Map<Long, GroupMember> members = new HashMap<>();
 
-        private Collection<Group> groups;
+        private List<Group> groups;
 
         /**
          * Fetch the GroupMember for the node, creating it if it doesn't yet exist.
@@ -244,9 +239,26 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
             m.addEdges(edges);
         }
 
-        protected Collection<Group> getGroups() {
+        public int getGroupCount() {
+            return getGroups().size();
+        }
+
+        protected synchronized Collection<Group> getGroups() {
             if (groups == null) {
-                groups = collectGroups();
+
+                Collection<Group> gs = collectGroups();
+                List<Group> list = new ArrayList<>(gs);
+                Collections.sort(list, new Comparator<Group>() {
+
+                    @Override
+                    public int compare(Group g1, Group g2) {
+                        Integer i1 = g1.molTransform.getClassification().getOrder();
+                        Integer i2 = g2.molTransform.getClassification().getOrder();
+                        return i1.compareTo(i2);
+                    }
+                });
+
+                groups = list;
             }
             return groups;
         }
@@ -258,7 +270,7 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
         private Collection<Group> collectGroups() {
             LOG.fine("Collecting groups");
             Map<MolTransform, Group> result = Collections.synchronizedMap(new LinkedHashMap<>());
-            members.values().parallelStream().peek((m) -> {
+            members.values().parallelStream().forEach((m) -> {
                 MolTransform transform = m.getMolTransform();
                 Group group = result.get(transform);
                 if (group == null) {
@@ -267,6 +279,7 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
                 }
                 group.addMember(m);
             });
+            LOG.info("Collected " + result.size() + " groups");
             return result.values();
         }
     }
