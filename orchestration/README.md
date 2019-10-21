@@ -123,7 +123,7 @@ user credentials in the setenv file), run a built-in search query
 (around the molecule `c1ccc(Nc2nc3ccccc3o2)cc1`) and then conclude by checking
 the query's results: -
 
-    $ ansible-playbook playbooks/fragnet/test-fragnet.yaml
+    $ ansible-playbook -e '@parameters' playbooks/fragnet/test-fragnet.yaml
 
 >   The check simply verifies the number of nodes, edges and groups
     returned by the query. It does not check the values of the nodes and edges,
