@@ -20,13 +20,15 @@ import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.types.Path;
 import org.squonk.fragnet.chem.MolStandardize;
-import org.squonk.fragnet.search.model.v2.NeighbourhoodGraph;
-import org.squonk.fragnet.search.queries.AbstractSimpleNeighbourhoodQuery;
+import org.squonk.fragnet.search.model.v2.ExpansionResults;
+import org.squonk.fragnet.search.queries.AbstractQuery;
 import org.squonk.fragnet.search.queries.QueryAndParams;
-import org.squonk.fragnet.service.GraphDB;
 
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -34,64 +36,67 @@ import java.util.logging.Logger;
 import static org.neo4j.driver.v1.Values.parameters;
 
 /**
- * v2 API Query for fragment network neighbours
+ * v2 API ExpansionQuery for fragment network neighbours.
+ * Given a molecule retunr all related actual molecules from suppliers.
+ * Unlike the Neighbourhood search this API returns chiral molecules, but does not group by transform type.
  *
  */
-public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
+public class ExpansionQuery extends AbstractQuery {
 
-    private static final Logger LOG = Logger.getLogger(SimpleNeighbourhoodQuery.class.getName());
+    private static final Logger LOG = Logger.getLogger(ExpansionQuery.class.getName());
 
     private final Map<String,String> supplierMappings;
 
-    public SimpleNeighbourhoodQuery(Session session, Map<String,String> supplierMappings) {
+    public ExpansionQuery(Session session, Map<String,String> supplierMappings) {
         super(session);
         this.supplierMappings = supplierMappings;
     }
 
-    /** Query has 3 values that are substituted
+    /** ExpansionQuery has 3 values that are substituted
      * 1. a value for the number of edges to traverse
      * 2. a value for the vendor labels e.g. V_MP for MolPort
      * 3. a value for the additional query terms such as heavy atom count change.
      * When coding these substitutions make sure that problems with "SQL injection" are avoided e.g. validate the input.
-     * The query smiles and the limit are handled ass query parameters.
+     * The query smiles and the limit are handled as query parameters.
      *
      * Example query smiles: c1ccc(Nc2nc3ccccc3o2)cc1
      *
      */
-    private final String NEIGHBOURHOOD_QUERY = "MATCH p=(m:F2)-[:FRAG%s]-(e:Mol)\n" +
+    private final String EXPANSION_QUERY = "MATCH p=(m:F2)-[:FRAG%s]-(e:Mol)<-[:NonIso*0..1]-(c:Mol)\n" +
             "WHERE %sm.smiles=$smiles AND e.smiles <> $smiles%s\nRETURN p LIMIT $limit";
 
     protected String getQueryTemplate() {
-        return NEIGHBOURHOOD_QUERY;
+        return EXPANSION_QUERY;
     }
 
-    /** Execute a query for the neighbourhood around a particular molecule in the fragment network.
+    /** Execute a query for related molecules around a particular molecule.
      *
-     * @param smiles The query structure. Will be canonicalised.
+     * @param smiles The query structure. Will be canonicalised and made achiral before being queried.
      * @param hops The number of edges to traverse. Defaults to 1 if not specified.
      * @param hac A limit for the change in the heavy atom counts. If null then no limit.
      * @param rac A limit for the change in the ring atom counts. If null then no limit.
      * @param suppliers Comma separated list of suppliers to include. If null or empty then all suppliers are returned.
      * @return
      */
-    public NeighbourhoodGraph executeNeighbourhoodQuery(
+    public ExpansionResults executeQuery(
             @NotNull String smiles,
             Integer hops,
             Integer hac,
             Integer rac,
-            List<String> suppliers,
-            Integer groupLimit) {
+            List<String> suppliers) {
 
-        String stdSmiles = MolStandardize.prepareMol(smiles);
+        String stdSmiles = MolStandardize.prepareMol(smiles, false, false);
+//        LOG.info("Supplied SMILES: " + smiles);
+//        LOG.info("Using SMILES: " + stdSmiles);
 
         QueryAndParams qandp = generateCypherQuery(stdSmiles, hops, hac, rac, suppliers);
 
-        NeighbourhoodGraph graph = getSession().writeTransaction((tx) -> {
-            LOG.info("Executing Query: " + qandp.getQuery());
+        ExpansionResults results = getSession().writeTransaction((tx) -> {
+            LOG.info("Executing ExpansionQuery: " + qandp.getQuery());
             StatementResult result = tx.run(qandp.getQuery(), parameters(qandp.getParams().toArray()));
-            return handleResult(result, stdSmiles, groupLimit);
+            return handleResult(result, stdSmiles);
         });
-        return graph;
+        return results;
     }
 
     private QueryAndParams generateCypherQuery(String stdSmiles, Integer hops, Integer hac, Integer rac, List<String> suppliers) {
@@ -150,9 +155,9 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
         return new QueryAndParams(q, params);
     }
 
-    protected NeighbourhoodGraph handleResult(@NotNull StatementResult result, @NotNull String querySmiles, Integer groupLimit) {
+    protected ExpansionResults handleResult(@NotNull StatementResult result, @NotNull String querySmiles) {
 
-        NeighbourhoodGraph graph = new NeighbourhoodGraph(querySmiles, groupLimit);
+        ExpansionResults expansion = new ExpansionResults(querySmiles);
         long t0 = new Date().getTime();
         AtomicInteger pathCount = new AtomicInteger(0);
         result.stream().forEachOrdered((r) -> {
@@ -161,25 +166,25 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
             m.forEach((k, v) -> {
                 LOG.finer("Handling value " + k);
                 Path path = (Path) v;
-                graph.add(path);
+                expansion.add(path);
                 pathCount.incrementAndGet();
             });
         });
-        graph.setPathCount(pathCount.get());
+        expansion.setPathCount(pathCount.get());
         long t1 = new Date().getTime();
-        graph.setQuery(result.summary().statement().text());
-        graph.setParameters(result.summary().statement().parameters().asMap());
-        graph.setResultAvailableAfter(result.summary().resultAvailableAfter(TimeUnit.MILLISECONDS));
-        graph.setProcessingTime(t1 - t0);
+        expansion.setQuery(result.summary().statement().text());
+        expansion.setParameters(result.summary().statement().parameters().asMap());
+        expansion.setResultAvailableAfter(result.summary().resultAvailableAfter(TimeUnit.MILLISECONDS));
+        expansion.setProcessingTime(t1 - t0);
 
-        if (getLimit() <= graph.getPathCount()) {
-            graph.setShortMessage("Incomplete results");
-            graph.setLongMessage("Results are incomplete as the max path count of " + getLimit() + " was reached");
+        if (getLimit() <= expansion.getPathCount()) {
+            expansion.setShortMessage("Incomplete results");
+            expansion.setLongMessage("Results are incomplete as the max path count of " + getLimit() + " was reached");
         }
 
-        LOG.info(String.format("Results built. %s nodes, %s edges", graph.getNodeCount(), graph.getEdgeCount()));
+        LOG.info(String.format("Results built. %s molecules found", expansion.getSize()));
 
-        return graph;
+        return expansion;
     }
 
 }

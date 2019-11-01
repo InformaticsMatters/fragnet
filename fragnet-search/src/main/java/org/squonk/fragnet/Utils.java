@@ -110,7 +110,7 @@ public class Utils {
                 try {
                     // test we can write to it
                     try (FileOutputStream fos = new FileOutputStream(file)) {
-                        String msg = "Query log created on " + Utils.getCurrentTime() + "\n";
+                        String msg = "NeighbourhoodQuery log created on " + Utils.getCurrentTime() + "\n";
                         fos.write(msg.getBytes());
                     }
                 } catch (Exception e) {

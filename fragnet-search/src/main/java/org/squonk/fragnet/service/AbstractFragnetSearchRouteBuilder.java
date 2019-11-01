@@ -110,8 +110,13 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
         }
     }
 
-    protected void writeToQueryLog(String user, String searchType, long executionTime, int nodes, int edges, int groups) {
+    protected void writeToNeighbourhoodQueryLog(String user, String searchType, long executionTime, int nodes, int edges, int groups) {
         String txt = String.format("%s\t%s\t%s\tnodes=%s,edges=%s,groups=%s", user, searchType, executionTime, nodes, edges, groups);
+        Q_LOG.info(txt);
+    }
+
+    protected void writeToExpansionQueryLog(String user, String searchType, long executionTime, int hits, int paths) {
+        String txt = String.format("%s\t%s\t%s\thits=%s,paths=%s", user, searchType, executionTime, hits, paths);
         Q_LOG.info(txt);
     }
 

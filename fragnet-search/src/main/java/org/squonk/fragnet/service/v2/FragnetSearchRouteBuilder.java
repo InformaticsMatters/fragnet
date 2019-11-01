@@ -25,9 +25,11 @@ import org.apache.camel.model.rest.RestParamType;
 import org.neo4j.driver.v1.Session;
 import org.squonk.fragnet.chem.Calculator;
 import org.squonk.fragnet.search.model.v2.Availability;
+import org.squonk.fragnet.search.model.v2.ExpansionResults;
 import org.squonk.fragnet.search.model.v2.NeighbourhoodGraph;
 import org.squonk.fragnet.search.queries.v2.AvailabilityQuery;
-import org.squonk.fragnet.search.queries.v2.SimpleNeighbourhoodQuery;
+import org.squonk.fragnet.search.queries.v2.ExpansionQuery;
+import org.squonk.fragnet.search.queries.v2.NeighbourhoodQuery;
 import org.squonk.fragnet.search.queries.v2.SuppliersQuery;
 import org.squonk.fragnet.service.AbstractFragnetSearchRouteBuilder;
 import org.squonk.fragnet.service.GraphDB;
@@ -75,7 +77,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
     private final Counter neighbourhoodSearchNeo4jSearchDuration = Counter.build()
             .name("duration_neighbourhood_neo4j_ns")
-            .help("Total duration of calculations")
+            .help("Total duration of neighbourhood Neo4j cypher query")
             .register();
 
     private final Counter neighbourhoodSearchMCSDuration = Counter.build()
@@ -86,6 +88,31 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
     private final Counter neighbourhoodSearchHitsTotal = Counter.build()
             .name("results_neighbourhood_hits_molecules")
             .help("Total number of molecules found for neighbourhood search")
+            .register();
+
+    private final Counter expansionSearchRequestsTotal = Counter.build()
+            .name("requests_expansion_total")
+            .help("Total number of expansion search requests")
+            .register();
+
+    private final Counter expansionSearchErrorsTotal = Counter.build()
+            .name("requests_expansion_errors")
+            .help("Total number of expansion search errors")
+            .register();
+
+    private final Counter expansionSearchRequestsDuration = Counter.build()
+            .name("duration_expansion_total_ns")
+            .help("Total duration of expansion search requests")
+            .register();
+
+    private final Counter expansionSearchNeo4jSearchDuration = Counter.build()
+            .name("duration_expansion_neo4j_ns")
+            .help("Total duration of expansion Neo4j cypher query")
+            .register();
+
+    private final Counter expansionSearchHitsTotal = Counter.build()
+            .name("results_expansion_hits_molecules")
+            .help("Total number of molecules found for expansion search")
             .register();
 
 
@@ -125,11 +152,10 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .endRest();
 
 
-        // example:
-        // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
         rest("/v2/search/").description("Fragnet search")
                 .bindingMode(RestBindingMode.json)
-                // service descriptor
+                // example:
+                // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
                 .get("neighbourhood/{smiles}").description("Neighbourhood search")
                 .param().name("smiles").type(RestParamType.path).description("SMILES query").endParam()
                 .param().name("hac").type(RestParamType.query).description("Heavy atom count bounds").endParam()
@@ -137,7 +163,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
                 .param().name("calcs").type(RestParamType.query).description("Calculations to execute").endParam()
                 .param().name("suppliers").type(RestParamType.query).description("Suppliers to include").endParam()
-                .param().name("limit").type(RestParamType.query).description("Limit parameter for the number of paths to return from the graph query").endParam()
+                .param().name("pathLimit").type(RestParamType.query).description("Limit for the number of paths to return from the graph query").endParam()
                 .produces("application/json")
                 .route()
                 .process((Exchange exch) -> {
@@ -165,6 +191,22 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .process((Exchange exch) -> {
                     findCalculations(exch);
                 })
+                .endRest()
+                // example:
+                // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=1"
+                .get("expand/{smiles}").description("Expansion search")
+                .param().name("smiles").type(RestParamType.path).description("SMILES query").endParam()
+                .param().name("hac").type(RestParamType.query).description("Heavy atom count bounds").endParam()
+                .param().name("rac").type(RestParamType.query).description("Ring atom count bounds").endParam()
+                .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
+                .param().name("suppliers").type(RestParamType.query).description("Suppliers to include").endParam()
+                .param().name("pathLimit").type(RestParamType.query).description("Limit for the number of paths to return from the graph query").endParam()
+                .produces("application/json")
+                .route()
+                .process((Exchange exch) -> {
+                    executeExpansionQuery(exch);
+                })
+                .endRest()
         ;
     }
 
@@ -172,9 +214,9 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
         Message message = exch.getIn();
 
-        List<Map<String,String>> list = new ArrayList<>();
-        for (Calculator.Calculation calc : Calculator.Calculation.values()){
-            Map<String,String> map = new LinkedHashMap<>();
+        List<Map<String, String>> list = new ArrayList<>();
+        for (Calculator.Calculation calc : Calculator.Calculation.values()) {
+            Map<String, String> map = new LinkedHashMap<>();
             map.put("id", calc.toString());
             map.put("name", calc.propname);
             map.put("description", calc.description);
@@ -194,15 +236,15 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         try {
             Availability availability = getAvailability(smiles);
             if (availability == null || availability.getItems().size() == 0) {
-                message.setBody("{\"error\": \"Query Failed\",\"message\",\"SMILES not found\"}");
+                message.setBody("{\"error\": \"NeighbourhoodQuery Failed\",\"message\",\"SMILES not found\"}");
                 message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
             } else {
                 message.setBody(availability);
                 message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
             }
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Query Failed", ex);
-            message.setBody("{\"error\": \"Query Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
+            LOG.log(Level.SEVERE, "NeighbourhoodQuery Failed", ex);
+            message.setBody("{\"error\": \"NeighbourhoodQuery Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
         }
     }
@@ -238,8 +280,8 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             message.setBody(suppliers);
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Query Failed", ex);
-            message.setBody("{\"error\": \"Query Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
+            LOG.log(Level.SEVERE, "NeighbourhoodQuery Failed", ex);
+            message.setBody("{\"error\": \"NeighbourhoodQuery Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
         }
     }
@@ -265,6 +307,77 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         }
         return supplierMappings;
     }
+
+    void executeExpansionQuery(Exchange exch) {
+
+        expansionSearchRequestsTotal.inc();
+
+        Message message = exch.getIn();
+
+//        message.getHeaders().forEach((k,v) -> {
+//            System.out.println(k + " -> " +v);
+//        });
+
+        long t0 = System.nanoTime();
+        String username = getUsername(exch);
+
+        try {
+            String smilesQuery = message.getHeader("smiles", String.class);
+            if (smilesQuery == null || smilesQuery.isEmpty()) {
+                throw new IllegalArgumentException("Smiles must be specified");
+            }
+            Integer hops = message.getHeader("hops", Integer.class);
+            Integer hac = message.getHeader("hac", Integer.class);
+            Integer rac = message.getHeader("rac", Integer.class);
+            Integer pathLimit = message.getHeader("pathLimit", Integer.class);
+            if (pathLimit != null && pathLimit > 5000) {
+                throw new IllegalArgumentException("Path limit cannot be greater than 5000");
+            }
+            String suppls = message.getHeader("suppliers", String.class);
+            LOG.info(String.format("hops=&s hac=%s rac=%s", hops, hac, rac));
+
+            List<String> suppliers = parseSuppliers(suppls);
+
+            ExpansionResults result;
+            try (Session session = graphdb.getSession()) {
+                // execute the query
+                ExpansionQuery query = new ExpansionQuery(session, getSupplierMappings());
+                if (pathLimit != null) { // default limit is 5000
+                    query.setLimit(pathLimit);
+                }
+                long n0 = System.nanoTime();
+                result = query.executeQuery(smilesQuery, hops, hac, rac, suppliers);
+                long n1 = System.nanoTime();
+                expansionSearchNeo4jSearchDuration.inc((double) (n1 - n0));
+                expansionSearchHitsTotal.inc((double) result.getSize());
+            }
+
+            if (result.getSize() == 0) { // no results found
+                LOG.info("ExpansionQuery found no results");
+                message.setBody("{\"error\": \"No Results\",\"message\": \"ExpansionQuery molecule not found in the database\"}");
+                message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+
+            } else {
+                message.setBody(result);
+                message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+                long t1 = System.nanoTime();
+                long duration = t1 - t0; //nanos
+                writeToExpansionQueryLog(username, "ExpansionQuery", duration, result.getSize(), result.getPathCount());
+                expansionSearchRequestsDuration.inc((double) duration);
+            }
+
+
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "ExpansionQuery Failed", ex);
+            expansionSearchErrorsTotal.inc();
+            message.setBody("{\"error\": \"ExpansionQuery Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
+            message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+
+            long t1 = System.nanoTime();
+            writeErrorToQueryLog(username, "ExpansionQuery", t1 - t0, ex.getLocalizedMessage());
+        }
+    }
+
 
     void executeNeighbourhoodQuery(Exchange exch) {
 
@@ -302,20 +415,20 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             NeighbourhoodGraph result;
             try (Session session = graphdb.getSession()) {
                 // execute the query
-                SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session, getSupplierMappings());
+                NeighbourhoodQuery query = new NeighbourhoodQuery(session, getSupplierMappings());
                 if (pathLimit != null) { // default limit is 5000
                     query.setLimit(pathLimit);
                 }
                 long n0 = System.nanoTime();
                 result = query.executeNeighbourhoodQuery(smilesQuery, hops, hac, rac, suppliers, groupLimit);
                 long n1 = System.nanoTime();
-                neighbourhoodSearchNeo4jSearchDuration.inc((double)(n1-n0));
-                neighbourhoodSearchHitsTotal.inc((double)result.getNodes().size());
+                neighbourhoodSearchNeo4jSearchDuration.inc((double) (n1 - n0));
+                neighbourhoodSearchHitsTotal.inc((double) result.getNodes().size());
             }
 
             if (result.getNodes().size() == 0) { // no results found
-                LOG.info("Query found no results");
-                message.setBody("{\"error\": \"No Results\",\"message\": \"Query molecule not found in the database\"}");
+                LOG.info("NeighbourhoodQuery found no results");
+                message.setBody("{\"error\": \"No Results\",\"message\": \"NeighbourhoodQuery molecule not found in the database\"}");
                 message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 
             } else {
@@ -340,14 +453,14 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
                 long t1 = System.nanoTime();
                 long duration = t1 - t0; //nanos
-                writeToQueryLog(username, "NeighbourhoodQuery", duration, result.getNodeCount(), result.getEdgeCount(), result.getGroupCount());
+                writeToNeighbourhoodQueryLog(username, "NeighbourhoodQuery", duration, result.getNodeCount(), result.getEdgeCount(), result.getGroupCount());
                 neighbourhoodSearchRequestsDuration.inc((double) duration);
             }
 
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Query Failed", ex);
+            LOG.log(Level.SEVERE, "NeighbourhoodQuery Failed", ex);
             neighbourhoodSearchErrorsTotal.inc();
-            message.setBody("{\"error\": \"Query Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
+            message.setBody("{\"error\": \"NeighbourhoodQuery Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
 
             long t1 = System.nanoTime();

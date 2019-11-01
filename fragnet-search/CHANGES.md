@@ -39,3 +39,7 @@
 
 ### 05-OCT-2019
 * memberCount property added for the original number of group members before `groupLimit` is applied
+
+### 01-NOV-2019
+* added expansion search endpoint
+* enabled swagger docs

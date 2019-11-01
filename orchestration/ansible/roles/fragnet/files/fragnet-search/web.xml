@@ -70,6 +70,22 @@
         <!-- no auth-constraint -->
     </security-constraint>
 
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>fragnet-search swagger</web-resource-name>
+            <url-pattern>/rest/api-doc</url-pattern>
+        </web-resource-collection>
+        <!-- no auth-constraint -->
+    </security-constraint>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>fragnet-search swagger</web-resource-name>
+            <url-pattern>/rest/versions</url-pattern>
+        </web-resource-collection>
+        <!-- no auth-constraint -->
+    </security-constraint>
+
     <login-config>
         <auth-method>KEYCOAK</auth-method>
         <realm-name>squonk</realm-name>

@@ -40,7 +40,7 @@ public class SuppliersQuery {
 
     public List<Map<String,String>> getSuppliers() {
         List<Map<String,String>> suppliers = session.writeTransaction((tx) -> {
-            LOG.info("Executing Query: " + QUERY);
+            LOG.info("Executing NeighbourhoodQuery: " + QUERY);
             StatementResult result = tx.run(QUERY);
             List<Map<String,String>> results = new ArrayList<>();
             result.stream().forEachOrdered((r) -> {

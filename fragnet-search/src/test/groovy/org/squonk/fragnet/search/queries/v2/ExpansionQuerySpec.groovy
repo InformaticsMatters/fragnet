@@ -16,26 +16,25 @@
 package org.squonk.fragnet.search.queries.v2
 
 import org.neo4j.driver.v1.Session
-import org.squonk.fragnet.search.model.v2.Availability
-import org.squonk.fragnet.search.model.v2.NeighbourhoodGraph
+import org.squonk.fragnet.search.model.v2.ExpansionResults
 import org.squonk.fragnet.service.GraphDB
+import spock.lang.Ignore
 import spock.lang.Specification
 
-import javax.validation.constraints.NotNull
+class ExpansionQuerySpec extends Specification {
 
-class SimpleNeighbourhoodQuerySpec extends Specification {
+    @Ignore
+    void "simple search"() {
+        GraphDB db = new GraphDB()
+        Session session = db.getSession()
+        ExpansionQuery query = new ExpansionQuery(session, null)
 
-//    void "4HBP-1-hop"() {
-//        GraphDB db = new GraphDB()
-//        Session session = db.getSession()
-//
-//        when:
-//        NeighbourhoodQuery query = new NeighbourhoodQuery(session, [:])
-//        NeighbourhoodGraph result = query.executeNeighbourhoodQuery('Oc1ccc(-c2ccccc2)cc1', 1, 3, 1, null)
-//        print "Results: $results.nodeCount"
-//
-//        then:
-//        result.nodeCount > 0
-//    }
+        when:
+        ExpansionResults results = query.executeQuery("CCOc1ccccc1CN1CCC(O)CC1", 1, 10, 3, null)
+        println "Found ${results.getSize()} items"
+
+        then:
+        results.getSize() > 0
+    }
 
 }

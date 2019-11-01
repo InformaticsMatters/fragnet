@@ -22,15 +22,13 @@ import org.apache.camel.model.rest.RestParamType;
 import org.neo4j.driver.v1.Session;
 import org.squonk.fragnet.chem.Calculator;
 import org.squonk.fragnet.search.model.v1.NeighbourhoodGraph;
-import org.squonk.fragnet.search.queries.v1.SimpleNeighbourhoodQuery;
+import org.squonk.fragnet.search.queries.v1.Query;
 import org.squonk.fragnet.service.AbstractFragnetSearchRouteBuilder;
 import org.squonk.fragnet.service.GraphDB;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -119,7 +117,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             NeighbourhoodGraph result;
             try (Session session = graphdb.getSession()) {
                 // execute the query
-                SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session);
+                Query query = new Query(session);
                 if (limit != null) { // default limit is 1000
                     query.setLimit(limit);
                 }
@@ -134,11 +132,11 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             message.setBody(result);
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
             long t1 = new Date().getTime();
-            writeToQueryLog(username, "NeighbourhoodQuery", t1 - t0, result.numNodes(), result.numEdges(), result.numGroups());
+            writeToNeighbourhoodQueryLog(username, "NeighbourhoodQuery", t1 - t0, result.numNodes(), result.numEdges(), result.numGroups());
 
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Query Failed", ex);
-            message.setBody("{\"error\": \"Query Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
+            LOG.log(Level.SEVERE, "NeighbourhoodQuery Failed", ex);
+            message.setBody("{\"error\": \"NeighbourhoodQuery Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
 
             long t1 = new Date().getTime();

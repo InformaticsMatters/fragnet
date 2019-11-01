@@ -256,7 +256,96 @@ The `items` property will contain one record for each form that is available. Th
 the actual form that is available (e.g. with stereochemistry and salts if present).
 The suppliers code for that form is present in the `items.code` property. The part after the colon is the actual
 identifier that will be recognised by the supplier.
-The `smiles` that is the first property you see (e.g. as a top level property) is the SMILES that was queried. 
+The `smiles` that is the first property you see (e.g. as a top level property) is the SMILES that was queried.
+
+#### Expansion search
+
+This is a simple API that fetches molecules related to the query molecule. Many aspects are the same as the 
+Neighbourhood search, except for:
+
+* standardised chiral molecules are returned whereas neighbourhood search returns achiral forms
+* no calculations can be performed
+* grouping is not performed
+
+This API is expected to be used for expanding a query molecule to get related molecules that can be further analysed.
+
+This is available from the `fragnet-search/rest/v2/search/expand/{smiles}` endpoint.
+
+Parameters:
+
+| Name       | Type  | Required | Description |
+|------------|-------|----------|-------------|
+| smiles     | URL   | Yes      | The smiles string for the molecule to look for. See below for requirements about standardisation and canonicalisation. |
+| hac        | Query | No       | The difference in heavy atom count compared to the query that is allowed it the result molecules. |
+| rac        | Query | No       | The difference in ring atom count compared to the query that is allowed it the result molecules. |
+| hops       | Query | No       | The number of graph edges to traverse from the query molecule. Must be 1 or 2. Default is 1. |
+| suppliers  | Query | No       | Comma separated list of suppliers to restrict results to. |
+| pathLimit  | Query | No       | The maximum number of paths to return from the graph query. Default is 1000 and this is usually more than enough. Values greater than 5000 are not permitted. | 
+
+These parameters have the same meaning as in neighbourhood search.
+
+An example query run with [curl] might look like this:
+```
+curl "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/expand/COc1ccccc1CN1CCCC1?hac=3&rac=1&hops=1"
+```
+
+#### Expansion search results
+
+This is a simple JSON datastructure as follows:
+
+```json
+{
+  "query": "MATCH p=(m:F2)-[:FRAG]-(e:Mol)<-[:NonIso*0..1]-(c:Mol)\nWHERE m.smiles=$smiles AND e.smiles <> $smiles AND abs(m.hac - e.hac) <= $hac AND abs(m.chac - e.chac) <= $rac\nRETURN p LIMIT $limit",
+  "parameters": {
+    "limit": 5000,
+    "hac": 3,
+    "smiles": "c1ccc(Nc2nc3ccccc3o2)cc1",
+    "rac": 1
+  },
+  "refmol": "c1ccc(Nc2nc3ccccc3o2)cc1",
+  "resultAvailableAfter": 1,
+  "processingTime": 97,
+  "pathCount": 12,
+  "size": 12,
+  "members": [
+    {
+      "smiles": "O=C(O)c1cccc(Nc2nc3ccccc3o2)c1",
+      "props": {
+        "chac": 15,
+        "neighbours": 6,
+        "hac": 19
+      },
+      "cmpd_ids": [
+        "MOLPORT:010-317-842"
+      ]
+    },
+    {
+      "smiles": "O=C(O)c1ccc(Nc2nc3ccccc3o2)cc1",
+      "props": {
+        "chac": 15,
+        "neighbours": 4,
+        "hac": 19
+      },
+      "cmpd_ids": [
+        "MOLPORT:010-317-843"
+      ]
+    },
+    {
+      "smiles": "Nc1cccc2oc(Nc3ccccc3)nc12",
+      "props": {
+        "chac": 15,
+        "neighbours": 19,
+        "hac": 17
+      },
+      "cmpd_ids": [
+        "CHEMSPACE-BB:CSC008446951"
+      ]
+    }
+  ]
+}
+```
+
+The main part is the members property that holds an array of the related molecules.
 
 ## Authentication
 

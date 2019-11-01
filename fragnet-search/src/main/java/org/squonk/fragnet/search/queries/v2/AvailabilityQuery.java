@@ -44,7 +44,7 @@ public class AvailabilityQuery {
 
     public Availability getAvailability(String smiles) {
         Availability value = session.writeTransaction((tx) -> {
-            LOG.fine("Executing Query: " + QUERY);
+            LOG.fine("Executing NeighbourhoodQuery: " + QUERY);
             StatementResult result = tx.run(QUERY, parameters(new Object[] {"smiles", smiles}));
             Availability availability = new Availability(smiles);
             result.stream().forEachOrdered((r) -> {

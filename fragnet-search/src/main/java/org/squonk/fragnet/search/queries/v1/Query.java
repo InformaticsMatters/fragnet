@@ -22,7 +22,7 @@ import org.neo4j.driver.v1.types.Path;
 import org.squonk.fragnet.chem.Calculator;
 import org.squonk.fragnet.chem.MolStandardize;
 import org.squonk.fragnet.search.model.v1.NeighbourhoodGraph;
-import org.squonk.fragnet.search.queries.AbstractSimpleNeighbourhoodQuery;
+import org.squonk.fragnet.search.queries.AbstractQuery;
 import org.squonk.fragnet.search.queries.QueryAndParams;
 
 import javax.validation.constraints.NotNull;
@@ -36,14 +36,14 @@ import java.util.logging.Logger;
 import static org.neo4j.driver.v1.Values.parameters;
 
 /**
- * v1 API Query for fragment network neighbours
+ * v1 API NeighbourhoodQuery for fragment network neighbours
  *
  */
-public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
+public class Query extends AbstractQuery {
 
-    private static final Logger LOG = Logger.getLogger(SimpleNeighbourhoodQuery.class.getName());
+    private static final Logger LOG = Logger.getLogger(Query.class.getName());
 
-    public SimpleNeighbourhoodQuery(Session session) {
+    public Query(Session session) {
         super(session);
     }
 
@@ -65,12 +65,12 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
      */
     public NeighbourhoodGraph executeNeighbourhoodQuery(@NotNull String smiles, Integer hops, Integer hac, Integer rac) {
 
-        String stdSmiles = MolStandardize.prepareMol(smiles);
+        String stdSmiles = MolStandardize.prepareMol(smiles, false, false);
 
         QueryAndParams qandp = generateCypherQuery(stdSmiles, hops, hac, rac);
 
         NeighbourhoodGraph graph = getSession().writeTransaction((tx) -> {
-            LOG.info("Executing Query: " + qandp.getQuery());
+            LOG.info("Executing NeighbourhoodQuery: " + qandp.getQuery());
             StatementResult result = tx.run(qandp.getQuery(), parameters(qandp.getParams().toArray()));
             return handleResult(result, stdSmiles);
         });
@@ -153,7 +153,7 @@ public class SimpleNeighbourhoodQuery extends AbstractSimpleNeighbourhoodQuery {
 
         try (Session session = driver.session()) {
 
-            SimpleNeighbourhoodQuery query = new SimpleNeighbourhoodQuery(session);
+            Query query = new Query(session);
             //NeighbourhoodGraph result = query.executeNeighbourhoodQuery("c1ccc(Nc2nc3ccccc3o2)cc1", 2, 3, 1);
             //NeighbourhoodGraph result = query.executeNeighbourhoodQuery("N(C1=NC2=CC=CC=C2O1)C1=CC=CC=C1", 2, 3, 1);
             //NeighbourhoodGraph result = query.executeNeighbourhoodQuery("Oc1ccc(-c2ccccc2)cc1", 2, 3, 1); // 4-OH biphenyl

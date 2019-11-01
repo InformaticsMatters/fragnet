@@ -34,7 +34,7 @@ public class FragnetSearchRouteBuilderCommon extends RouteBuilder {
     }
 
     @Override
-    public void configure() throws Exception {
+    public void configure() {
 
 
         restConfiguration().component("servlet").host("0.0.0.0")
@@ -42,10 +42,10 @@ public class FragnetSearchRouteBuilderCommon extends RouteBuilder {
                 .corsHeaderProperty("Access-Control-Allow-Headers",
                         "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, " +
                                 "Access-Control-Request-Headers, Authorization")
-                .corsHeaderProperty("Access-Control-Allow-Credentials", "true");
-//                .apiProperty("cors", "true")
-//                .apiContextPath("/api-doc")
-//                .apiProperty("api.title", "Fragnet services").apiProperty("api.version", "1.0")
+                .corsHeaderProperty("Access-Control-Allow-Credentials", "true")
+                .apiProperty("cors", "true")
+                .apiContextPath("/api-doc")
+                .apiProperty("api.title", "Fragnet services").apiProperty("api.version", "2");
 
 
         /* These are the REST endpoints - exposed as public web services

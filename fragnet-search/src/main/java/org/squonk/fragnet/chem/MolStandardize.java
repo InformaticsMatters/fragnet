@@ -25,12 +25,12 @@ public class MolStandardize {
     private static final Logger LOG = Logger.getLogger(MolStandardize.class.getName());
 
 
-    public static String prepareMol(@NotNull String smiles) {
+    public static String prepareMol(@NotNull String smiles, boolean includeStereo, boolean kekulise) {
         RWMol mol = RWMol.MolFromSmiles(smiles);
         if (mol == null) {
             throw new RuntimeException("Invalid molecule: " + smiles);
         }
-        String canon = mol.MolToSmiles(true);
+        String canon = mol.MolToSmiles(includeStereo, kekulise);
         LOG.finer("Smiles: " + smiles + " Canon: " + canon);
         if (canon == null) {
             throw new RuntimeException("Unable to canonicalize molecule: " + smiles);
