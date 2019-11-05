@@ -24,4 +24,7 @@ public interface Constants {
     String HYPHEN = "-";
 
     String UNDEFINED = "undefined";
+
+    String MIME_TYPE_SMILES = "chemical/x-daylight-smiles";
+    String MIME_TYPE_MOLFILE = "chemical/x-mdl-molfile";
 }

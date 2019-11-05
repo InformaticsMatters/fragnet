@@ -71,7 +71,8 @@ public class ExpansionQuery extends AbstractQuery {
 
     /** Execute a query for related molecules around a particular molecule.
      *
-     * @param smiles The query structure. Will be canonicalised and made achiral before being queried.
+     * @param mol The query structure. Will be canonicalised and made achiral before being queried.
+     * @param mimeType The format of the molecule. Currently must be one of chemical/x-daylight-smiles or chemical/x-mdl-molfile
      * @param hops The number of edges to traverse. Defaults to 1 if not specified.
      * @param hac A limit for the change in the heavy atom counts. If null then no limit.
      * @param rac A limit for the change in the ring atom counts. If null then no limit.
@@ -79,13 +80,14 @@ public class ExpansionQuery extends AbstractQuery {
      * @return
      */
     public ExpansionResults executeQuery(
-            @NotNull String smiles,
+            @NotNull String mol,
+            @NotNull String mimeType,
             Integer hops,
             Integer hac,
             Integer rac,
             List<String> suppliers) {
 
-        String stdSmiles = MolStandardize.prepareMol(smiles, false, false);
+        String stdSmiles = MolStandardize.prepareMol(mol, mimeType, false, false);
 //        LOG.info("Supplied SMILES: " + smiles);
 //        LOG.info("Using SMILES: " + stdSmiles);
 

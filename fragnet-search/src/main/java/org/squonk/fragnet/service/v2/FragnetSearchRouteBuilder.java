@@ -20,9 +20,12 @@ import io.prometheus.client.Counter;
 import io.prometheus.client.exporter.common.TextFormat;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
+import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
+import org.apache.camel.spi.DataFormat;
 import org.neo4j.driver.v1.Session;
+import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.chem.Calculator;
 import org.squonk.fragnet.search.model.v2.Availability;
 import org.squonk.fragnet.search.model.v2.ExpansionResults;
@@ -195,6 +198,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 // example:
                 // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=1"
                 .get("expand/{smiles}").description("Expansion search")
+                .bindingMode(RestBindingMode.off)
                 .param().name("smiles").type(RestParamType.path).description("SMILES query").endParam()
                 .param().name("hac").type(RestParamType.query).description("Heavy atom count bounds").endParam()
                 .param().name("rac").type(RestParamType.query).description("Ring atom count bounds").endParam()
@@ -204,8 +208,24 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .produces("application/json")
                 .route()
                 .process((Exchange exch) -> {
-                    executeExpansionQuery(exch);
+                    executeExpansionQuery(exch, Constants.MIME_TYPE_SMILES);
                 })
+                .marshal().json(JsonLibrary.Jackson)
+                .endRest()
+                .post("expand").description("Expansion search")
+                .bindingMode(RestBindingMode.off)
+                .param().name("hac").type(RestParamType.query).description("Heavy atom count bounds").endParam()
+                .param().name("rac").type(RestParamType.query).description("Ring atom count bounds").endParam()
+                .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
+                .param().name("suppliers").type(RestParamType.query).description("Suppliers to include").endParam()
+                .param().name("pathLimit").type(RestParamType.query).description("Limit for the number of paths to return from the graph query").endParam()
+                .produces("application/json")
+                .route()
+                .process((Exchange exch) -> {
+                    String contentType = exch.getIn().getHeader(Exchange.CONTENT_TYPE, Constants.MIME_TYPE_MOLFILE, String.class);
+                    executeExpansionQuery(exch, contentType);
+                })
+                .marshal().json(JsonLibrary.Jackson)
                 .endRest()
         ;
     }
@@ -308,7 +328,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         return supplierMappings;
     }
 
-    void executeExpansionQuery(Exchange exch) {
+    void executeExpansionQuery(Exchange exch, String mimeType) {
 
         expansionSearchRequestsTotal.inc();
 
@@ -322,10 +342,6 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         String username = getUsername(exch);
 
         try {
-            String smilesQuery = message.getHeader("smiles", String.class);
-            if (smilesQuery == null || smilesQuery.isEmpty()) {
-                throw new IllegalArgumentException("Smiles must be specified");
-            }
             Integer hops = message.getHeader("hops", Integer.class);
             Integer hac = message.getHeader("hac", Integer.class);
             Integer rac = message.getHeader("rac", Integer.class);
@@ -338,6 +354,16 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
             List<String> suppliers = parseSuppliers(suppls);
 
+            String molecule;
+            if (Constants.MIME_TYPE_SMILES.equals(mimeType)) {
+                molecule = message.getHeader("smiles", String.class);
+            } else {
+                molecule = message.getBody(String.class);
+            }
+            if (molecule == null || molecule.isEmpty()) {
+                throw new IllegalArgumentException("Query molecule must be specified");
+            }
+
             ExpansionResults result;
             try (Session session = graphdb.getSession()) {
                 // execute the query
@@ -346,7 +372,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                     query.setLimit(pathLimit);
                 }
                 long n0 = System.nanoTime();
-                result = query.executeQuery(smilesQuery, hops, hac, rac, suppliers);
+                result = query.executeQuery(molecule, mimeType, hops, hac, rac, suppliers);
                 long n1 = System.nanoTime();
                 expansionSearchNeo4jSearchDuration.inc((double) (n1 - n0));
                 expansionSearchHitsTotal.inc((double) result.getSize());

@@ -19,6 +19,7 @@ package org.squonk.fragnet.search.queries.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.neo4j.driver.v1.*;
 import org.neo4j.driver.v1.types.Path;
+import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.chem.Calculator;
 import org.squonk.fragnet.chem.MolStandardize;
 import org.squonk.fragnet.search.model.v1.NeighbourhoodGraph;
@@ -65,7 +66,7 @@ public class Query extends AbstractQuery {
      */
     public NeighbourhoodGraph executeNeighbourhoodQuery(@NotNull String smiles, Integer hops, Integer hac, Integer rac) {
 
-        String stdSmiles = MolStandardize.prepareMol(smiles, false, false);
+        String stdSmiles = MolStandardize.prepareMol(smiles, Constants.MIME_TYPE_SMILES, false, false);
 
         QueryAndParams qandp = generateCypherQuery(stdSmiles, hops, hac, rac);
 

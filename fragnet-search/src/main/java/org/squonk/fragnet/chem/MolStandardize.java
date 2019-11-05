@@ -16,6 +16,7 @@
 package org.squonk.fragnet.chem;
 
 import org.RDKit.RWMol;
+import org.squonk.fragnet.Constants;
 
 import javax.validation.constraints.NotNull;
 import java.util.logging.Logger;
@@ -25,16 +26,26 @@ public class MolStandardize {
     private static final Logger LOG = Logger.getLogger(MolStandardize.class.getName());
 
 
-    public static String prepareMol(@NotNull String smiles, boolean includeStereo, boolean kekulise) {
-        RWMol mol = RWMol.MolFromSmiles(smiles);
+    public static String prepareMol(@NotNull String molecule, @NotNull String mimeType, boolean includeStereo, boolean kekulise) {
+
+        RWMol mol;
+        if (Constants.MIME_TYPE_SMILES.equals(mimeType)) {
+            mol = RWMol.MolFromSmiles(molecule);
+        } else if (Constants.MIME_TYPE_MOLFILE.equals(mimeType)) {
+            LOG.info("MOL: |" + molecule + "|");
+            mol = RWMol.MolFromMolBlock(molecule, true);
+        } else {
+            throw new IllegalArgumentException("Unexpected molecule format: " + mimeType);
+        }
+
         if (mol == null) {
-            throw new RuntimeException("Invalid molecule: " + smiles);
+            throw new RuntimeException("Invalid molecule: " + molecule);
         }
         String canon = mol.MolToSmiles(includeStereo, kekulise);
-        LOG.finer("Smiles: " + smiles + " Canon: " + canon);
         if (canon == null) {
-            throw new RuntimeException("Unable to canonicalize molecule: " + smiles);
+            throw new RuntimeException("Unable to canonicalize molecule: " + mol);
         }
+        LOG.finer("Canonical SMILES: " + canon);
         return canon;
     }
 }

@@ -19,6 +19,7 @@ package org.squonk.fragnet.search.queries.v2;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.types.Path;
+import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.chem.MolStandardize;
 import org.squonk.fragnet.search.model.v2.NeighbourhoodGraph;
 import org.squonk.fragnet.search.queries.AbstractQuery;
@@ -81,7 +82,7 @@ public class NeighbourhoodQuery extends AbstractQuery {
             List<String> suppliers,
             Integer groupLimit) {
 
-        String stdSmiles = MolStandardize.prepareMol(smiles, false, false);
+        String stdSmiles = MolStandardize.prepareMol(smiles, Constants.MIME_TYPE_SMILES, false, false);
 
         QueryAndParams qandp = generateCypherQuery(stdSmiles, hops, hac, rac, suppliers);
 
