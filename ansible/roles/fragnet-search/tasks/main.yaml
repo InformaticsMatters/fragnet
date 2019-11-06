@@ -1,6 +1,3 @@
 ---
 
-- import_tasks: configure-keycloak-client.yaml
-
-- import_tasks: create-project.yaml
 - import_tasks: deploy.yaml
