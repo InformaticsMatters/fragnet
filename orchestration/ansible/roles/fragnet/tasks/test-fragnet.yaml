@@ -40,7 +40,6 @@
     msg: >
       fragnet_username={{ fragnet_username }}
       keycloak_server_url={{ keycloak_server_url }}
-
   when: fragnet_debug|bool
 
 - name: Get API token
@@ -68,15 +67,23 @@
 # This becomes a 'suppliers_in_db' fact (a list)
 # that we reply on in other tests...
 
+- name: Set query URL
+  set_fact:
+    query_url: https://{{ api }}/search/suppliers
+  vars:
+    api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ fragnet_api }}"
+
+- name: Display query URL
+  debug:
+    var: query_url
+
 - name: Run suppliers query
   uri:
-    url: https://{{ api }}/search/suppliers
+    url: "{{ query_url }}"
     headers:
       Authorization: bearer {{ fragnet_token }}
     timeout: "{{ fragnet_query_timeout_s|int }}"
     validate_certs: "{{ fragnet_validate_certs }}"
-  vars:
-    api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ fragnet_api }}"
   register: suppliers_result
 
 - name: Collect result's suppliers (sorted)
