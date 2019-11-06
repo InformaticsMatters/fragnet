@@ -64,4 +64,10 @@
   - configmap.yml.j2
   - deployment.yml.j2
   - service.yml.j2
+
+- name: Deploy application route
+  k8s:
+    definition: "{{ lookup('template', item)|from_yaml }}"
+  loop:
   - route.yml.j2
+  when: fs_enable_route|bool

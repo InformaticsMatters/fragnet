@@ -8,6 +8,7 @@ fs_route: fragnet-search
 fs_keycloak_client_id: fragnet-search
 
 fs_enable_acme: False
+fs_enable_route: yes
 
 fs_neo4j_server: "{{ lookup('env', 'NEO4J_SERVER') }}"
 fs_neo4j_user: "{{ lookup('env', 'NEO4J_USER') }}"
