@@ -21,6 +21,8 @@ export OS_USER_PASSWORD="SetMe"
 # Keycloak material
 # the location of the Keycloak server. e.g. "https://squonk.it/auth"
 export KEYCLOAK_SERVER_URL="SetMe"
+export KEYCLOAK_ADMIN="SetMe"
+export KEYCLOAK_ADMIN_PASSWORD="SetMe"
 export KEYCLOAK_PUBLIC_KEY="SetMe"
 export KEYCLOAK_SECRET="SetMe"
 export KEYCLOAK_REALM="SetMe"

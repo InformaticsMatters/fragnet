@@ -27,12 +27,6 @@ spec:
           value: {{ fs_neo4j_user }}
         - name: NEO4J_PASSWORD
           value: {{ fs_neo4j_password }}
-        - name: KEYCLOAK_SERVER_URL
-          value: {{ oc_keycloak_server_url }}
-        - name: KEYCLOAK_PUBLIC_KEY
-          value: {{ oc_keycloak_public_key }}
-        - name: KEYCLOAK_SECRET
-          value: {{ oc_keycloak_secret }}
         - name: LOG_ROOT
           value: /logs
         volumeMounts:

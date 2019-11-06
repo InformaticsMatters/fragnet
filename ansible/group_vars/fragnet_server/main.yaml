@@ -13,4 +13,5 @@ oc_keycloak_server_url: "{{ lookup('env', 'KEYCLOAK_SERVER_URL') }}"
 oc_keycloak_realm: "{{ lookup('env', 'KEYCLOAK_REALM') }}"
 oc_keycloak_public_key: "{{ lookup('env', 'KEYCLOAK_PUBLIC_KEY') }}"
 oc_keycloak_secret: "{{ lookup('env', 'KEYCLOAK_SECRET') }}"
-
+oc_keycloak_admin: "{{ lookup('env', 'KEYCLOAK_ADMIN') }}"
+oc_keycloak_admin_password: "{{ lookup('env', 'KEYCLOAK_ADMIN_PASSWORD') }}"

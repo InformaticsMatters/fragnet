@@ -37,21 +37,17 @@
 
 # Clean-up the infrastructure
 
-#- name: Get Fragent Search Keycloak Client ID
-#  uri:
-#    url: "{{ oc_keycloak_server_url }}/admin/realms/{{ oc_keycloak_realm }}/clients?clientId={{ fs_keycloak_client_id }}"
-#    headers:
-#      Authorization: bearer {{ keycloak_token }}
-#  register: fs_client_result
-
-#- name: Delete Fragent Search Keycloak Client
-#  uri:
-#    url: "{{ oc_keycloak_server_url }}/admin/realms/{{ oc_keycloak_realm }}/clients/{{ fs_client_result.json[0].id }}"
-#    method: DELETE
-#    status_code: 204
-#    headers:
-#      Authorization: bearer {{ keycloak_token }}
-#  when: fs_client_result.json
+- name: Remove Keycloak Fragnet Search Client
+  local_action:
+    module: keycloak_client
+    auth_client_id: admin-cli
+    auth_keycloak_url: "{{ oc_keycloak_server_url }}"
+    auth_realm: master
+    auth_username: "{{ oc_keycloak_admin }}"
+    auth_password: "{{ oc_keycloak_admin_password }}"
+    realm: "{{ oc_keycloak_realm }}"
+    client_id: "{{ fs_keycloak_client_id }}"
+    state: absent
 
 - name: Login (admin)
   command: oc login https://{{ oc_master_hostname }} -u {{ oc_admin }} -p {{ oc_admin_password }}
