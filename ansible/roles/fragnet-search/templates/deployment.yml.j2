@@ -29,6 +29,13 @@ spec:
           value: {{ fs_neo4j_password }}
         - name: LOG_ROOT
           value: /logs
+        resources:
+          limits:
+            cpu: 4000m
+            memory: 8Gi
+          requests:
+            cpu: 1000m
+            memory: 4Gi
         volumeMounts:
         - mountPath: /usr/local/tomcat/webapps/fragnet-search/META-INF/context.xml
           name: fs-config-map
