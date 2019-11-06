@@ -52,6 +52,8 @@
     service_accounts_enabled: yes
     direct_access_grants_enabled: yes
     standard_flow_enabled: yes
+    default_roles:
+    - fragnet-search
 
 # Deploy the application
 
