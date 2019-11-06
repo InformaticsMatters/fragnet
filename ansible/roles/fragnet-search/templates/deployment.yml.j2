@@ -13,6 +13,7 @@ spec:
       labels:
         name: fragnet-search
     spec:
+      serviceAccountName: {{ fs_sa }}
       containers:
       - name: fragnet-search
         image: squonk/fragnet-search:{{ fs_image_tag }}
@@ -34,11 +35,6 @@ spec:
           value: {{ oc_keycloak_secret }}
         - name: LOG_ROOT
           value: /logs
-        - name: CATALINA_OPTS
-          value: >-
-            -Dkeycloak.baseurl={{ oc_keycloak_server_url }}
-            -Dkeycloak.publickey={{ oc_keycloak_public_key }}
-            -Dkeycloak.secret={{ oc_keycloak_secret }}
         volumeMounts:
         - mountPath: /usr/local/tomcat/webapps/fragnet-search/META-INF/context.xml
           name: fs-config-map

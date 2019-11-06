@@ -15,15 +15,15 @@ data:
   keycloak.json: |
     {
       "realm": "{{ oc_keycloak_realm }}",
-      "realm-public-key": "${keycloak.publickey}",
+      "realm-public-key": "{{ oc_keycloak_public_key }}",
       "bearer-only": false,
-      "auth-server-url": "${keycloak.baseurl}",
+      "auth-server-url": "{{ oc_keycloak_server_url }}",
       "ssl-required": "none",
       "disable-trust-manager": true,
       "resource": "fragnet-search",
       "principal-attribute": "preferred_username",
       "credentials": {
-        "secret": "${keycloak.secret}"
+        "secret": "{{ oc_keycloak_secret }}"
       },
       "use-resource-role-mappings": false
     }
