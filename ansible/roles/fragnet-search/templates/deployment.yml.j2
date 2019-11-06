@@ -16,7 +16,7 @@ spec:
       serviceAccountName: {{ fs_sa }}
       containers:
       - name: fragnet-search
-        image: squonk/fragnet-search:{{ fs_image_tag }}
+        image: squonk/fragnet-services:{{ fs_image_tag }}
         ports:
         - containerPort: 8080
           name: http

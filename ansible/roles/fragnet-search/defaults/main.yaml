@@ -2,7 +2,7 @@
 
 fs_project: fragnet-search
 fs_sa: fragnet-search
-fs_image_tag: 0.3.2
+fs_image_tag: latest
 fs_project_display_name: The Fragnet Search Project
 fs_route: fragnet-search
 fs_keycloak_client_id: fragnet-search
