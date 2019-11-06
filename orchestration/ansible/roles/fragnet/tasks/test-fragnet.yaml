@@ -10,9 +10,19 @@
 # First of all ... a basic test to check the engine's alive
 # by calling the REST 'ping' endpoint
 
+- name: Set serach engine URLs
+  set_fact:
+    fs_ping: https://{{ fragnet_search_domain }}/fragnet-search/rest/ping
+    fs_token: "{{ keycloak_server_url }}/realms/{{ keycloak_realm }}/protocol/openid-connect/token"
+
+- name: Display search engine ping URL
+  debug:
+    var: fs_ping
+
 - name: Ping the search engine
   uri:
-    url: https://{{ fragnet_search_domain }}/fragnet-search/rest/ping
+    url: "{{ fs_ping }}"
+    validate_certs: "{{ fragnet_validate_certs }}"
 
 # For more complex tests we'll need an API token.
 #
@@ -25,14 +35,17 @@
 # that the token lifespan is sufficient so it won't expire
 # before the tests have finished.
 
-- name: Display API username
+- name: Display token details
   debug:
-    var: fragnet_username
+    msg: >
+      fragnet_username={{ fragnet_username }}
+      keycloak_server_url={{ keycloak_server_url }}
+
   when: fragnet_debug|bool
 
 - name: Get API token
   uri:
-    url: https://squonk.it/auth/realms/squonk/protocol/openid-connect/token
+    url: "{{ fs_token }}"
     body:
       grant_type: password
       client_id: fragnet-search
@@ -61,6 +74,7 @@
     headers:
       Authorization: bearer {{ fragnet_token }}
     timeout: "{{ fragnet_query_timeout_s|int }}"
+    validate_certs: "{{ fragnet_validate_certs }}"
   vars:
     api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ fragnet_api }}"
   register: suppliers_result

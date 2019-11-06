@@ -58,15 +58,24 @@
 # Now run the availability query
 # for the supplied molecule...
 
-- name: Run availability query
-  uri:
-    url: https://{{ api }}/search/availability/{{ smiles|urlencode }}
-    headers:
-      Authorization: bearer {{ fragnet_token }}
-    timeout: "{{ fragnet_query_timeout_s|int }}"
+- name: Set availability query
+  set_fact:
+    availability_url: https://{{ api }}/search/availability/{{ smiles|urlencode }}
   vars:
     api: "{{ fragnet_search_domain }}/fragnet-search/rest/{{ fragnet_api }}"
     smiles: "{{ molecule.molecule }}"
+
+- name: Display availability query
+  debug:
+    var: availability_url
+
+- name: Run availability query
+  uri:
+    url: "{{ availability_url }}"
+    headers:
+      Authorization: bearer {{ fragnet_token }}
+    timeout: "{{ fragnet_query_timeout_s|int }}"
+    validate_certs: "{{ fragnet_validate_certs }}"
   register: availability_result
 
 # Collects the codes and SMILES strings returned
