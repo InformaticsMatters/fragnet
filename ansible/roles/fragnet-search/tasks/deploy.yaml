@@ -1,0 +1,10 @@
+---
+
+- name: Deploy application objects
+  k8s:
+    definition: "{{ lookup('template', item)|from_yaml }}"
+  loop:
+  - configmap.yml.j2
+  - deployment.yml.j2
+  - service.yml.j2
+  - route.yml.j2

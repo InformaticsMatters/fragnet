@@ -1,0 +1,38 @@
+---
+
+- name: Login (admin)
+  command: oc login https://{{ oc_master_hostname }} -u {{ oc_admin }} -p {{ oc_admin_password }}
+  changed_when: False
+
+- name: Move to Infrastructure Project
+  command: oc project {{ oc_infra_project }}
+  changed_when: False
+
+# Prepare Keycloak
+
+- name: Get Infrastructure Jobs
+  command: oc get jobs
+  register: j_result
+  changed_when: False
+
+- name: Initialise Keycloak (Client)
+  shell: >
+    oc process
+    -f {{ role_path }}/files/keycloak-client-init.yaml
+    -p INFRA_SA={{ oc_infra_sa }}
+    -p KEYCLOAK_REALM={{ oc_keycloak_realm }}
+    -p ROUTES_BASE_HOSTNAME={{ oc_master_hostname }}
+    -p CLIENT_SECRET={{ fs_client_secret }}
+    | oc create -f -
+  when: not j_result.stdout|regex_search('^client-creator\s', multiline=True)
+
+# Wait for the pods deployed here (Jobs)
+# to reach a "Completed" state...
+
+- name: Wait for Infrastructure initialisation
+  shell: oc describe jobs/client-creator | grep '1 Succeeded'
+  delay: 20
+  retries: "{{ (oc_pod_ready_timeout | int / 20) | int }}"
+  register: result
+  until: result.rc == 0
+  changed_when: False

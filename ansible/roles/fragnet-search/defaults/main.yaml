@@ -1,0 +1,21 @@
+---
+
+fs_project: fragnet-search
+fs_sa: fragnet-search
+fs_image_tag: 0.3.2
+fs_project_display_name: The Fragnet Search Project
+fs_route: fragnet-search
+fs_keycloak_client_id: fragnet-search
+
+fs_enable_acme: False
+
+fs_neo4j_server: "{{ lookup('env', 'NEO4J_SERVER') }}"
+fs_neo4j_user: "{{ lookup('env', 'NEO4J_USER') }}"
+fs_neo4j_password: "{{ lookup('env', 'NEO4J_PASSWORD') }}"
+
+fs_client_secret: "{{ lookup('env', 'FRAGNET_CLIENT_SECRET') }}"
+
+# Put this somewhere....
+
+oc_pod_ready_timeout: 600
+oc_pod_terminate_timeout: 300

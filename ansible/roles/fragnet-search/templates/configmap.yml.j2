@@ -1,0 +1,143 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: fs-config-map
+  namespace: {{ fs_project }}
+data:
+
+  context.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Context>
+      <Valve className="org.keycloak.adapters.tomcat.KeycloakAuthenticatorValve"/>
+    </Context>
+
+  keycloak.json: |
+    {
+      "realm": "{{ oc_keycloak_realm }}",
+      "realm-public-key": "${keycloak.publickey}",
+      "bearer-only": false,
+      "auth-server-url": "${keycloak.baseurl}",
+      "ssl-required": "none",
+      "disable-trust-manager": true,
+      "resource": "fragnet-search",
+      "principal-attribute": "preferred_username",
+      "credentials": {
+        "secret": "${keycloak.secret}"
+      },
+      "use-resource-role-mappings": false
+    }
+
+  logging.properties: |
+    handlers = 1catalina.org.apache.juli.AsyncFileHandler, 2localhost.org.apache.juli.AsyncFileHandler, 3manager.org.apache.juli.AsyncFileHandler, 4host-manager.org.apache.juli.AsyncFileHandler, java.util.logging.ConsoleHandler
+    .handlers = 1catalina.org.apache.juli.AsyncFileHandler, java.util.logging.ConsoleHandler
+    1catalina.org.apache.juli.AsyncFileHandler.level = FINE
+    1catalina.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+    1catalina.org.apache.juli.AsyncFileHandler.prefix = catalina.
+    2localhost.org.apache.juli.AsyncFileHandler.level = FINE
+    2localhost.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+    2localhost.org.apache.juli.AsyncFileHandler.prefix = localhost.
+    3manager.org.apache.juli.AsyncFileHandler.level = FINE
+    3manager.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+    3manager.org.apache.juli.AsyncFileHandler.prefix = manager.
+    4host-manager.org.apache.juli.AsyncFileHandler.level = FINE
+    4host-manager.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+    4host-manager.org.apache.juli.AsyncFileHandler.prefix = host-manager.
+    java.util.logging.ConsoleHandler.level = FINE
+    java.util.logging.ConsoleHandler.formatter = org.apache.juli.OneLineFormatter
+    org.apache.catalina.core.ContainerBase.[Catalina].[localhost].level = INFO
+    org.apache.catalina.core.ContainerBase.[Catalina].[localhost].handlers = 2localhost.org.apache.juli.AsyncFileHandler
+    org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].level = INFO
+    org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].handlers = 3manager.org.apache.juli.AsyncFileHandler
+    org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].level = INFO
+    org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].handlers = 4host-manager.org.apache.juli.AsyncFileHandler
+    org.keycloak.level = FINE
+
+  web.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+        <display-name>Fragnet Services</display-name>
+        <listener>
+            <listener-class>org.jboss.weld.environment.servlet.Listener</listener-class>
+        </listener>
+        <servlet>
+            <servlet-name>CamelServlet</servlet-name>
+            <servlet-class>org.apache.camel.component.servlet.CamelHttpTransportServlet</servlet-class>
+            <load-on-startup>1</load-on-startup>
+        </servlet>
+        <servlet-mapping>
+            <servlet-name>CamelServlet</servlet-name>
+            <url-pattern>/rest/*</url-pattern>
+        </servlet-mapping>
+        <session-config>
+            <session-timeout>15</session-timeout>
+        </session-config>
+        <security-constraint>
+            <web-resource-collection>
+                <web-resource-name>fragnet-search</web-resource-name>
+                <url-pattern>/*</url-pattern>
+                <http-method-omission>OPTIONS</http-method-omission>
+            </web-resource-collection>
+            <auth-constraint>
+                <role-name>fragnet-search</role-name>
+            </auth-constraint>
+        </security-constraint>
+        <security-constraint>
+            <web-resource-collection>
+                <web-resource-name>fragnet-search health check</web-resource-name>
+                <url-pattern>/rest/ping</url-pattern>
+            </web-resource-collection>
+            <!-- no auth-constraint -->
+        </security-constraint>
+        <security-constraint>
+            <web-resource-collection>
+                <web-resource-name>fragnet-search metrics</web-resource-name>
+                <url-pattern>/rest/metrics</url-pattern>
+            </web-resource-collection>
+            <!-- no auth-constraint -->
+        </security-constraint>
+        <login-config>
+            <auth-method>KEYCLOAK</auth-method>
+            <realm-name>{{ oc_keycloak_realm }}</realm-name>
+        </login-config>
+        <security-role>
+            <role-name>fragnet-search</role-name>
+        </security-role>
+    </web-app>
+
+  server.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Server port="8005" shutdown="SHUTDOWN">
+      <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
+      <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+      <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+      <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+      <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+      <GlobalNamingResources>
+        <Resource name="UserDatabase" auth="Container"
+                  type="org.apache.catalina.UserDatabase"
+                  description="User database that can be updated and saved"
+                  factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+                  pathname="conf/tomcat-users.xml" />
+      </GlobalNamingResources>
+      <Service name="Catalina">
+        <Connector port="8080" protocol="HTTP/1.1"
+                   connectionTimeout="20000"
+                   redirectPort="8443" />
+        <Connector port="8009" protocol="AJP/1.3" redirectPort="8443" />
+        <Engine name="Catalina" defaultHost="localhost">
+          <Realm className="org.apache.catalina.realm.LockOutRealm">
+            <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+                   resourceName="UserDatabase"/>
+          </Realm>
+          <Host name="localhost"  appBase="webapps"
+                unpackWARs="true" autoDeploy="true">
+            <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+                   prefix="localhost_access_log" suffix=".txt"
+                   pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+          </Host>
+        </Engine>
+      </Service>
+    </Server>

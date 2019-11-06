@@ -1,0 +1,16 @@
+---
+
+oc_master_hostname: prod.openrisknet.org
+oc_infra_project: openrisknet-infra
+oc_infra_sa: openrisknet
+
+oc_admin: "{{ lookup('env', 'OS_ADMIN') }}"
+oc_admin_password: "{{ lookup('env', 'OS_ADMIN_PASSWORD') }}"
+oc_user: "{{ lookup('env', 'OS_USER') }}"
+oc_user_password: "{{ lookup('env', 'OS_USER_PASSWORD') }}"
+
+oc_keycloak_server_url: "{{ lookup('env', 'KEYCLOAK_SERVER_URL') }}"
+oc_keycloak_realm: "{{ lookup('env', 'KEYCLOAK_REALM') }}"
+oc_keycloak_public_key: "{{ lookup('env', 'KEYCLOAK_PUBLIC_KEY') }}"
+oc_keycloak_secret: "{{ lookup('env', 'KEYCLOAK_SECRET') }}"
+

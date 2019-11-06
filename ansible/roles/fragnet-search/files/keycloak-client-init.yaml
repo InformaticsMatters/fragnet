@@ -1,0 +1,145 @@
+---
+
+kind: Template
+apiVersion: v1
+metadata:
+  name: keycloak-client-create
+labels:
+  template: keycloak-client-create
+
+parameters:
+
+- name: CLIENT_SECRET
+  required: true
+
+- name: INFRA_SA
+  value: squonk
+
+- name: CLIENT_ID
+  value: fragnet-search
+
+- name: CLIENT_NAME
+  value: Fragenet Search
+
+- name: CLIENT_DESC
+  value: Fragenet Search
+
+- name: ROUTES_BASE_HOSTNAME
+  value: prod.openrisknet.org
+
+- name: ROUTE_PREFIX_CLIENT
+  value: fragnet-search
+
+- name: ROUTE_PREFIX_SSO
+  value: sso
+
+- name: KEYCLOAK_REALM
+  value: squonk
+
+objects:
+
+- kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: client-creator
+  data:
+    create-client.sh: |
+      #!/bin/bash
+
+      set -e
+
+      KEYCLOAK_URL="https://$ROUTE_PREFIX_SSO.$ROUTES_BASE_HOSTNAME/auth"
+      CLIENT_HTTP="http://$ROUTE_PREFIX_CLIENT.$ROUTES_BASE_HOSTNAME"
+      CLIENT_HTTPS="https://$ROUTE_PREFIX_CLIENT.$ROUTES_BASE_HOSTNAME"
+      DATA="username=${KEYCLOAK_USER}&password=${KEYCLOAK_PASSWORD}&grant_type=password&client_id=admin-cli"
+
+      CLIENT_CONFIG="{\"clientId\":\"$CLIENT_ID\",
+        \"name\":\"$CLIENT_NAME\",
+        \"description\":\"$CLIENT_DESC\",
+        \"redirectUris\":["\"$CLIENT_HTTPS/*\",\"$CLIENT_HTTP/*\""],
+        \"protocol\":\"openid-connect\",
+        \"baseUrl\":\"$CLIENT_HTTPS\",
+        \"rootUrl\":\"\",
+        \"publicClient\":\"true\",
+        \"serviceAccountsEnabled\":\"true\",
+        \"directAccessGrantsEnabled\":\"true\",
+        \"standardFlowEnabled\":\"true\",
+        \"adminUrl\":\"$CLIENT_HTTPS\"
+      }"
+
+      echo "Keycloak URL is $KEYCLOAK_URL"
+      echo "Keycloak user is $KEYCLOAK_USER"
+      echo "Client Secret is $CLIENT_SECRET"
+      echo "Data: $DATA"
+      echo "$CLIENT_CONFIG"
+
+      TOKEN_RESP=$(curl -ks --data "$DATA" "$KEYCLOAK_URL/realms/master/protocol/openid-connect/token")
+      echo "Token Response: TOKEN_RESP"
+
+      TOKEN=$(echo $TOKEN_RESP | grep -Po '(?<="access_token":")[^"]*')
+      echo "Token: $TOKEN"
+
+      RESULT=$(curl -ks -X POST \
+        -d "$CLIENT_CONFIG" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: bearer $TOKEN" \
+        "$KEYCLOAK_URL/admin/realms/$KEYCLOAK_REALM/clients")
+
+      if [ -n "$RESULT" ]; then
+          echo "ERROR: Unable to register client $CLIENT_ID in realm $KEYCLOAK_REALM: $RESULT"
+          exit 1
+      else
+          echo "Registered client $CLIENT_ID in realm $KEYCLOAK_REALM"
+      fi
+
+- kind: Job
+  apiVersion: batch/v1
+  metadata:
+    name: client-creator
+  spec:
+    template:
+      metadata:
+        name: client-creator
+      spec:
+        serviceAccountName: ${INFRA_SA}
+        volumes:
+        - name: client-creator
+          configMap:
+            name: client-creator
+        containers:
+        - name: squonk-client-creator
+          env:
+          - name: KEYCLOAK_REALM
+            value: ${KEYCLOAK_REALM}
+          - name: CLIENT_ID
+            value: ${CLIENT_ID}
+          - name: CLIENT_NAME
+            value: ${CLIENT_NAME}
+          - name: CLIENT_DESC
+            value: ${CLIENT_DESC}
+          - name: CLIENT_SECRET
+            value: ${CLIENT_SECRET}
+          - name: ROUTES_BASE_HOSTNAME
+            value: ${ROUTES_BASE_HOSTNAME}
+          - name: ROUTE_PREFIX_CLIENT
+            value: ${ROUTE_PREFIX_CLIENT}
+          - name: ROUTE_PREFIX_SSO
+            value: ${ROUTE_PREFIX_SSO}
+          - name: KEYCLOAK_USER
+            valueFrom:
+              secretKeyRef:
+                name: keycloak-secrets
+                key: sso-admin-user
+          - name: KEYCLOAK_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: keycloak-secrets
+                key: sso-admin-password
+          image: centos:7
+          command:
+          - /bin/bash
+          - /client-creator/create-client.sh
+          volumeMounts:
+          - mountPath: /client-creator
+            name: client-creator
+        restartPolicy: OnFailure
