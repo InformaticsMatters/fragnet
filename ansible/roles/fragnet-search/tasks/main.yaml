@@ -1,5 +1,13 @@
 ---
 
+# Basic pre-playbook prerequisites
+
+- name: Install prerequisite Python modules
+  pip:
+    name: openshift==0.10.0
+
+# Go...
+
 - include_tasks: deploy.yaml
   when: fs_deploy|bool
 - include_tasks: undeploy.yaml
