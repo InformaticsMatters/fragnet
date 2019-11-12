@@ -4,13 +4,6 @@
 #
 # USE with EXTREME caution.
 
-- name: Delete Fragnet Search?
-  pause:
-    prompt: |-
-      Delete Fragnet Search from {{ okd_master_hostname }}?
-      Press return to continue.
-      Press Ctrl+c and then "a" if you've changed your mind
-
 - name: Login (user)
   command: oc login https://{{ okd_master_hostname }} -u {{ okd_user }} -p {{ okd_user_password }}
   changed_when: False
