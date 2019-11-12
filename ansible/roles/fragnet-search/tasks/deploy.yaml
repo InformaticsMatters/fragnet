@@ -1,5 +1,11 @@
 ---
 
+# Debug
+
+- name: Debug
+  debug:
+    msg: okd_admin_password={{ okd_admin_password }} keycloak_admin_password={{ keycloak_admin_password }} neo4j_password={{ neo4j_password }}
+
 # Create the project
 
 - name: Login (user)
