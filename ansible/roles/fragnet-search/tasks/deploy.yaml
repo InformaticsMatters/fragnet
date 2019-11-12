@@ -3,7 +3,7 @@
 # Create the project
 
 - name: Login (user)
-  command: oc login https://{{ oc_master_hostname }} -u {{ oc_user }} -p {{ oc_user_password }}
+  command: oc login https://{{ okd_master_hostname }} -u {{ okd_user }} -p {{ okd_user_password }}
   changed_when: False
 
 - name: Deploy Project
@@ -18,7 +18,7 @@
 # as its container uses tomcat
 
 - name: Login (admin)
-  command: oc login https://{{ oc_master_hostname }} -u {{ oc_admin }} -p {{ oc_admin_password }}
+  command: oc login https://{{ okd_master_hostname }} -u {{ okd_admin }} -p {{ okd_admin_password }}
   changed_when: False
 
 - name: Move to Fragnet Search Project
@@ -40,14 +40,14 @@
   local_action:
     module: keycloak_client
     auth_client_id: admin-cli
-    auth_keycloak_url: "{{ oc_keycloak_server_url }}"
+    auth_keycloak_url: "{{ keycloak_server_url }}"
     auth_realm: master
-    auth_username: "{{ oc_keycloak_admin }}"
-    auth_password: "{{ oc_keycloak_admin_password }}"
-    realm: "{{ oc_keycloak_realm }}"
+    auth_username: "{{ keycloak_admin }}"
+    auth_password: "{{ keycloak_admin_password }}"
+    realm: "{{ keycloak_realm }}"
     client_id: "{{ fs_keycloak_client_id }}"
     protocol: openid-connect
-    base_url: https://{{ fs_route }}.{{ oc_master_hostname }}
+    base_url: https://{{ fs_route }}.{{ okd_route_basename }}
     public_client: yes
     service_accounts_enabled: yes
     direct_access_grants_enabled: yes
@@ -64,6 +64,18 @@
   - configmap.yml.j2
   - deployment.yml.j2
   - service.yml.j2
+
+# Wait for running pods...
+
+- name: Wait for Pods to become ready
+  shell: oc get po | grep {{ item }} | grep -v deploy | grep 1/1 > /dev/null
+  delay: 20
+  retries: "{{ (fs_pod_ready_timeout | int / 20) | int }}"
+  register: result
+  until: result.rc == 0
+  loop:
+  - fragnet-search
+  changed_when: False
 
 - name: Deploy application route
   k8s:

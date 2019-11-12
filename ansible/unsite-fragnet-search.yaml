@@ -1,9 +1,0 @@
----
-
-# Playbook to deploy the fragnet-search container.
-
-- hosts: fragnet_server
-  tasks:
-  - include_role:
-      name: fragnet-search
-      tasks_from: undeploy.yaml

@@ -14,16 +14,16 @@ data:
 
   keycloak.json: |
     {
-      "realm": "{{ oc_keycloak_realm }}",
-      "realm-public-key": "{{ oc_keycloak_public_key }}",
+      "realm": "{{ keycloak_realm }}",
+      "realm-public-key": "{{ keycloak_public_key }}",
       "bearer-only": false,
-      "auth-server-url": "{{ oc_keycloak_server_url }}",
+      "auth-server-url": "{{ keycloak_server_url }}",
       "ssl-required": "none",
       "disable-trust-manager": true,
       "resource": "fragnet-search",
       "principal-attribute": "preferred_username",
       "credentials": {
-        "secret": "{{ oc_keycloak_secret }}"
+        "secret": "{{ keycloak_secret }}"
       },
       "use-resource-role-mappings": false
     }
@@ -100,7 +100,7 @@ data:
         </security-constraint>
         <login-config>
             <auth-method>KEYCLOAK</auth-method>
-            <realm-name>{{ oc_keycloak_realm }}</realm-name>
+            <realm-name>{{ keycloak_realm }}</realm-name>
         </login-config>
         <security-role>
             <role-name>fragnet-search</role-name>

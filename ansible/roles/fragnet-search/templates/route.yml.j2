@@ -7,7 +7,7 @@ metadata:
   annotations:
     kubernetes.io/tls-acme: "{{ fs_enable_acme }}"
 spec:
-  host: {{ fs_route }}.{{ oc_master_hostname }}
+  host: {{ fs_route }}.{{ okd_route_basename }}
   to:
     kind: Service
     name: fragnet-search

@@ -1,13 +1,14 @@
 ---
-kind: DeploymentConfig
-apiVersion: v1
+kind: Deployment
+apiVersion: apps/v1
 metadata:
   name: fragnet-search
   namespace: {{ fs_project }}
 spec:
   replicas: 1
   selector:
-    name: fragnet-search
+    matchLabels:
+      name: fragnet-search
   template:
     metadata:
       labels:
@@ -22,11 +23,11 @@ spec:
           name: http
         env:
         - name: NEO4J_SERVER
-          value: {{ fs_neo4j_server }}
+          value: {{ neo4j_hostname }}
         - name: NEO4J_USER
-          value: {{ fs_neo4j_user }}
+          value: {{ neo4j_user }}
         - name: NEO4J_PASSWORD
-          value: {{ fs_neo4j_password }}
+          value: {{ neo4j_password }}
         - name: LOG_ROOT
           value: /logs
         resources:

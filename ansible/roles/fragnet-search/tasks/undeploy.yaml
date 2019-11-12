@@ -7,12 +7,12 @@
 - name: Delete Fragnet Search?
   pause:
     prompt: |-
-      Delete Fragnet Search from {{ oc_master_hostname }}?
+      Delete Fragnet Search from {{ okd_master_hostname }}?
       Press return to continue.
       Press Ctrl+c and then "a" if you've changed your mind
 
 - name: Login (user)
-  command: oc login https://{{ oc_master_hostname }} -u {{ oc_user }} -p {{ oc_user_password }}
+  command: oc login https://{{ okd_master_hostname }} -u {{ okd_user }} -p {{ okd_user_password }}
   changed_when: False
 
 # To un-deploy Fragnet Search, the fastest way is to
@@ -41,10 +41,10 @@
   local_action:
     module: keycloak_client
     auth_client_id: admin-cli
-    auth_keycloak_url: "{{ oc_keycloak_server_url }}"
+    auth_keycloak_url: "{{ keycloak_server_url }}"
     auth_realm: master
-    auth_username: "{{ oc_keycloak_admin }}"
-    auth_password: "{{ oc_keycloak_admin_password }}"
-    realm: "{{ oc_keycloak_realm }}"
+    auth_username: "{{ keycloak_admin }}"
+    auth_password: "{{ keycloak_admin_password }}"
+    realm: "{{ keycloak_realm }}"
     client_id: "{{ fs_keycloak_client_id }}"
     state: absent
