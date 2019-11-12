@@ -87,7 +87,7 @@
     </security-constraint>
 
     <login-config>
-        <auth-method>KEYCOAK</auth-method>
+        <auth-method>KEYCLOAK</auth-method>
         <realm-name>squonk</realm-name>
     </login-config>
 

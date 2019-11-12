@@ -1,0 +1,6 @@
+---
+
+- include_tasks: deploy.yaml
+  when: fs_deploy|bool
+- include_tasks: undeploy.yaml
+  when: not fs_deploy|bool

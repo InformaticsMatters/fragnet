@@ -85,6 +85,9 @@ fragent_search_pfx_password: "{{ lookup('env', 'FRAGNET_PFX_PASSWORD') }}"
 # The fragnet log root
 # (the directory on the host to mount into the fragnet container)
 fragnet_search_log_root: /logs/fragnet
+# Do we validate the certificates on the connection?
+# Certificates on the Keycloak connection are always validated.
+fragnet_validate_certs: yes
 
 # Keycloak variables...
 # --------
@@ -96,3 +99,5 @@ fragnet_search_log_root: /logs/fragnet
 keycloak_server_url: "{{ lookup('env', 'KEYCLOAK_SERVER_URL') }}"
 keycloak_public_key: "{{ lookup('env', 'KEYCLOAK_PUBLIC_KEY') }}"
 keycloak_secret: "{{ lookup('env', 'KEYCLOAK_SECRET') }}"
+keycloak_realm: "{{ lookup('env', 'KEYCLOAK_REALM') }}"
+

@@ -1,0 +1,19 @@
+---
+
+# Set to 'no' to undeploy Fragnet Search
+fs_deploy: yes
+
+# Main application variables
+fs_project: fragnet-search
+fs_project_display_name: The Fragnet Search Project
+fs_sa: fragnet-search
+fs_image_tag: latest
+fs_route: fragnet-search
+fs_keycloak_client_id: fragnet-search
+fs_client_secret: "{{ lookup('env', 'FRAGNET_CLIENT_SECRET') }}"
+
+# Route and Certificate creation
+fs_enable_route: yes
+fs_enable_acme: False
+
+fs_pod_ready_timeout: 600

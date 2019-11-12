@@ -1,0 +1,16 @@
+---
+kind: Route
+apiVersion: v1
+metadata:
+  name: fragnet-search
+  namespace: {{ fs_project }}
+  annotations:
+    kubernetes.io/tls-acme: "{{ fs_enable_acme }}"
+spec:
+  host: {{ fs_route }}.{{ okd_route_basename }}
+  to:
+    kind: Service
+    name: fragnet-search
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
