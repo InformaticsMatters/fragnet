@@ -1,6 +1,6 @@
 ---
 
-- hosts: bastion
+- hosts: cli-node
   tasks:
   - include_role:
       name: fragnet-search
