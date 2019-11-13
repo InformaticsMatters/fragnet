@@ -4,12 +4,18 @@ Deployment of Fragnet Search
 >   Note: Fragnet Search requires the `anyuid` capability in the
     chosen project's default service account.
 
-To deploy: -
+The search application is typically deployed using our AWX server GitLab
+project but to deploy from a clone of this repository (ideally from
+a Python virtual environment) run: -
 
-    ansible-playbook site-fragnet-search.yaml
+    $ conda acrivate fragnet
+    $ pip install -r requirements.txt
+    $ ansible-playbook site-fragnet-search.yaml
 
-To un-deploy: -
+Ans to delete it: -
 
-    ansible-playbook site-fragnet-search.yaml -e fs_deploy=no
+    $ ansible-playbook site-fragnet-search.yaml -e fs_deploy=no
 
 ---
+
+[gitlab]: https://gitlab.com/informaticsmatters/ansible-awx
