@@ -1,7 +1,7 @@
 ---
 
 # Provided by our chosen AWX/Tower OpenShift credentials
-# (im-openshift credential type)...
+# (openshift credential type)...
 
 okd_master_hostname: prod.openrisknet.org
 okd_route_basename: prod.openrisknet.org
@@ -11,7 +11,7 @@ okd_user: "{{ lookup('env', 'OS_USER') }}"
 okd_user_password: "{{ lookup('env', 'OS_USER_PASSWORD') }}"
 
 # Provided by our chosen AWX/Tower Keycloak credentials
-# (im-keycloak credential type)...
+# (keycloak credential type)...
 
 keycloak_server_url: "{{ lookup('env', 'KEYCLOAK_SERVER_URL') }}"
 keycloak_admin: "{{ lookup('env', 'KEYCLOAK_ADMIN') }}"
@@ -20,8 +20,8 @@ keycloak_public_key: "{{ lookup('env', 'KEYCLOAK_PUBLIC_KEY') }}"
 keycloak_secret: "{{ lookup('env', 'KEYCLOAK_SECRET') }}"
 keycloak_realm: "{{ lookup('env', 'KEYCLOAK_REALM') }}"
 
-# Provided by our chosen AWX/Tower neo4j credentials
-# (im-neo4j credential type)...
+# Provided by our chosen AWX/Tower graph credentials
+# (graph credential type)...
 
 graph_hostname: "{{ lookup('env', 'NEO4J_SERVER') }}"
 graph_user: neo4j
