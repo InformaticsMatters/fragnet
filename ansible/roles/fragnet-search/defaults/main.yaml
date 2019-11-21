@@ -5,7 +5,6 @@ fs_deploy: yes
 
 # Main application variables
 fs_project: fragnet-search
-fs_project_display_name: The Fragnet Search Project
 fs_sa: fragnet-search
 fs_image_tag: latest
 fs_route: fragnet-search
