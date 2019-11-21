@@ -32,5 +32,4 @@
       The AWS credentials are not set
       Have you set the AWS values in your setenv.sh?
   when:
-  - aws_access_key == ''
-  - aws_secret_key == ''
+  - aws_access_key == '' or aws_secret_key == ''

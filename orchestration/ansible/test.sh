@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Super-simple script to stop the server instances.
+# Super-simple script to test the server.
 # Assumes your control machine's environment is 'good to go'...
 
 # NOTE: In order to run the tests successfully you need to provide
