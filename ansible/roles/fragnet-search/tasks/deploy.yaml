@@ -8,7 +8,7 @@
 
 - name: Deploy Project
   k8s:
-    definition: "{{ lookup('template', item)|from_yaml }}"
+    definition: "{{ lookup('template', item) }}"
   loop:
   - project.yml.j2
 
@@ -27,9 +27,7 @@
 
 - name: Deploy SA
   k8s:
-    definition: "{{ lookup('template', item)|from_yaml }}"
-  loop:
-  - service-account.yml.j2
+    definition: "{{ lookup('template', 'service-account.yml.j2') }}"
 
 - name: Add anyuid to SA
   command: oc adm policy add-scc-to-user anyuid -z {{ fs_sa }}
@@ -59,7 +57,7 @@
 
 - name: Deploy application objects
   k8s:
-    definition: "{{ lookup('template', item)|from_yaml }}"
+    definition: "{{ lookup('template', item) }}"
   loop:
   - configmap.yml.j2
   - deployment.yml.j2
@@ -70,7 +68,7 @@
 - name: Wait for Pods to become ready
   shell: oc get po | grep {{ item }} | grep -v deploy | grep 1/1 > /dev/null
   delay: 20
-  retries: "{{ (fs_pod_ready_timeout | int / 20) | int }}"
+  retries: "{{ (fs_pod_ready_timeout|int / 20)|int }}"
   register: result
   until: result.rc == 0
   loop:
@@ -79,7 +77,5 @@
 
 - name: Deploy application route
   k8s:
-    definition: "{{ lookup('template', item)|from_yaml }}"
-  loop:
-  - route.yml.j2
+    definition: "{{ lookup('template', 'service-account.yml.j2') }}"
   when: fs_enable_route|bool
