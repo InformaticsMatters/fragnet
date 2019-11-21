@@ -117,19 +117,6 @@ with your chosen graph.
     again. You can simply use the `start-instances` and `stop-instances` plays
     (or handy scripts - see below).
 
-## Testing the (MolPort) graph
-You can test the Fragnet service **molport** deployment
-using a playbook. The test will attempt to get a token (using the
-user credentials in the setenv file), run a built-in search query
-(around the molecule `c1ccc(Nc2nc3ccccc3o2)cc1`) and then conclude by checking
-the query's results: -
-
-    $ ansible-playbook -e '@parameters' playbooks/fragnet/test-fragnet.yaml
-
->   The check simply verifies the number of nodes, edges and groups
-    returned by the query. It does not check the values of the nodes and edges,
-    getting the right number is enough for this simple test.
-
 ## Handy shell-scripts
 Super-simple shell-scripts can be used to quickly execute the most common
 tasks like `deploy` (a new or existing graph), `stop` (the server) and
@@ -138,7 +125,6 @@ tasks like `deploy` (a new or existing graph), `stop` (the server) and
     $ ./deploy.sh -e graph_pagecache_size_g=20
     $ ./stop.sh
     $ ./start.sh
-    $ ./test.sh
     $ ./restart-search.sh
     $ ./get-logs.sh
 
