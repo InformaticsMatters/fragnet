@@ -58,7 +58,8 @@ To destroy the cluster, return to the Terraform AWS directory and run: -
 You will need essential environment variables defined, which Ansible
 will expect. Before going any further...
 
-1.  Copy the `setenv-template.sh` as `setenv.sh`
+1.  Copy the `setenv-template.sh` as `site-setenv.sh`
+    (`site-` file are excluded by gitignore)
 1.  Enter essential environment variable values (you'll need the
     keycloak public ket and client secret discussed above)
 1.  *source* it
