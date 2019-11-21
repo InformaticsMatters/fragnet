@@ -23,11 +23,11 @@ spec:
           name: http
         env:
         - name: NEO4J_SERVER
-          value: {{ neo4j_hostname }}
+          value: {{ graph_hostname }}
         - name: NEO4J_USER
-          value: {{ neo4j_user }}
+          value: {{ graph_user }}
         - name: NEO4J_PASSWORD
-          value: {{ neo4j_password }}
+          value: {{ graph_password }}
         - name: LOG_ROOT
           value: /logs
         resources:

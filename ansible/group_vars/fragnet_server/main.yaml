@@ -23,6 +23,6 @@ keycloak_realm: "{{ lookup('env', 'KEYCLOAK_REALM') }}"
 # Provided by our chosen AWX/Tower neo4j credentials
 # (im-neo4j credential type)...
 
-neo4j_hostname: "{{ lookup('env', 'NEO4J_SERVER') }}"
-neo4j_user: "{{ lookup('env', 'NEO4J_USER') }}"
-neo4j_password: "{{ lookup('env', 'NEO4J_PASSWORD') }}"
+graph_hostname: "{{ lookup('env', 'NEO4J_SERVER') }}"
+graph_user: neo4j
+graph_password: "{{ lookup('env', 'NEO4J_PASSWORD') }}"
