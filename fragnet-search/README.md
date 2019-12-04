@@ -278,7 +278,7 @@ Parameters:
 | smiles     | URL   | Yes      | The smiles string for the molecule to look for. See below for requirements about standardisation and canonicalisation. |
 | hac        | Query | No       | The difference in heavy atom count compared to the query that is allowed it the result molecules. |
 | rac        | Query | No       | The difference in ring atom count compared to the query that is allowed it the result molecules. |
-| hops       | Query | No       | The number of graph edges to traverse from the query molecule. Must be 1 or 2. Default is 1. |
+| hops       | Query | No       | The number of graph edges to traverse from the query molecule. Must be 1, 2 or 3. Default is 1. |
 | suppliers  | Query | No       | Comma separated list of suppliers to restrict results to. |
 | pathLimit  | Query | No       | The maximum number of paths to return from the graph query. Default is 1000 and this is usually more than enough. Values greater than 5000 are not permitted. | 
 

@@ -28,6 +28,7 @@ services:
   # curl $FRAGNET_SERVER/fragnet-search/rest/v2/search/suppliers
   # curl $FRAGNET_SERVER/fragnet-search/rest/ping
   # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/neighbourhood/c1ccccc1?hac=10&rac=3&hops=2"
+  # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/availability/NC1CCCNC1"
   # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand/c1ccccc1?hac=10&rac=3&hops=2"
   # curl "$FRAGNET_SERVER/fragnet-depict/moldepict?&w=75&h=60&bg=0x33FFFF00&mol=CN1C%3DNC2%3DC1C(%3DO)N(C)C(%3DO)N2C"
 

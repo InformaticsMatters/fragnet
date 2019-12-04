@@ -148,8 +148,10 @@ public class ExpansionQuery extends AbstractQuery {
             hopsQuery = "";
         } else if (hops == 2) {
             hopsQuery = "*1..2";
+        } else if (hops == 3) {
+            hopsQuery = "*1..3";
         } else {
-            throw new IllegalArgumentException("Hops must be 1 or 2");
+            throw new IllegalArgumentException("Hops must be 1, 2 or 3");
         }
 
         String q = String.format(queryTemplate, hopsQuery, vendorLabels, filter);
