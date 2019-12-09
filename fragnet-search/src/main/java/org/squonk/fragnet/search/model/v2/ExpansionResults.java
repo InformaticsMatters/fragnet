@@ -147,7 +147,7 @@ public class ExpansionResults implements Constants {
         }
     }
 
-    class Member {
+    public class Member {
 
         private final String smiles;
         private final Map<String, Object> props;

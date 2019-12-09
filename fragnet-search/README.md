@@ -286,7 +286,7 @@ These parameters have the same meaning as in neighbourhood search.
 
 An example query run with [curl] might look like this:
 ```
-curl "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/expand/COc1ccccc1CN1CCCC1?hac=3&rac=1&hops=1"
+curl "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/expand/COc1ccccc1CN1CCCC1COc1ccccc1CN1CCCC1?hac=3&rac=1&hops=1"
 ```
 
 #### Expansion search results

@@ -150,8 +150,12 @@ public class ExpansionQuery extends AbstractQuery {
             hopsQuery = "*1..2";
         } else if (hops == 3) {
             hopsQuery = "*1..3";
+        } else if (hops == 4) {
+            hopsQuery = "*1..4";
+        } else if (hops == 5) {
+            hopsQuery = "*1..5";
         } else {
-            throw new IllegalArgumentException("Hops must be 1, 2 or 3");
+            throw new IllegalArgumentException("Hops must be between 1 and 5");
         }
 
         String q = String.format(queryTemplate, hopsQuery, vendorLabels, filter);
@@ -168,7 +172,7 @@ public class ExpansionQuery extends AbstractQuery {
             LOG.finer("Handling record " + r);
             Map<String, Object> m = r.asMap();
             m.forEach((k, v) -> {
-                LOG.finer("Handling value " + k);
+                LOG.finer("Handling key " + k);
                 Path path = (Path) v;
                 expansion.add(path);
                 pathCount.incrementAndGet();

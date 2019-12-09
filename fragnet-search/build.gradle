@@ -20,6 +20,7 @@ import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
 
 plugins {
     id 'com.bmuschko.docker-remote-api'
+    id 'com.bmuschko.docker-java-application'
 }
 
 description = 'Fragment network search'
@@ -27,10 +28,11 @@ description = 'Fragment network search'
 String RDBASE = System.getenv('RDBASE')
 String RDKitJarFile = RDBASE + '/Code/JavaWrappers/gmwrapper/org.RDKit.jar'
 boolean RDKitJava = RDBASE && file(RDKitJarFile).exists()
-println "jar $RDKitJarFile exists? $RDKitJava"
+println "RDKitJarFile exists? $RDKitJava"
 
 apply plugin: 'war'
 apply plugin: 'groovy'
+apply plugin: 'application'
 apply plugin: 'com.bmuschko.tomcat'
 
 
@@ -128,4 +130,19 @@ task runApp(type: JavaExec) {
 
     ]
 
+}
+
+mainClassName = 'org.squonk.fragnet.search.queries.examples.AllMols'
+
+dockerCreateDockerfile {
+//    entryPoint('java', '-cp', '/app/resources:/app/classes:/app/libs/*:/rdkit/gmwrapper/org.RDKit.jar',
+//            'org.squonk.fragnet.search.queries.examples.ExpandHits')
+}
+
+docker {
+    javaApplication {
+        baseImage = 'informaticsmatters/rdkit-java-debian:Release_2019_03'
+        maintainer = 'Tim Dudgeon'
+        tag = "tdudgeon/fragnetexpand:latest"
+    }
 }
