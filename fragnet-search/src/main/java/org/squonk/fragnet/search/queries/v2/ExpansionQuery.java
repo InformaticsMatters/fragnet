@@ -168,7 +168,7 @@ public class ExpansionQuery extends AbstractQuery {
             LOG.finer("Handling record " + r);
             Map<String, Object> m = r.asMap();
             m.forEach((k, v) -> {
-                LOG.finer("Handling value " + k);
+                LOG.finer("Handling key " + k);
                 Path path = (Path) v;
                 expansion.add(path);
                 pathCount.incrementAndGet();

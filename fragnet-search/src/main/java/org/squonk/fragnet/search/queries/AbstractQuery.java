@@ -7,9 +7,10 @@ import java.util.logging.Logger;
 public abstract class AbstractQuery {
 
     private static final Logger LOG = Logger.getLogger(AbstractQuery.class.getName());
+    public static final int DEFAULT_LIMIT=5000;
 
     private final Session session;
-    private int limit = 5000;
+    private int limit = DEFAULT_LIMIT;
 
     public AbstractQuery(Session session) {
         this.session = session;

@@ -30,6 +30,7 @@ import org.squonk.fragnet.chem.Calculator;
 import org.squonk.fragnet.search.model.v2.Availability;
 import org.squonk.fragnet.search.model.v2.ExpansionResults;
 import org.squonk.fragnet.search.model.v2.NeighbourhoodGraph;
+import org.squonk.fragnet.search.queries.AbstractQuery;
 import org.squonk.fragnet.search.queries.v2.AvailabilityQuery;
 import org.squonk.fragnet.search.queries.v2.ExpansionQuery;
 import org.squonk.fragnet.search.queries.v2.NeighbourhoodQuery;
@@ -346,8 +347,8 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             Integer hac = message.getHeader("hac", Integer.class);
             Integer rac = message.getHeader("rac", Integer.class);
             Integer pathLimit = message.getHeader("pathLimit", Integer.class);
-            if (pathLimit != null && pathLimit > 5000) {
-                throw new IllegalArgumentException("Path limit cannot be greater than 5000");
+            if (pathLimit != null && pathLimit > AbstractQuery.DEFAULT_LIMIT) {
+                throw new IllegalArgumentException("Path limit cannot be greater than " + AbstractQuery.DEFAULT_LIMIT);
             }
             String suppls = message.getHeader("suppliers", String.class);
             LOG.info(String.format("hops=&s hac=%s rac=%s", hops, hac, rac));
@@ -368,7 +369,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             try (Session session = graphdb.getSession()) {
                 // execute the query
                 ExpansionQuery query = new ExpansionQuery(session, getSupplierMappings());
-                if (pathLimit != null) { // default limit is 5000
+                if (pathLimit != null) { // default limit is AbstractQuery.DEFAULT_LIMIT
                     query.setLimit(pathLimit);
                 }
                 long n0 = System.nanoTime();
@@ -428,8 +429,8 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             Integer rac = message.getHeader("rac", Integer.class);
             Integer pathLimit = message.getHeader("pathLimit", Integer.class);
             Integer groupLimit = message.getHeader("groupLimit", Integer.class);
-            if (pathLimit != null && pathLimit > 5000) {
-                throw new IllegalArgumentException("Path limit cannot be greater than 5000");
+            if (pathLimit != null && pathLimit > AbstractQuery.DEFAULT_LIMIT) {
+                throw new IllegalArgumentException("Path limit cannot be greater than " + AbstractQuery.DEFAULT_LIMIT);
             }
             String suppls = message.getHeader("suppliers", String.class);
             String calcs = message.getHeader("calcs", String.class);
@@ -442,7 +443,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             try (Session session = graphdb.getSession()) {
                 // execute the query
                 NeighbourhoodQuery query = new NeighbourhoodQuery(session, getSupplierMappings());
-                if (pathLimit != null) { // default limit is 5000
+                if (pathLimit != null) { // default limit is AbstractQuery.DEFAULT_LIMIT
                     query.setLimit(pathLimit);
                 }
                 long n0 = System.nanoTime();
