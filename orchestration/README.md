@@ -107,7 +107,7 @@ a copy of the parameter template file.
 the graph container is stopped and then everything brought to life
 with your chosen graph.
 
-    $ source setenv.sh
+    $ source site-setenv-aws.sh
     $ cd ansible
     $ cp parameters.template parameters
     [edit your 'parameters' file]

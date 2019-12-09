@@ -74,6 +74,11 @@ fragnet_debug: yes
 # Query timeout (used in the test-fragnet play)
 fragnet_query_timeout_s: 180
 # Fragnet search domain/certbot registration
+#
+# If 'fragnet_search_use_geerlingguy_role' is not set (which is the default)
+# we need to have certificates prepared.
+# Refer to the tasks in 'generate-fragnet-search-certificate.yaml'.
+fragnet_search_use_geerlingguy_role: no
 fragnet_search_certificate_auto_renew: yes
 fragnet_search_renew_hour: 6
 fragnet_search_renew_minute: 47

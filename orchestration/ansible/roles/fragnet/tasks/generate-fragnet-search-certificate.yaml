@@ -14,7 +14,7 @@
     - fragent_search_pfx_password|length > 0
     - fragent_search_pfx_password != 'SetMe'
 
-# We *MUST* install the epel release *BEFORE* (i.e. separately) from certbot.
+# We *MUST* install the epel release *BEFORE* (i.e. separately from) certbot.
 # If not certbot can't be found!
 
 - name: Install packages (epel-release)
@@ -32,6 +32,16 @@
     lock_timeout: 240
   become: yes
 
+# Install geerlingguy's role (optional)
+# in order to generate certificates...
+# If we don't do this then we must ensure that certificate files
+# exist in order to satisfy the subsequent PFX task.
+# i.e. we need: -
+#
+# 1.    /etc/letsencrypt/live/{{ fragnet_search_domain }}/cert.pem
+# 2.    /etc/letsencrypt/live/{{ fragnet_search_domain }}/chain.pem
+# 3.    /etc/letsencrypt/live/{{ fragnet_search_domain }}/privkey.pem
+
 - name: Install certbot role
   import_role:
     name: geerlingguy.certbot
@@ -46,6 +56,7 @@
     - domains:
       - "{{ fragnet_search_domain }}"
   become: yes
+  when: fragnet_search_use_geerlingguy_role|bool
 
 # Create a pkcs12 cryptography file (.pfx)
 # in the user's $HOME/fragnet directory.
