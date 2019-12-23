@@ -3,6 +3,7 @@ package org.squonk.fragnet.service;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.squonk.fragnet.Utils;
+import org.squonk.fragnet.account.AccountData;
 import org.squonk.fragnet.chem.Calculator;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,11 +26,14 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
     private static final int LOG_FILE_SIZE = 1000000;
     private static final int LOG_FILE_COUNT = 10;
     private static final boolean LOG_FILE_APPEND = true;
+    protected static final AccountData accountData = new AccountData();
 
     public AbstractFragnetSearchRouteBuilder(String queryLogFileName) {
 
         Q_LOG = Logger.getLogger(queryLogFileName);
         Q_LOG.setUseParentHandlers(false);
+
+        // TODO - read the query logs into accountData
 
         String utilsLogPath = Utils.getLogPath();
         if (queryLogFileName != null && utilsLogPath != null) {
@@ -113,11 +117,17 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
     protected void writeToNeighbourhoodQueryLog(String user, String searchType, long executionTime, int nodes, int edges, int groups) {
         String txt = String.format("%s\t%s\t%s\tnodes=%s,edges=%s,groups=%s", user, searchType, executionTime, nodes, edges, groups);
         Q_LOG.info(txt);
+        if (nodes > 0) {
+            accountData.incrementQueryCount(user);
+        }
     }
 
     protected void writeToExpansionQueryLog(String user, String searchType, long executionTime, int hits, int paths) {
         String txt = String.format("%s\t%s\t%s\thits=%s,paths=%s", user, searchType, executionTime, hits, paths);
         Q_LOG.info(txt);
+        if (hits > 0) {
+            accountData.incrementQueryCount(user);
+        }
     }
 
     protected void writeErrorToQueryLog(String user, String searchType, long executionTime, String msg) {

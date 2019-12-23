@@ -158,6 +158,13 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
         rest("/v2/search/").description("Fragnet search")
                 .bindingMode(RestBindingMode.json)
+                .get("userinfo").description("User info")
+                .produces("application/json")
+                .route()
+                .process((Exchange exch) -> {
+                    getUserInfo(exch);
+                })
+                .endRest()
                 // example:
                 // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
                 .get("neighbourhood/{smiles}").description("Neighbourhood search")
@@ -229,6 +236,24 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .marshal().json(JsonLibrary.Jackson)
                 .endRest()
         ;
+    }
+
+
+    void getUserInfo(Exchange exch) {
+
+        Message message = exch.getIn();
+        String username = getUsername(exch);
+
+        Map<String, Object> map = new LinkedHashMap<>();
+        // TODO - implement the different tiers once these are defined in Keycloak
+        map.put("username", username);
+        map.put("tier", "evaluation");
+        map.put("num_queries_executed", accountData.getQueryCount(username));
+        map.put("num_queries_remaining", 50 - accountData.getQueryCount(username));
+        map.put("period_days", accountData.getDaysCuttoff());
+
+        message.setBody(map);
+        message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
     }
 
     void findCalculations(Exchange exch) {
