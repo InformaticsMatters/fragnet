@@ -1,0 +1,138 @@
+[2019-09-04 15:48:10] INFO    | OPENED
+[2019-09-04 16:12:12] INFO    | tdudgeon	NeighbourhoodQuery	566277769	nodes=836,edges=1030,groups=799
+[2019-09-04 16:12:25] INFO    | tdudgeon	NeighbourhoodQuery	489543381	nodes=836,edges=1030,groups=799
+[2019-09-04 16:31:09] INFO    | tdudgeon	NeighbourhoodQuery	143841241	nodes=119,edges=132,groups=116
+[2019-09-04 17:24:29] INFO    | OPENED
+[2019-09-04 17:32:38.652+0000] INFO    | OPENED
+[2019-09-04 18:01:55.021+0000] INFO    | pbrunclik	NeighbourhoodQuery	269620267711	nodes=933,edges=1239,groups=693
+[2019-09-04 19:49:26.218+0000] INFO    | odudgeon	NeighbourhoodQuery	121342852	nodes=119,edges=132,groups=116
+[2019-09-05 07:41:31.998+0000] INFO    | OPENED
+[2019-09-05 07:51:55.443+0000] INFO    | OPENED
+[2019-09-05 11:40:44.475+0000] INFO    | odudgeon	NeighbourhoodQuery	1308225203	nodes=100,edges=100,groups=99
+[2019-09-05 11:52:03.947+0000] INFO    | odudgeon	NeighbourhoodQuery	17439766687	nodes=540,edges=596,groups=521
+[2019-09-05 11:53:08.505+0000] INFO    | odudgeon	NeighbourhoodQuery	785246139	nodes=540,edges=596,groups=521
+[2019-09-05 11:53:39.433+0000] INFO    | odudgeon	NeighbourhoodQuery	333683065	nodes=101,edges=100,groups=100
+[2019-09-05 16:51:56.215+0000] INFO    | odudgeon	NeighbourhoodQuery	18380001635	nodes=756,edges=856,groups=720
+[2019-09-05 16:54:30.437+0000] INFO    | odudgeon	NeighbourhoodQuery	779471268	nodes=540,edges=596,groups=521
+[2019-09-05 16:54:59.209+0000] INFO    | odudgeon	NeighbourhoodQuery	93916548	nodes=101,edges=100,groups=100
+[2019-09-05 17:01:36.614+0000] INFO    | odudgeon	NeighbourhoodQuery	1502324795	nodes=12,edges=12,groups=9
+[2019-09-05 17:02:30.732+0000] INFO    | odudgeon	NeighbourhoodQuery	816434871	nodes=98,edges=100,groups=97
+[2019-09-05 17:02:40.990+0000] INFO    | odudgeon	NeighbourhoodQuery	123600533	nodes=175,edges=174,groups=174
+[2019-09-05 17:03:24.586+0000] INFO    | odudgeon	NeighbourhoodQuery	24717643510	nodes=1079,edges=1131,groups=946
+[2019-09-05 21:24:52.824+0000] INFO    | odudgeon	NeighbourhoodQuery	1490109252	nodes=1091,edges=1135,groups=954
+[2019-09-05 21:29:17.854+0000] INFO    | odudgeon	NeighbourhoodQuery	232151797	nodes=120,edges=131,groups=88
+[2019-09-05 21:40:25.943+0000] INFO    | tdudgeon	NeighbourhoodQuery	2679814079	nodes=119,edges=132,groups=116
+[2019-09-05 21:43:51.453+0000] INFO    | tdudgeon	NeighbourhoodQuery	10887047685	nodes=836,edges=1030,groups=799
+[2019-09-06 09:44:30.010+0000] INFO    | OPENED
+[2019-09-06 11:00:08.071+0000] INFO    | odudgeon	NeighbourhoodQuery	20718108021	nodes=756,edges=856,groups=720
+[2019-09-06 11:02:19.146+0000] INFO    | odudgeon	NeighbourhoodQuery	680777506	nodes=756,edges=856,groups=720
+[2019-09-06 11:02:31.712+0000] INFO    | odudgeon	NeighbourhoodQuery	522375101	nodes=756,edges=856,groups=720
+[2019-09-06 11:03:16.703+0000] INFO    | odudgeon	NeighbourhoodQuery	493314831	nodes=756,edges=856,groups=720
+[2019-09-06 11:05:23.499+0000] INFO    | odudgeon	NeighbourhoodQuery	48759190688	nodes=836,edges=1030,groups=799
+[2019-09-06 11:13:58.569+0000] INFO    | odudgeon	NeighbourhoodQuery	723161238	nodes=836,edges=1030,groups=799
+[2019-09-06 11:14:20.461+0000] INFO    | odudgeon	NeighbourhoodQuery	375714660	nodes=756,edges=856,groups=720
+[2019-09-06 11:16:34.410+0000] INFO    | odudgeon	NeighbourhoodQuery	13439954301	nodes=540,edges=596,groups=521
+[2019-09-06 11:39:34.083+0000] INFO    | odudgeon	NeighbourhoodQuery	624350243	nodes=836,edges=1030,groups=799
+[2019-09-06 11:40:31.998+0000] INFO    | odudgeon	NeighbourhoodQuery	434062385	nodes=756,edges=856,groups=720
+[2019-09-06 11:52:12.533+0000] INFO    | odudgeon	NeighbourhoodQuery	726837679	nodes=540,edges=596,groups=521
+[2019-09-06 12:07:49.333+0000] INFO    | odudgeon	NeighbourhoodQuery	272901826	nodes=89,edges=89,groups=88
+[2019-09-06 12:10:11.931+0000] INFO    | odudgeon	NeighbourhoodQuery	214123619	nodes=756,edges=856,groups=720
+[2019-09-06 12:20:37.868+0000] INFO    | odudgeon	NeighbourhoodQuery	795142970	nodes=836,edges=1030,groups=799
+[2019-09-06 12:21:03.554+0000] INFO    | odudgeon	NeighbourhoodQuery	825361826	nodes=836,edges=1030,groups=799
+[2019-09-06 12:23:10.658+0000] INFO    | odudgeon	NeighbourhoodQuery	587322065	nodes=836,edges=1030,groups=799
+[2019-09-06 12:25:40.188+0000] INFO    | odudgeon	NeighbourhoodQuery	587680688	nodes=836,edges=1030,groups=799
+[2019-09-06 12:29:53.241+0000] INFO    | odudgeon	NeighbourhoodQuery	330397699	nodes=756,edges=856,groups=720
+[2019-09-06 12:30:09.544+0000] INFO    | odudgeon	NeighbourhoodQuery	477707982	nodes=540,edges=596,groups=521
+[2019-09-06 12:33:51.336+0000] INFO    | odudgeon	NeighbourhoodQuery	17558490	nodes=17,edges=16,groups=16
+[2019-09-06 12:42:45.405+0000] INFO    | odudgeon	NeighbourhoodQuery	391369150	nodes=756,edges=856,groups=720
+[2019-09-06 12:50:27.661+0000] INFO    | odudgeon	NeighbourhoodQuery	20705571	nodes=13,edges=12,groups=12
+[2019-09-06 12:53:15.469+0000] INFO    | odudgeon	NeighbourhoodQuery	18294895	nodes=17,edges=16,groups=16
+[2019-09-06 12:53:57.023+0000] INFO    | odudgeon	NeighbourhoodQuery	181802929	nodes=756,edges=856,groups=720
+[2019-09-06 12:56:45.985+0000] INFO    | odudgeon	NeighbourhoodQuery	37626821	nodes=89,edges=89,groups=88
+[2019-09-06 12:56:51.057+0000] INFO    | odudgeon	NeighbourhoodQuery	13315780	nodes=17,edges=16,groups=16
+[2019-09-06 12:56:54.893+0000] INFO    | odudgeon	NeighbourhoodQuery	16126016	nodes=13,edges=12,groups=12
+[2019-09-06 12:57:56.647+0000] INFO    | odudgeon	NeighbourhoodQuery	362928865	nodes=836,edges=1030,groups=799
+[2019-09-06 12:59:36.854+0000] INFO    | odudgeon	NeighbourhoodQuery	601159067	nodes=836,edges=1030,groups=799
+[2019-09-06 12:59:47.695+0000] INFO    | odudgeon	NeighbourhoodQuery	14946845	nodes=17,edges=16,groups=16
+[2019-09-06 19:01:54.038+0000] INFO    | OPENED
+[2019-09-09 14:44:02.910+0000] INFO    | OPENED
+[2019-09-09 14:47:13.761+0000] INFO    | tdudgeon	NeighbourhoodQuery	46645682467	nodes=836,edges=1030,groups=799
+[2019-09-09 15:02:11.222+0000] INFO    | odudgeon	NeighbourhoodQuery	17693613587	nodes=756,edges=856,groups=720
+[2019-09-09 15:39:21.975+0000] INFO    | odudgeon	NeighbourhoodQuery	121129384	nodes=89,edges=89,groups=88
+[2019-09-09 15:40:37.850+0000] INFO    | odudgeon	NeighbourhoodQuery	53570183	nodes=89,edges=89,groups=88
+[2019-09-09 15:41:04.644+0000] INFO    | odudgeon	NeighbourhoodQuery	58427210	nodes=100,edges=100,groups=99
+[2019-09-09 15:43:10.266+0000] INFO    | odudgeon	NeighbourhoodQuery	375652730	nodes=216,edges=217,groups=197
+[2019-09-09 15:45:37.852+0000] INFO    | OPENED
+[2019-09-09 15:46:27.307+0000] INFO    | tdudgeon	NeighbourhoodQuery	2623607663	nodes=836,edges=1030,groups=799
+[2019-09-09 16:19:57.786+0000] INFO    | OPENED
+[2019-09-09 16:21:11.581+0000] INFO    | tdudgeon	NeighbourhoodQuery	2610478771	nodes=836,edges=1030,groups=799
+[2019-09-10 09:27:30.973+0000] INFO    | OPENED
+[2019-09-10 09:49:46.428+0000] INFO    | OPENED
+[2019-09-10 09:56:43.549+0000] INFO    | tdudgeon	NeighbourhoodQuery	40878237266	nodes=836,edges=1030,groups=799
+[2019-09-10 09:56:51.747+0000] INFO    | tdudgeon	NeighbourhoodQuery	161936932	nodes=89,edges=89,groups=88
+[2019-09-10 10:13:37.017+0000] INFO    | tdudgeon	NeighbourhoodQuery	2170727221	nodes=836,edges=1030,groups=799
+[2019-09-10 10:49:01.940+0000] INFO    | OPENED
+[2019-09-10 10:51:08.299+0000] INFO    | tdudgeon	NeighbourhoodQuery	2921927640	nodes=836,edges=1030,groups=799
+[2019-09-10 10:55:36.938+0000] INFO    | OPENED
+[2019-09-10 10:59:39.676+0000] INFO    | tdudgeon	NeighbourhoodQuery	2844544147	nodes=836,edges=1030,groups=799
+[2019-09-10 11:00:37.372+0000] INFO    | tdudgeon	NeighbourhoodQuery	2029353772	nodes=836,edges=1030,groups=799
+[2019-09-10 11:03:14.757+0000] INFO    | tdudgeon	NeighbourhoodQuery	9118007542	nodes=871,edges=1118,groups=752
+[2019-09-10 11:14:16.435+0000] INFO    | OPENED
+[2019-09-10 11:14:45.908+0000] INFO    | tdudgeon	NeighbourhoodQuery	676240542	nodes=89,edges=89,groups=88
+[2019-09-10 11:15:44.177+0000] INFO    | tdudgeon	NeighbourhoodQuery	10330766178	nodes=1223,edges=1508,groups=1185
+[2019-09-10 11:31:42.333+0000] INFO    | tdudgeon	NeighbourhoodQuery	10158264143	nodes=540,edges=596,groups=521
+[2019-09-10 11:35:27.462+0000] INFO    | tdudgeon	NeighbourhoodQuery	15257495595	nodes=756,edges=856,groups=720
+[2019-09-10 12:41:35.226+0000] INFO    | tdudgeon	NeighbourhoodQuery	2643617793	nodes=1223,edges=1508,groups=1185
+[2019-09-11 09:49:37.903+0000] INFO    | OPENED
+[2019-09-11 10:05:36.771+0000] INFO    | odudgeon	NeighbourhoodQuery	1072278085	nodes=0,edges=0,groups=0
+[2019-09-11 10:06:08.210+0000] INFO    | odudgeon	NeighbourhoodQuery	13707917	nodes=0,edges=0,groups=0
+[2019-09-11 10:08:04.765+0000] INFO    | odudgeon	NeighbourhoodQuery	29818784	nodes=0,edges=0,groups=0
+[2019-09-11 10:21:04.806+0000] INFO    | odudgeon	NeighbourhoodQuery	15689720	nodes=0,edges=0,groups=0
+[2019-09-11 10:21:35.439+0000] INFO    | odudgeon	NeighbourhoodQuery	16392498	nodes=0,edges=0,groups=0
+[2019-09-11 10:22:37.404+0000] INFO    | odudgeon	NeighbourhoodQuery	10846539	nodes=0,edges=0,groups=0
+[2019-09-11 10:23:10.917+0000] INFO    | odudgeon	NeighbourhoodQuery	14698805	nodes=0,edges=0,groups=0
+[2019-09-11 10:23:38.215+0000] INFO    | odudgeon	NeighbourhoodQuery	14904797	nodes=0,edges=0,groups=0
+[2019-09-11 10:23:57.400+0000] INFO    | odudgeon	NeighbourhoodQuery	11933036	nodes=0,edges=0,groups=0
+[2019-09-11 10:28:22.170+0000] INFO    | odudgeon	NeighbourhoodQuery	15947188	nodes=0,edges=0,groups=0
+[2019-09-11 10:29:54.369+0000] INFO    | odudgeon	NeighbourhoodQuery	12053724	nodes=0,edges=0,groups=0
+[2019-09-11 10:38:40.890+0000] INFO    | odudgeon	NeighbourhoodQuery	19668671	nodes=0,edges=0,groups=0
+[2019-09-11 10:40:49.780+0000] INFO    | odudgeon	NeighbourhoodQuery	1153585656	nodes=216,edges=217,groups=197
+[2019-09-11 11:11:47.566+0000] INFO    | odudgeon	NeighbourhoodQuery	373203505	nodes=216,edges=217,groups=197
+[2019-09-11 11:13:09.385+0000] INFO    | odudgeon	NeighbourhoodQuery	43193385805	nodes=836,edges=1030,groups=799
+[2019-09-11 11:13:11.766+0000] INFO    | odudgeon	NeighbourhoodQuery	629594141	nodes=128,edges=130,groups=96
+[2019-09-11 11:14:42.549+0000] INFO    | tdudgeon	NeighbourhoodQuery	1841002451	nodes=668,edges=1040,groups=619
+[2019-09-11 11:15:19.899+0000] INFO    | tdudgeon	NeighbourhoodQuery	17798351872	nodes=2701,edges=3192,groups=2650
+[2019-09-11 11:17:19.735+0000] INFO    | odudgeon	NeighbourhoodQuery	12615958	nodes=0,edges=0,groups=0
+[2019-09-11 11:18:38.946+0000] INFO    | odudgeon	NeighbourhoodQuery	51862864	nodes=0,edges=0,groups=0
+[2019-09-11 11:24:36.704+0000] INFO    | odudgeon	NeighbourhoodQuery	7701151	nodes=0,edges=0,groups=0
+[2019-09-11 11:24:59.131+0000] INFO    | odudgeon	NeighbourhoodQuery	12870834	nodes=0,edges=0,groups=0
+[2019-09-11 11:25:01.107+0000] INFO    | odudgeon	NeighbourhoodQuery	9922154	nodes=0,edges=0,groups=0
+[2019-09-11 11:25:02.118+0000] INFO    | odudgeon	NeighbourhoodQuery	9541810	nodes=0,edges=0,groups=0
+[2019-09-11 11:25:05.269+0000] INFO    | odudgeon	NeighbourhoodQuery	7656730	nodes=0,edges=0,groups=0
+[2019-09-11 11:25:05.835+0000] INFO    | odudgeon	NeighbourhoodQuery	6735166	nodes=0,edges=0,groups=0
+[2019-09-11 11:25:06.219+0000] INFO    | odudgeon	NeighbourhoodQuery	9301404	nodes=0,edges=0,groups=0
+[2019-09-11 11:25:06.681+0000] INFO    | odudgeon	NeighbourhoodQuery	7496237	nodes=0,edges=0,groups=0
+[2019-09-11 11:25:35.375+0000] INFO    | odudgeon	NeighbourhoodQuery	7480324	nodes=0,edges=0,groups=0
+[2019-09-11 11:30:41.932+0000] INFO    | odudgeon	NeighbourhoodQuery	6829914	nodes=0,edges=0,groups=0
+[2019-09-11 11:31:54.977+0000] INFO    | odudgeon	NeighbourhoodQuery	6707552	nodes=0,edges=0,groups=0
+[2019-09-11 11:32:31.205+0000] INFO    | odudgeon	NeighbourhoodQuery	9150488	nodes=0,edges=0,groups=0
+[2019-09-11 11:33:18.100+0000] INFO    | odudgeon	NeighbourhoodQuery	7038738	nodes=0,edges=0,groups=0
+[2019-09-11 11:38:30.815+0000] INFO    | odudgeon	NeighbourhoodQuery	6759646	nodes=0,edges=0,groups=0
+[2019-09-11 11:38:44.867+0000] INFO    | odudgeon	NeighbourhoodQuery	6482642	nodes=0,edges=0,groups=0
+[2019-09-11 11:47:47.856+0000] INFO    | odudgeon	NeighbourhoodQuery	6978429	nodes=0,edges=0,groups=0
+[2019-09-11 11:48:03.758+0000] INFO    | odudgeon	NeighbourhoodQuery	8509341	nodes=0,edges=0,groups=0
+[2019-09-11 11:53:08.260+0000] INFO    | odudgeon	NeighbourhoodQuery	8348042	nodes=0,edges=0,groups=0
+[2019-09-11 12:02:56.167+0000] INFO    | tdudgeon	NeighbourhoodQuery	9300448258	nodes=540,edges=596,groups=521
+[2019-09-11 12:03:03.443+0000] SEVERE  | tdudgeon	NeighbourhoodQuery	812711	No enum constant org.squonk.fragnet.chem.Calculator.Calculation.LOGZ
+[2019-09-11 12:47:07.077+0000] INFO    | tdudgeon	NeighbourhoodQuery	1040003970	nodes=540,edges=596,groups=521
+[2019-09-11 13:26:09.970+0000] INFO    | OPENED
+[2019-09-11 13:27:10.775+0000] INFO    | tdudgeon	NeighbourhoodQuery	8214332317	nodes=875,edges=1107,groups=767
+[2019-09-12 11:18:05.613+0000] INFO    | OPENED
+[2019-09-12 11:19:42.220+0000] INFO    | OPENED
+[2019-09-12 11:21:06.194+0000] INFO    | tdudgeon	NeighbourhoodQuery	46197441152	nodes=2701,edges=3192,groups=2650
+[2019-09-12 11:21:21.597+0000] INFO    | tdudgeon	NeighbourhoodQuery	4820850894	nodes=2701,edges=3192,groups=2650
+[2019-09-12 11:26:46.884+0000] INFO    | tdudgeon	NeighbourhoodQuery	4244281195	nodes=2455,edges=2929,groups=2410
+[2019-09-12 11:27:26.310+0000] INFO    | tdudgeon	NeighbourhoodQuery	1894975211	nodes=1223,edges=1508,groups=1185
+[2019-09-12 12:46:24.213+0000] INFO    | OPENED
+[2019-09-12 13:42:28.741+0000] INFO    | OPENED
+[2019-09-12 14:30:01.443+0000] INFO    | OPENED
