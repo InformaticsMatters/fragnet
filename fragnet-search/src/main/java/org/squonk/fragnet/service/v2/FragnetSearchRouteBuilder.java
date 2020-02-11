@@ -23,7 +23,6 @@ import org.apache.camel.Message;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
-import org.apache.camel.spi.DataFormat;
 import org.neo4j.driver.v1.Session;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.chem.Calculator;
@@ -139,7 +138,9 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .get()
                 .produces("text/plain")
                 .route()
-                .transform(constant("OK\n"))
+                .process((Exchange exch) -> {
+                    doHealthCheck(exch);
+                })
                 .endRest();
 
         rest("/metrics").description("Prometheus metrics")
@@ -238,6 +239,15 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         ;
     }
 
+    void doHealthCheck(Exchange exch) {
+        String s = "API: OK\n";
+        if (graphdb.connectionOK(1)) {
+            s += "DB: OK\n";
+        } else {
+            s += "DB: FAIL\n";
+        }
+        exch.getIn().setBody(s);
+    }
 
     void getUserInfo(Exchange exch) {
 

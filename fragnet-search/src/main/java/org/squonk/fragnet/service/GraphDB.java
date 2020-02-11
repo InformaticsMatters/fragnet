@@ -1,10 +1,6 @@
 package org.squonk.fragnet.service;
 
-import org.neo4j.driver.v1.AuthTokens;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.AccessMode;
+import org.neo4j.driver.v1.*;
 import org.squonk.fragnet.Utils;
 import org.squonk.fragnet.service.v1.FragnetSearchRouteBuilder;
 
@@ -14,6 +10,7 @@ import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,6 +38,28 @@ public class GraphDB implements AutoCloseable {
 
     public GraphDB() {
         LOG.info("Using to Neo4j at " + NEO4J_URL + " as user " + NEO4J_USER);
+    }
+
+    /** Utility method that allows to check if the database can be connected to
+     *
+     * @param timeout_secs The number of seconds to wait for
+     * @return True if connection can be obtained, otherwise false
+     */
+    public boolean connectionOK(int timeout_secs) {
+        try {
+            Config config = Config
+                    .build()
+                    .withConnectionTimeout(timeout_secs, TimeUnit.SECONDS)
+                    .toConfig();
+            Driver driver = GraphDatabase.driver(NEO4J_URL, AuthTokens.basic(NEO4J_USER, NEO4J_PASSWORD), config);
+            if (driver != null) {
+                driver.close();
+                return true;
+            }
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "DB connection failed", ex);
+        }
+        return false;
     }
 
     /** Get a read-only session
