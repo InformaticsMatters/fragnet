@@ -10,7 +10,7 @@ services:
   # CREATE INDEX ON :F2(smiles);
   #
   neo4j:
-    image: informaticsmatters/fragnet-test:3.5
+    image: informaticsmatters/fragnet-test:fragalysis-ro4-xchem-11
     environment:
       NEO4J_dbms_memory_pagecache_size: 2g
       NEO4J_dbms_memory_heap_initial__size: 2g

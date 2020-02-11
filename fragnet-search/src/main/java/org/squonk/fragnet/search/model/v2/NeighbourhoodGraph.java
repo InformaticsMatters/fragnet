@@ -200,6 +200,10 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
         }
     }
 
+    protected GroupMember createGroupMember(MoleculeNode node) {
+        return new GroupMember(node);
+    }
+
     protected class Grouping {
 
         private final Map<Long, GroupMember> members = new HashMap<>();
