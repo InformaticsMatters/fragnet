@@ -12,7 +12,6 @@ class GroupMemberSpec extends Specification {
         return graph.createGroupMember(molNode)
     }
 
-    @Ignore
     void "one edge between nodes one hop"() {
 
         // This tests the case where there is a single one hop path between a pair on nodes
@@ -32,16 +31,14 @@ class GroupMemberSpec extends Specification {
         member.addEdges([new MoleculeEdge(123523916, 123523916, 123525973,
                 "FG|I[Xe]|I[102Xe]|RING|Oc1ccc(-c2ccc([Xe])cc2)cc1|OC1CCC(C2CCC([102Xe])CC2)CC1")] as MoleculeEdge[])
 
-        def key = member.generateGroupingKey()
-        //println key
+        def tx = member.molTransform
 
         then:
-        key == 'Oc1ccc(-c2ccc([Xe])cc2)cc1'
+        tx.scaffold == 'Oc1ccc(-c2ccc([Xe])cc2)cc1'
+        tx.classification == GroupingType.FG_ADDITION
     }
 
     // "key":"Oc1ccc(-c2ccc([Xe])cc2)cc1","classification":"ADDITION","prototype":"Oc1ccc(-c2ccc(I)cc2)cc1","members":[{"id":123523916,"smiles":"Oc1ccc(-c2ccc(I)cc2)cc1","edgeIds":[[-636668291]]}
-
-    @Ignore
     void "two edges between nodes one hop"() {
 
         // this tests the case where there are 2 one hop paths between a pair on nodes
@@ -70,11 +67,11 @@ class GroupMemberSpec extends Specification {
         member.addEdges([new MoleculeEdge(636668988, 123523948, 123525973,
                 "FG|O[Xe]|O[100Xe]|RING|Oc1ccc(-c2ccc([Xe])cc2)cc1|OC1CCC(C2CCC([100Xe])CC2)CC1")] as MoleculeEdge[])
 
-        def key = member.generateGroupingKey()
-        //println key
+        def tx = member.molTransform
 
         then:
-        key == 'Oc1ccc(-c2ccc([Xe])cc2)cc1'
+        tx.scaffold == 'Oc1ccc(-c2ccc([Xe])cc2)cc1'
+        tx.classification == GroupingType.FG_ADDITION
     }
 
     @Ignore
@@ -98,11 +95,12 @@ class GroupMemberSpec extends Specification {
                 new MoleculeEdge(303613210, 65424083, 90077975,
                         "FG|CC[Xe]|CC[100Xe]|RING|Cc1cc(-c2cccc([Xe])c2)ccc1O|CC1CC(C2CCCC([100Xe])C2)CCC1O")
         ] as MoleculeEdge[])
-        def key = member.generateGroupingKey()
-        //println key
+
+        def tx = member.molTransform
 
         then:
-        key == 'Oc1ccc(-c2cccc([Xe])c2)cc1$$Oc1ccc(-c2ccccc2)cc1[Xe]'
+        tx.scaffold == 'Oc1ccc(-c2cccc([Xe])c2)cc1$$Oc1ccc(-c2ccccc2)cc1[Xe]'
+        tx.classification == GroupingType.FG_ADDITION
     }
 
     // this is biphenol substituted at the 3 position
@@ -133,11 +131,12 @@ class GroupMemberSpec extends Specification {
                 new MoleculeEdge(151454565, 36120704, 35995193,
                         "FG|O[Xe]|O[102Xe]|RING|C=CCc1cc(-c2ccccc2)ccc1[Xe]|CCCC1CC(C2CCCCC2)CCC1[102Xe]")
         ] as MoleculeEdge[])
-        def key = member.generateGroupingKey()
-        //println key
+
+        def tx = member.molTransform
 
         then:
-        key == 'Oc1ccc(-c2cccc([Xe])c2)cc1$$Oc1ccc(-c2ccccc2)cc1[Xe]$$[Xe]c1ccc(-c2ccccc2)cc1'
+        tx.scaffold == 'Oc1ccc(-c2cccc([Xe])c2)cc1$$Oc1ccc(-c2ccccc2)cc1[Xe]$$[Xe]c1ccc(-c2ccccc2)cc1'
+        tx.classification == GroupingType.FG_ADDITION
     }
 
     // this is biphenol substituted at the 3 position
