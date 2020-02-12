@@ -503,7 +503,7 @@ public class NeighbourhoodGraph extends FragmentGraph implements Constants {
                 MolTransform tf = TransformClassifierUtils.generateMolTransform(best);
                 return tf;
             } catch (Exception ex) {
-                LOG.log(Level.WARNING, "Failed to classify molecule. Resorting to undefined.");
+                LOG.log(Level.WARNING, "Failed to classify molecule. Resorting to undefined", ex);
                 return new MolTransform("undefined-undefined", GroupingType.UNDEFINED, 0);
             }
 
