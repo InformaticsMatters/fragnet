@@ -138,9 +138,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .get()
                 .produces("text/plain")
                 .route()
-                .process((Exchange exch) -> {
-                    doHealthCheck(exch);
-                })
+                .transform(constant("OK\n"))
                 .endRest();
 
         rest("/metrics").description("Prometheus metrics")
@@ -237,16 +235,6 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .marshal().json(JsonLibrary.Jackson)
                 .endRest()
         ;
-    }
-
-    void doHealthCheck(Exchange exch) {
-        String s = "API: OK\n";
-        if (graphdb.connectionOK(1)) {
-            s += "DB: OK\n";
-        } else {
-            s += "DB: FAIL\n";
-        }
-        exch.getIn().setBody(s);
     }
 
     void getUserInfo(Exchange exch) {
