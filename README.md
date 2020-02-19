@@ -1,8 +1,9 @@
 # Fragnet
 
-![GitHub](https://img.shields.io/github/license/informaticsmatters/squonk)
 [![Build Status](https://travis-ci.org/InformaticsMatters/fragnet.svg?branch=master)](https://travis-ci.org/InformaticsMatters/fragnet)
-![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/informaticsmatters/squonk)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/informaticsmatters/fragnet)
+
+![GitHub](https://img.shields.io/github/license/informaticsmatters/fragnet)
 
 Fragment network tooling from Informatics Matters.
 This is primarily Java based tooling using RDKit and the Neo4j graph database.
