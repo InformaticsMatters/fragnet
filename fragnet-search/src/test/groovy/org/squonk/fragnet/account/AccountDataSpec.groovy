@@ -22,7 +22,7 @@ class AccountDataSpec extends Specification {
     void "test read file no prune"() {
 
         when:
-        def input = new BufferedReader(new FileReader('src/test/data/fragnet-queries-v2.log.0'))
+        def input = new BufferedReader(new FileReader('src/test/data/fragnet-queries-v2'))
         def account = new AccountData()
         account.readLogfile(input)
         def tdudgeon = account.getQueryCount('tdudgeon', false)
@@ -40,7 +40,7 @@ class AccountDataSpec extends Specification {
     void "test read file prune"() {
 
         when:
-        def input = new BufferedReader(new FileReader('src/test/data/fragnet-queries-v2.log.0'))
+        def input = new BufferedReader(new FileReader('src/test/data/fragnet-queries-v2'))
         def account = new AccountData()
         account.readLogfile(input)
         account.incrementQueryCount('tdudgeon')
