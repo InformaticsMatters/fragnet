@@ -15,14 +15,19 @@
  */
 package org.squonk.fragnet.service;
 
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 
+import javax.inject.Inject;
 import java.util.logging.Logger;
 
 /**
  * Defines the generic REST services and the REST configuration that is used by the version specific APIs.
  */
 public class FragnetSearchRouteBuilderCommon extends RouteBuilder {
+
+    @Inject
+    private GraphDB graphdb;
 
     private static final Logger LOG = Logger.getLogger(FragnetSearchRouteBuilderCommon.class.getName());
 
@@ -56,7 +61,9 @@ public class FragnetSearchRouteBuilderCommon extends RouteBuilder {
         rest().get("/ping").description("Simple ping service to check things are running")
                 .produces("text/plain")
                 .route()
-                .transform(constant("OK\n"))
+                .process((Exchange exch) -> {
+                    doHealthCheck(exch);
+                })
                 .endRest()
                 .get("/versions").description("List API versions that are available")
                 .produces("application/json")
@@ -64,5 +71,16 @@ public class FragnetSearchRouteBuilderCommon extends RouteBuilder {
                 .transform(constant("[\"/fragnet-search/rest/v1\",\"/fragnet-search/rest/v2\"]"))
                 .endRest();
 
+    }
+
+
+    private void doHealthCheck(Exchange exch) {
+        String s = "API: OK\n";
+        if (graphdb.connectionOK(1)) {
+            s += "DB: OK\n";
+        } else {
+            s += "DB: FAIL\n";
+        }
+        exch.getIn().setBody(s);
     }
 }

@@ -1,37 +1,62 @@
 # Fragnet
 
-![GitHub](https://img.shields.io/github/license/informaticsmatters/squonk)
 [![Build Status](https://travis-ci.org/InformaticsMatters/fragnet.svg?branch=master)](https://travis-ci.org/InformaticsMatters/fragnet)
-![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/informaticsmatters/squonk)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/informaticsmatters/fragnet)
+
+![GitHub](https://img.shields.io/github/license/informaticsmatters/fragnet)
 
 Fragment network tooling from Informatics Matters.
-This is primarily Java based tooling using RDKit and the Neo4j graph database.
+This is primarily Java based tooling using RDKit and the Neo4j graph database
+and is the underlying service used by the Fragnet UI application.
 
 Current components:
 
 1. [fragnet-search](fragnet-search/) - fragment network query REST web service.
 2. [fragnet-depict](fragnet-depict/) - Depicting smiles as SVG.
-3. [orchestration](orchestration/) - orchestration of fragnet-search to AWS.
+3. [orchestration](orchestration/) - legacy orchestration of fragnet-search to AWS.
 
 For more information see:
 
 * [Talk at 2018 RDKit UGM](https://github.com/rdkit/UGM_2018/blob/master/Lightning/tim_dudgeon_fragment-network.pdf).
 * [Informatics Matters website](https://www.informaticsmatters.com/pages/fragment_network.html)
 
-## Building
+## Building (Travis)
+The project's `squonk/fragnet-services` container is built automatically
+by Travis with `latest` images pushed to Docker Hub for each change on the
+master branch. Tagged releases are also automatically built and pushed to
+Docker hub.
 
+Refer to the project's `.travis.yml` for details of the build, which uses
+scripts present in the `scripts` directory.
+
+## Building (developer)
 Run the buildDockerImage target `./gradlew buildDockerImage`.
-This builds a Docker image running Tomcat and deploys the war files for fragnet-search and fragnet-depict.
+This builds a Docker image running Tomcat and deploys the war files
+for fragnet-search and fragnet-depict.
 
-Test the container using the [docker-compose-test.yml](docker-compose-test.yml) file:
-`docker-compose -f docker-compose-test.yml up`
+Test the container using the [docker-compose-test.yml](docker-compose-test.yml)
+file:
+
+    docker-compose -f docker-compose-test.yml up
 
 This uses a sample Neo4j database with a small amount of data.
 
-For full deployment see [orchestration](orchestration/)
+## Official deployments
+>   For the legacy deployment process (to AWS EC2 instances) refer to 
+    the instructions in [orchestration](orchestration/).
 
-### Image versions
+New deployments are achieved through the use of Ansible playbooks and Roles
+that can be found in the [fragnet-ansible] repository. These are used to
+form **Job Templates** that run on our [AWX server].
 
+Official deployments (to Kubernetes) now use AWX.
+
+## Image versions
+Official image versions are defined by and obtained from repository tags,
+passed on the Travis build process through the `FRAGNET_IMAGE_TAG` environment
+variable. This variable over-rides any built-in default present in the
+gradle build (see below)...
+ 
 The application version is defined in `build.gradle`'s `version` string.
 
 During active development the version number (on the master branch)
@@ -48,3 +73,8 @@ is typically the next anticipated formal release and **must** have a
 1.  Increment the version number
 1.  Append the `-SNAPSHOT` suffix
 1.  Commit your change to Git
+
+---
+
+[awx server]: https://awx.informaticsmatters.org
+[fragnet-ansible]: https://github.com/InformaticsMatters/fragnet-ansible

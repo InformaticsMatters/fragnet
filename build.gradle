@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Informatics Matters Ltd.
+ * Copyright (c) 2020 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@ plugins {
 
 description = 'Fragment Network tools and services'
 
+// The version is not used if FRAGNET_IMAGE_TAG is set.
+// The version is then only used if it's not a snapshot.
+// If it's a snapshot images are tagged 'latest'
 version = '0.3.3-SNAPSHOT'
 
 import com.bmuschko.gradle.docker.tasks.container.*
@@ -48,8 +51,25 @@ allprojects {
     // look at the jackson2-version property here (with correct tag) to get the right Jackson version
     // https://github.com/apache/camel/blob/master/parent/pom.xml
     project.ext.set('jacksonVersion', '2.10.0')
-    project.ext.set('groovyVersion', '2.5.5')
+    project.ext.set('groovyVersion', '2.5.9')
     project.ext.set('weldVersion', '3.0.5.Final')
+
+    // Define the tag label for docker images.
+    // If FRAGNET_IMAGE_TAG is set then it is used,
+    // otherwise it's either 'latest'
+    // or the value of our 'version' property.
+    def dockerImageTag = System.getenv('FRAGNET_IMAGE_TAG')
+    if (dockerImageTag == null || dockerImageTag.length() == 0) {
+        // As we're here SQUONK_IMAGE_TAG is not set.
+        // the version number is 'latest' if a snapshot
+        // otherwise it's the version.
+        if (!version.endsWith('-SNAPSHOT')) {
+            dockerImageTag = version
+        } else {
+            dockerImageTag = 'latest'
+        }
+    }
+    project.ext.set('dockerImageTag', dockerImageTag)
 
     // In this section you declare where to find the dependencies of your project
     repositories {
@@ -117,7 +137,7 @@ task buildDockerFile(type: Dockerfile) {
     ]
 
     destFile = project.file('build/Dockerfile')
-    from "informaticsmatters/rdkit-tomcat-debian:Release_2019_03"
+    from "informaticsmatters/rdkit-tomcat-debian:Release_2019_09"
     label(['maintainer': 'Tim Dudgeon "tdudgeon@informaticsmatters.com"'])
 
     // include the keycloak adapters
@@ -153,14 +173,5 @@ $CATALINA_HOME/lib/''')
  */
 task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
     inputDir = buildDockerFile.destFile.get().asFile.parentFile
-    tags.add("squonk/fragnet-services:latest")
-    if (!version.endsWith('-SNAPSHOT')) {
-        tags.add("squonk/fragnet-services:${version}")
-    }
+    tags.add("squonk/fragnet-services:${dockerImageTag}")
 }
-
-
-
-
-
-

@@ -23,7 +23,6 @@ import org.apache.camel.Message;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
-import org.apache.camel.spi.DataFormat;
 import org.neo4j.driver.v1.Session;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.chem.Calculator;
@@ -237,7 +236,6 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .endRest()
         ;
     }
-
 
     void getUserInfo(Exchange exch) {
 
