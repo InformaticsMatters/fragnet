@@ -17,18 +17,30 @@ package org.squonk.fragnet.search.queries.v2
 
 import org.neo4j.driver.v1.Session
 import org.squonk.fragnet.AbstractGraphDBSpec
+import org.squonk.fragnet.search.model.v2.SimpleSmilesMol
 
-class SuppliersQuerySpec extends AbstractGraphDBSpec {
+class HitExpanderSpec extends AbstractGraphDBSpec {
 
-    void "simple search"() {
+    static {
+        Runtime.getRuntime().loadLibrary0(groovy.lang.GroovyClassLoader.class, "GraphMolWrap")
+    }
+
+    void "simple expand two"() {
+
         Session session = graphDB.getSession()
-        SuppliersQuery query = new SuppliersQuery(session)
+
+        HitExpander hitExpander = new HitExpander(session)
+        def mols = [
+                new SimpleSmilesMol("CCOc1ccccc1CN1CCC(O)CC1", "1"),
+                new SimpleSmilesMol("COCC(=O)Nc1cccc(NC(C)=O)c1", "2")
+        ]
 
         when:
-        def suppliers = query.getSuppliers()
+        def results = hitExpander.processMolecules(mols, 2, 5, 2, null)
+//        println "Found ${results.getResultCount()} items"
 
         then:
-        suppliers.size() > 0
+        results.getResultCount() > 0
 
         cleanup:
         session?.close()

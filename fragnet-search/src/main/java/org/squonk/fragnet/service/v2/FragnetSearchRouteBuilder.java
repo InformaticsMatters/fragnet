@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Informatics Matters Ltd.
+ * Copyright (c) 2020 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,10 @@ import org.apache.camel.model.rest.RestParamType;
 import org.neo4j.driver.v1.Session;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.chem.Calculator;
-import org.squonk.fragnet.search.model.v2.Availability;
-import org.squonk.fragnet.search.model.v2.ExpansionResults;
-import org.squonk.fragnet.search.model.v2.NeighbourhoodGraph;
+import org.squonk.fragnet.chem.ChemUtils;
+import org.squonk.fragnet.search.model.v2.*;
 import org.squonk.fragnet.search.queries.AbstractQuery;
-import org.squonk.fragnet.search.queries.v2.AvailabilityQuery;
-import org.squonk.fragnet.search.queries.v2.ExpansionQuery;
-import org.squonk.fragnet.search.queries.v2.NeighbourhoodQuery;
-import org.squonk.fragnet.search.queries.v2.SuppliersQuery;
+import org.squonk.fragnet.search.queries.v2.*;
 import org.squonk.fragnet.service.AbstractFragnetSearchRouteBuilder;
 import org.squonk.fragnet.service.GraphDB;
 
@@ -44,6 +40,8 @@ import java.io.Writer;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Defines the v2 REST APIs
@@ -229,8 +227,22 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .produces("application/json")
                 .route()
                 .process((Exchange exch) -> {
-                    String contentType = exch.getIn().getHeader(Exchange.CONTENT_TYPE, Constants.MIME_TYPE_MOLFILE, String.class);
+                    String contentType = exch.getIn().getHeader(Exchange.CONTENT_TYPE, String.class);
                     executeExpansionQuery(exch, contentType);
+                })
+                .marshal().json(JsonLibrary.Jackson)
+                .endRest()
+                .post("expand-multi").description("Expansion search (multiple inputs)")
+                .bindingMode(RestBindingMode.off)
+                .param().name("smiles").type(RestParamType.body).description("SMILES queries").endParam()
+                .param().name("hac").type(RestParamType.query).description("Heavy atom count bounds").endParam()
+                .param().name("rac").type(RestParamType.query).description("Ring atom count bounds").endParam()
+                .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
+                .param().name("suppliers").type(RestParamType.query).description("Suppliers to include").endParam()
+                .produces("application/json")
+                .route()
+                .process((Exchange exch) -> {
+                    executeExpansionMultiQuery(exch);
                 })
                 .marshal().json(JsonLibrary.Jackson)
                 .endRest()
@@ -416,6 +428,81 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 expansionSearchRequestsDuration.inc((double) duration);
             }
 
+
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "ExpansionQuery Failed", ex);
+            expansionSearchErrorsTotal.inc();
+            message.setBody("{\"error\": \"ExpansionQuery Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
+            message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+
+            long t1 = System.nanoTime();
+            writeErrorToQueryLog(username, "ExpansionQuery", t1 - t0, ex.getLocalizedMessage());
+        }
+    }
+
+
+    void executeExpansionMultiQuery(Exchange exch) {
+
+        Message message = exch.getIn();
+
+//        message.getHeaders().forEach((k,v) -> {
+//            System.out.println(k + " -> " +v);
+//        });
+
+        long t0 = System.nanoTime();
+        String username = getUsername(exch);
+
+        try {
+            Integer hops = message.getHeader("hops", Integer.class);
+            Integer hac = message.getHeader("hac", Integer.class);
+            Integer rac = message.getHeader("rac", Integer.class);
+            Integer pathLimit = message.getHeader("pathLimit", Integer.class);
+            if (pathLimit != null && pathLimit > AbstractQuery.DEFAULT_LIMIT) {
+                throw new IllegalArgumentException("Path limit cannot be greater than " + AbstractQuery.DEFAULT_LIMIT);
+            }
+            String suppls = message.getHeader("suppliers", String.class);
+            LOG.info(String.format("hops=&s hac=%s rac=%s", hops, hac, rac));
+
+            List<String> suppliers = parseSuppliers(suppls);
+
+            String body = message.getBody(String.class);
+            if (body == null | body.isEmpty()) {
+                LOG.info("NeighbourhoodQuery found no results");
+                message.setBody("{\"error\": \"No Input\",\"message\": \"No molecules POSTed.\"}");
+                message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+            } else {
+                Stream<SimpleSmilesMol> mols = ChemUtils.readSmilesData(body);
+                List<SimpleSmilesMol> queries = mols.collect(Collectors.toList());
+                LOG.info("Read " + queries.size() + " queries");
+
+                expansionSearchRequestsTotal.inc(queries.size());
+
+                ExpandMultiResult result;
+                try (Session session = graphdb.getSession()) {
+                    // execute the query
+                    HitExpander expander = new HitExpander(session);
+
+                    long n0 = System.nanoTime();
+                    result = expander.processMolecules(queries, hops, hac, rac, suppliers);
+                    long n1 = System.nanoTime();
+                    expansionSearchNeo4jSearchDuration.inc((double) (n1 - n0));
+                    expansionSearchHitsTotal.inc((double) result.getResults().size());
+                }
+
+                if (result.getResults().size() == 0) { // no results found
+                    LOG.info("ExpansionMultiQuery found no results");
+                    message.setBody("{\"error\": \"No Results\",\"message\": \"ExpansionMultiQuery molecules not found in the database\"}");
+                    message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+
+                } else {
+                    message.setBody(result);
+                    message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+                    long t1 = System.nanoTime();
+                    long duration = t1 - t0; //nanos
+                    writeToExpansionQueryLog(username, "ExpansionMulti", duration, result.getResults().size(), queries.size());
+                    expansionSearchRequestsDuration.inc((double) duration);
+                }
+            }
 
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "ExpansionQuery Failed", ex);

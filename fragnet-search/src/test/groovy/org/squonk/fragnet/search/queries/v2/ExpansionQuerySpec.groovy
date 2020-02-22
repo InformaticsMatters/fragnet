@@ -16,25 +16,29 @@
 package org.squonk.fragnet.search.queries.v2
 
 import org.neo4j.driver.v1.Session
+import org.squonk.fragnet.AbstractGraphDBSpec
 import org.squonk.fragnet.search.model.v2.ExpansionResults
-import org.squonk.fragnet.service.GraphDB
-import spock.lang.Ignore
-import spock.lang.Specification
 
-class ExpansionQuerySpec extends Specification {
+class ExpansionQuerySpec extends AbstractGraphDBSpec {
 
-    @Ignore
+    static {
+        Runtime.getRuntime().loadLibrary0(groovy.lang.GroovyClassLoader.class, "GraphMolWrap")
+    }
+
     void "simple search"() {
-        GraphDB db = new GraphDB()
-        Session session = db.getSession()
+        Session session = graphDB.getSession()
         ExpansionQuery query = new ExpansionQuery(session, null)
 
         when:
-        ExpansionResults results = query.executeQuery("CCOc1ccccc1CN1CCC(O)CC1", 1, 10, 3, null)
+        ExpansionResults results = query.executeQuery("CCOc1ccccc1CN1CCC(O)CC1", "chemical/x-daylight-smiles",
+                1, 10, 3, null)
         println "Found ${results.getSize()} items"
 
         then:
         results.getSize() > 0
+
+        cleanup:
+        session?.close()
     }
 
 }

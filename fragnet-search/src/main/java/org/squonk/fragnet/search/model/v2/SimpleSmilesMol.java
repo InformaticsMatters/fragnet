@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.squonk.fragnet.search.queries.v2
+package org.squonk.fragnet.search.model.v2;
 
-import org.neo4j.driver.v1.Session
-import org.squonk.fragnet.AbstractGraphDBSpec
+public class SimpleSmilesMol {
 
-class SuppliersQuerySpec extends AbstractGraphDBSpec {
+    private final String smiles;
+    private final String id;
 
-    void "simple search"() {
-        Session session = graphDB.getSession()
-        SuppliersQuery query = new SuppliersQuery(session)
-
-        when:
-        def suppliers = query.getSuppliers()
-
-        then:
-        suppliers.size() > 0
-
-        cleanup:
-        session?.close()
+    public SimpleSmilesMol(String smiles, String id) {
+        this.smiles = smiles;
+        this.id = id;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public String getSmiles() {
+        return smiles;
+    }
 }

@@ -27,9 +27,10 @@ services:
   # export FRAGNET_SERVER=http://localhost:8080
   # curl $FRAGNET_SERVER/fragnet-search/rest/v2/search/suppliers
   # curl $FRAGNET_SERVER/fragnet-search/rest/ping
-  # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/neighbourhood/c1ccccc1?hac=10&rac=3&hops=2"
-  # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/availability/NC1CCCNC1"
-  # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand/c1ccccc1?hac=10&rac=3&hops=2"
+  # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/neighbourhood/OC(Cn1ccnn1)C1CC1?hac=3&rac=1&hops=2"
+  # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/availability/OC(Cn1ccnn1)C1CC1"
+  # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand/OC(Cn1ccnn1)C1CC1?hac=10&rac=3&hops=2"
+  # curl -d "@fragnet-search/src/test/data/expand.smi" "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand-multi?hac=5&rac=2&hops=2"
   # curl "$FRAGNET_SERVER/fragnet-depict/moldepict?&w=75&h=60&bg=0x33FFFF00&mol=CN1C%3DNC2%3DC1C(%3DO)N(C)C(%3DO)N2C"
 
   fragnet-services:

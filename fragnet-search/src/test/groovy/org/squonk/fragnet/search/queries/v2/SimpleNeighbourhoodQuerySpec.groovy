@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Informatics Matters Ltd.
+ * Copyright (c) 2020 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,42 @@
 package org.squonk.fragnet.search.queries.v2
 
 import org.neo4j.driver.v1.Session
-import org.squonk.fragnet.search.model.v2.Availability
+import org.squonk.fragnet.AbstractGraphDBSpec
 import org.squonk.fragnet.search.model.v2.NeighbourhoodGraph
 import org.squonk.fragnet.service.GraphDB
-import spock.lang.Specification
+import spock.lang.Ignore
 
-import javax.validation.constraints.NotNull
+class SimpleNeighbourhoodQuerySpec extends AbstractGraphDBSpec {
 
-class SimpleNeighbourhoodQuerySpec extends Specification {
+    static {
+        Runtime.getRuntime().loadLibrary0(groovy.lang.GroovyClassLoader.class, "GraphMolWrap")
+    }
 
-//    void "4HBP-1-hop"() {
-//        GraphDB db = new GraphDB()
-//        Session session = db.getSession()
-//
-//        when:
-//        NeighbourhoodQuery query = new NeighbourhoodQuery(session, [:])
-//        NeighbourhoodGraph result = query.executeNeighbourhoodQuery('Oc1ccc(-c2ccccc2)cc1', 1, 3, 1, null)
-//        print "Results: $results.nodeCount"
-//
-//        then:
-//        result.nodeCount > 0
-//    }
+    @Ignore
+    void "4-hydroxy-biphenyl-1-hop"() {
+        GraphDB db = new GraphDB()
+        Session session = db.getSession()
+
+        when:
+        NeighbourhoodQuery query = new NeighbourhoodQuery(session, [:])
+        NeighbourhoodGraph result = query.executeNeighbourhoodQuery('Oc1ccc(-c2ccccc2)cc1', 1, 3, 1, null, 10)
+        print "Results: $result.nodeCount"
+
+        then:
+        result.nodeCount > 0
+    }
+
+    void "1-hop neighbourhood query"() {
+        GraphDB db = new GraphDB()
+        Session session = db.getSession()
+
+        when:
+        NeighbourhoodQuery query = new NeighbourhoodQuery(session, [:])
+        NeighbourhoodGraph result = query.executeNeighbourhoodQuery('CCOc1ccccc1CN1CCC(O)CC1', 1, 3, 1, null, 10)
+        print "Results: $result.nodeCount"
+
+        then:
+        result.nodeCount > 0
+    }
 
 }

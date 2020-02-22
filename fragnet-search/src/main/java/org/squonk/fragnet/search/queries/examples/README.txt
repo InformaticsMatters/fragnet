@@ -38,7 +38,7 @@ export HAC=3
 export RAC=1
 export HOPS=1
 
-java -cp /app/resources:/app/classes:/app/libs/* org.squonk.fragnet.search.queries.examples.ExpandHits > /tmp/output-hops${HOPS}-hac${HAC}-rac${RAC}.txt
+java -cp /app/resources:/app/classes:/app/libs/* org.squonk.fragnet.search.queries.examples.HitExpander > /tmp/output-hops${HOPS}-hac${HAC}-rac${RAC}.txt
 
 
 To generate the 53 hits file run this within the container:

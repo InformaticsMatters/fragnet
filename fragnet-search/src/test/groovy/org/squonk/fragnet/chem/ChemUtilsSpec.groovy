@@ -13,25 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.squonk.fragnet.search.queries.v2
+package org.squonk.fragnet.chem
 
-import org.neo4j.driver.v1.Session
-import org.squonk.fragnet.AbstractGraphDBSpec
+import spock.lang.Specification
+import java.util.stream.Collectors
 
-class SuppliersQuerySpec extends AbstractGraphDBSpec {
+class ChemUtilsSpec extends Specification {
 
-    void "simple search"() {
-        Session session = graphDB.getSession()
-        SuppliersQuery query = new SuppliersQuery(session)
-
+    void "read from text"() {
+        def text = '''\
+CCOc1ccccc1CN1CCC(O)CC1  1
+COCC(=O)Nc1cccc(NC(C)=O)c1  2
+'''
         when:
-        def suppliers = query.getSuppliers()
+        def mols = ChemUtils.readSmilesData(text)
+        def list = mols.collect(Collectors.toList())
 
         then:
-        suppliers.size() > 0
-
-        cleanup:
-        session?.close()
+        list.size() == 2
     }
 
+    void "read from file"() {
+
+        when:
+        def mols = ChemUtils.readSmilesFile('src/test/data/mols.smi')
+        def list = mols.collect(Collectors.toList())
+
+        then:
+        list.size() == 2
+    }
 }

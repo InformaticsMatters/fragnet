@@ -260,7 +260,7 @@ The `smiles` that is the first property you see (e.g. as a top level property) i
 
 #### Expansion search
 
-This is a simple API that fetches molecules related to the query molecule. Many aspects are the same as the 
+This is a simple API that fetches molecules related to a query molecule. Many aspects are the same as the 
 Neighbourhood search, except for:
 
 * standardised chiral molecules are returned whereas neighbourhood search returns achiral forms
@@ -346,6 +346,170 @@ This is a simple JSON datastructure as follows:
 ```
 
 The main part is the members property that holds an array of the related molecules.
+
+#### Expansion multi search
+
+This is a simplified version of expansion search allowing multiple queries to be expanded in one go.
+
+The input is SMILES that is POSTed. An example is shown below.
+```
+CC(C)(C(=O)N1CCCC1)c1ccccc1	1
+CC(C)(C(=O)N1CCCC1)c1cccc(F)c1	2
+OCC(O)CN1CCCC1	3
+OCCNc1ccc(F)cn1	4
+OCCNc1ccc(Cl)cn1	5
+```
+The syntax is plain text with one molecule per line. Following the molecule, separated by space or tab is an ID of the 
+molecules. It is recommended to include an ID, but if none is supplied the the numeric index (starting from 1) is used 
+for the ID. 
+
+An example execution using [curl] is:
+```
+curl --data-binary "@expand.smi" "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand-multi?hac=5&rac=2&hops=2"
+```
+
+**NOTE:** These queries can fetch large amounts of results. It is best to run them initially with strict query criteria before
+loosening them (in particular for the `hops` parameter only use a value of 3 if you find you do not get many results with
+a value of 2.)
+
+#### Expansion multi search results
+The searches are executed using the same mechanism as the standard expansion search with results being aggregated. 
+A result molecule can be found by multiple queries so the results include the ID of the query molecules that found the
+hit as well as various information about the query. Example output (part of data is removed) is shown below:
+
+```json
+{
+  "executionDate": "2020/02/21 17:37:30",
+  "executionTimeMillis": 809,
+  "resultCount": 2770,
+  "parameters": {
+    "hops": 2,
+    "hac": 5,
+    "rac": 2
+  },
+  "queries": [
+    {
+      "smiles": "CC(C)(C(=O)N1CCCC1)c1ccccc1",
+      "id": "1"
+    },
+    {
+      "smiles": "CC(C)(C(=O)N1CCCC1)c1cccc(F)c1",
+      "id": "2"
+    },
+    {
+      "smiles": "OCC(O)CN1CCCC1",
+      "id": "3"
+    },
+    {
+      "smiles": "OCCNc1ccc(F)cn1",
+      "id": "4"
+    },
+    {
+      "smiles": "OCCNc1ccc(Cl)cn1",
+      "id": "5"
+    }
+  ],
+  "hitCounts": {
+    "1": 650,
+    "2": 671,
+    "3": 1183,
+    "4": 289,
+    "5": 6
+  },
+  "results": [
+    {
+      "smiles": "CC(C)(C(=O)N1CCCC1)c1ccc(F)cc1",
+      "vendorIds": [
+        "REAL:Z1102056262"
+      ],
+      "sourceMols": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "smiles": "CC(C)(C(=O)N1CCCC1)c1ccc(F)cc1F",
+      "vendorIds": [
+        "REAL:Z2833058319"
+      ],
+      "sourceMols": [
+        "1"
+      ]
+    },
+    {
+      "smiles": "CC(C)(C(=O)N1CCCC1)c1ccccc1Br",
+      "vendorIds": [
+        "REAL:Z1985969847"
+      ],
+      "sourceMols": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "smiles": "CC(C)(C(=O)N1CCC(CN)C1)c1ccccc1",
+      "vendorIds": [
+        "REAL:Z2440100621"
+      ],
+      "sourceMols": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "smiles": "CC1CC(CN)CN1C(=O)C(C)(C)c1ccccc1",
+      "vendorIds": [
+        "REAL:Z2393821782"
+      ],
+      "sourceMols": [
+        "1"
+      ]
+    },
+    {
+      "smiles": "CC1(CN)CCN(C(=O)C(C)(C)c2ccccc2)C1",
+      "vendorIds": [
+        "REAL:Z2103219073"
+      ],
+      "sourceMols": [
+        "1"
+      ]
+    },
+    {
+      "smiles": "CC(C)(C(=O)N1CCCC1)c1ccc(C#N)cc1",
+      "vendorIds": [
+        "REAL:Z2697275895"
+      ],
+      "sourceMols": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "smiles": "CC(C)(C(=O)N1CCC(N)C1)c1ccc(C#N)cc1",
+      "vendorIds": [
+        "REAL:Z2825649014"
+      ],
+      "sourceMols": [
+        "1"
+      ]
+    },
+    {
+      "smiles": "Cc1ccccc1C(C)(C)C(=O)N1CCCC1",
+      "vendorIds": [
+        "REAL:Z941548126"
+      ],
+      "sourceMols": [
+        "1",
+        "2"
+      ]
+    },
+
+    ...
+
+  ]
+}
+```
+  
 
 ## Authentication
 
