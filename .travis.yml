@@ -48,9 +48,9 @@ matrix:
 
   # Test-stage jobs...
 
-  - stage: test
-    name: Unit Test
-    script: scripts/test.sh
+#  - stage: test
+#    name: Unit Test
+#    script: scripts/test.sh
 
   # Publish-stage jobs...
 
