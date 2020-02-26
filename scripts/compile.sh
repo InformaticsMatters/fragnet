@@ -5,4 +5,6 @@
 # If you're a user then execute from the project root,
 # e.g. ./scripts/test.sh
 
+set -eo pipefail
+
 ./gradlew assemble
