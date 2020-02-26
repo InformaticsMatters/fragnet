@@ -1,4 +1,4 @@
-ansible == 2.9.0
+ansible == 2.9.2
 boto == 2.49.0
 docker == 4.0.2
 jmespath == 0.9.4
