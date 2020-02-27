@@ -82,7 +82,7 @@ public class NeighbourhoodQuery extends AbstractQuery {
             List<String> suppliers,
             Integer groupLimit) {
 
-        String stdSmiles = MolStandardize.prepareMol(smiles, Constants.MIME_TYPE_SMILES, false, false);
+        String stdSmiles = MolStandardize.prepareNonisoMol(smiles, Constants.MIME_TYPE_SMILES);
 
         QueryAndParams qandp = generateCypherQuery(stdSmiles, hops, hac, rac, suppliers);
 

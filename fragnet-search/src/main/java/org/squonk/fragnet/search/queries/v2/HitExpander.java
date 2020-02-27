@@ -17,10 +17,7 @@
 package org.squonk.fragnet.search.queries.v2;
 
 import org.neo4j.driver.v1.Session;
-import org.squonk.fragnet.search.model.v2.ExpandMultiResult;
-import org.squonk.fragnet.search.model.v2.ExpandedHit;
-import org.squonk.fragnet.search.model.v2.ExpansionResults;
-import org.squonk.fragnet.search.model.v2.SimpleSmilesMol;
+import org.squonk.fragnet.search.model.v2.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -47,16 +44,12 @@ public class HitExpander {
         return results;
     }
 
-    public ExpandMultiResult processMolecules(Stream<SimpleSmilesMol> mols, int hops, int hac, int rac, List<String> suppliers) throws IOException {
-        List<SimpleSmilesMol> list = mols.collect(Collectors.toList());
-        return processMolecules(list, hops, hac, rac, suppliers);
-    }
 
     /** Expand the specified molecules using the specified parameters.
      * Each molecule is searched using an @{ExpansionQuery} search and the results aggregated into an ExpandMultiResult
      * instance which is typically serialized to JSON.
      *
-     * @param mols The molecule to process (must be standardized correctly as the search is for an exact match on the SMILES).
+     * @param queries The molecules to process (must be standardized correctly as the search is for an exact match on the SMILES).
      * @param hops The number of fragment network edges to traverse.
      * @param hac The difference in heavy atom count that is allowed.
      * @param rac The difference in ring atom count that is allowed.
@@ -64,7 +57,9 @@ public class HitExpander {
      * @return ExpandMultiResult instance containing the aggregated results and information about the query.
      * @throws IOException
      */
-    public ExpandMultiResult processMolecules(List<SimpleSmilesMol> mols, int hops, int hac, int rac, List<String> suppliers) throws IOException {
+    public ExpandMultiResult processMolecules(ConvertedSmilesMols queries, int hops, int hac, int rac, List<String> suppliers) throws IOException {
+
+        // standardize molecules
 
         Map<String,ExpandedHit> queryResults = new LinkedHashMap<>();
         Map<String,Object> params = new LinkedHashMap<>();
@@ -74,12 +69,12 @@ public class HitExpander {
         if (suppliers != null && !suppliers.isEmpty()) {
             params.put("suppliers", suppliers);
         }
-        ExpandMultiResult json = new ExpandMultiResult(mols, params);
+        ExpandMultiResult json = new ExpandMultiResult(queries, params);
 
         int count = 0;
         long t0 = System.currentTimeMillis();
-        LOG.info(String.format("Processing %s queries", mols.size()));
-        for (SimpleSmilesMol mol : mols) {
+        LOG.info(String.format("Processing %s queries", queries.getMolecules().size()));
+        for (ConvertedSmilesMols.Mol mol : queries.getMolecules()) {
             String query = mol.getSmiles();
             LOG.fine("Processing " + query);
             ExpansionResults result = executeQuery(query, hops, hac, rac, suppliers);

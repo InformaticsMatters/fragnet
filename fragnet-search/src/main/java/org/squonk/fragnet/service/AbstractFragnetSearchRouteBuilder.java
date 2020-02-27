@@ -1,6 +1,7 @@
 package org.squonk.fragnet.service;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.Message;
 import org.apache.camel.builder.RouteBuilder;
 import org.squonk.fragnet.Utils;
 import org.squonk.fragnet.account.AccountData;
@@ -112,6 +113,11 @@ public abstract class AbstractFragnetSearchRouteBuilder extends RouteBuilder {
             String[] values = suppliers.trim().split(" *, *");
             return Arrays.asList(values);
         }
+    }
+
+    protected void writeErrorResponse(Message message, int errorCode, String content) {
+        message.setBody(content);
+        message.setHeader(Exchange.HTTP_RESPONSE_CODE, errorCode);
     }
 
     protected void writeToNeighbourhoodQueryLog(String user, String searchType, long executionTime, int nodes, int edges, int groups) {

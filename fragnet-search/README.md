@@ -27,12 +27,11 @@ The current search types that are supported are:
 
 1. Supplier search - find the different suppliers that are in the database. Other searches can be
 restricted to specific suppliers.
-1. Molecule neighbourhood search - find the local graph network surrounding a specific molecule.
+2. Molecule neighbourhood search - find the local graph network surrounding a specific molecule.
+3. Availability search - find the forms of a molecule from the fragment network that are available from suppliers 
+4. Expansion search - expand out a single molecule returning isomeric molecules that can be purchased
+5. Expansion multi search - expand out a set of molecules returning isomeric molecules that can be purchased
 
-Planned searches are:
-
-1. Activity island searches - find clusters of molecules with activity.
-2. Compound availability search - find out who you can purchase molecules from.
 
 ### Supplier search
 
@@ -87,7 +86,9 @@ Molecules  in the fragment network are standardised and canonicalised and query 
 strings. This means that the query molecule must be standardised and canonicalised in the same way as was done for the 
 generation of the fragment network. If not then 'equivalent' but non 'identical' smiles molecules will not match.
   
-Currently query molecules are canonicalised but not standardised so you need to provide your query molecule with some care.
+Currently query molecules for the neighbourhood and expansion searches are canonicalised and standardised, but the 
+standardisation does not currently include neutralising the molecule as a bug in RDKit is preventing this from running 
+in Java (see https://github.com/rdkit/rdkit/issues/2970). This means that you need to provide your query molecule with some care.
 Details of the standardisation can be found
 [here](https://github.com/InformaticsMatters/fragalysis/blob/master/frag/utils/rdkit_utils.py#L245-L268).
 You can use that Python method to perform exactly the same standardisation if you wish. Otherwise here are some simple
@@ -96,9 +97,6 @@ rules that should suffice in most cases:
 1. Sketch the molecule 'correctly' e.g. without covalently bonded metal atoms.
 1. Do not include salts.
 1. Sketch in neutral form e.g. carboxylic acid not carboxylate.
-
-Once the new RDKit standardisation code (first introduced in the 2018_09 release) is available from Java we will also be
-able to perform standardisation.
 
 ##### Calculations
 
@@ -351,7 +349,7 @@ The main part is the members property that holds an array of the related molecul
 
 This is a simplified version of expansion search allowing multiple queries to be expanded in one go.
 
-The input is SMILES that is POSTed. An example is shown below.
+The easiest way to specify input is as SMILES that is POSTed. An example is shown below.
 ```
 CC(C)(C(=O)N1CCCC1)c1ccccc1	1
 CC(C)(C(=O)N1CCCC1)c1cccc(F)c1	2
@@ -361,54 +359,68 @@ OCCNc1ccc(Cl)cn1	5
 ```
 The syntax is plain text with one molecule per line. Following the molecule, separated by space or tab is an ID of the 
 molecules. It is recommended to include an ID, but if none is supplied the the numeric index (starting from 1) is used 
-for the ID. 
+for the ID.
 
 An example execution using [curl] is:
 ```
-curl --data-binary "@expand.smi" "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand-multi?hac=5&rac=2&hops=2"
+ curl --data-binary "@queries.smi" -H "Content-Type: chemical/x-daylight-smiles" "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand-multi?hac=5&rac=2&hops=2"
 ```
+
+Specifying the `Content-Type` is required. Data can also be sent in SDF format, in which case the `Content-Type`
+must be `chemical/x-mdl-sdfile`. When using SDF you can also specify the `id_prop` header to choose the SDF field
+that will be used for the molecule IDs. Either specify a data field or use `_Name` if you want to use the molecule
+name (the first line in the record.)
 
 **NOTE:** These queries can fetch large amounts of results. It is best to run them initially with strict query criteria before
 loosening them (in particular for the `hops` parameter only use a value of 3 if you find you do not get many results with
 a value of 2.)
 
 #### Expansion multi search results
+
 The searches are executed using the same mechanism as the standard expansion search with results being aggregated. 
 A result molecule can be found by multiple queries so the results include the ID of the query molecules that found the
 hit as well as various information about the query. Example output (part of data is removed) is shown below:
 
 ```json
 {
-  "executionDate": "2020/02/21 17:37:30",
-  "executionTimeMillis": 809,
+  "executionDate": "2020/02/27 11:37:11",
+  "executionTimeMillis": 149,
   "resultCount": 2770,
   "parameters": {
     "hops": 2,
     "hac": 5,
     "rac": 2
   },
-  "queries": [
-    {
-      "smiles": "CC(C)(C(=O)N1CCCC1)c1ccccc1",
-      "id": "1"
-    },
-    {
-      "smiles": "CC(C)(C(=O)N1CCCC1)c1cccc(F)c1",
-      "id": "2"
-    },
-    {
-      "smiles": "OCC(O)CN1CCCC1",
-      "id": "3"
-    },
-    {
-      "smiles": "OCCNc1ccc(F)cn1",
-      "id": "4"
-    },
-    {
-      "smiles": "OCCNc1ccc(Cl)cn1",
-      "id": "5"
-    }
-  ],
+  "queries": {
+    "molecules": [
+      {
+        "id": "1",
+        "originalMol": "CC(C)(C(=O)N1CCCC1)C1=CC=CC=C1",
+        "smiles": "CC(C)(C(=O)N1CCCC1)c1ccccc1"
+      },
+      {
+        "id": "2",
+        "originalMol": "CC(C)(C(=O)N1CCCC1)C1=CC=CC(F)=C1",
+        "smiles": "CC(C)(C(=O)N1CCCC1)c1cccc(F)c1"
+      },
+      {
+        "id": "3",
+        "originalMol": "OCC(O)CN1CCCC1",
+        "smiles": "OCC(O)CN1CCCC1"
+      },
+      {
+        "id": "4",
+        "originalMol": "OCCNC1=CC=C(F)C=N1",
+        "smiles": "OCCNc1ccc(F)cn1"
+      },
+      {
+        "id": "5",
+        "originalMol": "OCCNC1=CC=C(Cl)C=N1",
+        "smiles": "OCCNc1ccc(Cl)cn1"
+      }
+    ],
+    "mimeType": "chemical/x-daylight-smiles"
+  },
   "hitCounts": {
     "1": 650,
     "2": 671,
@@ -501,6 +513,15 @@ hit as well as various information about the query. Example output (part of data
       "sourceMols": [
         "1",
         "2"
+      ]
+    },
+    {
+      "smiles": "CC(CC1CCCC1)C(=O)N1CCCC1",
+      "vendorIds": [
+        "REAL:Z1204326216"
+      ],
+      "sourceMols": [
+        "1"
       ]
     },
 

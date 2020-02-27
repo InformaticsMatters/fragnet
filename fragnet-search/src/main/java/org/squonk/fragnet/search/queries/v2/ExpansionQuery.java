@@ -87,7 +87,7 @@ public class ExpansionQuery extends AbstractQuery {
             Integer rac,
             List<String> suppliers) {
 
-        String stdSmiles = MolStandardize.prepareMol(mol, mimeType, false, false);
+        String stdSmiles = MolStandardize.prepareNonisoMol(mol, mimeType);
 //        LOG.info("Supplied SMILES: " + smiles);
 //        LOG.info("Using SMILES: " + stdSmiles);
 

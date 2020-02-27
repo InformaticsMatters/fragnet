@@ -17,7 +17,8 @@ package org.squonk.fragnet.search.queries.v2
 
 import org.neo4j.driver.v1.Session
 import org.squonk.fragnet.AbstractGraphDBSpec
-import org.squonk.fragnet.search.model.v2.SimpleSmilesMol
+import org.squonk.fragnet.Constants
+import org.squonk.fragnet.search.model.v2.ConvertedSmilesMols
 
 class HitExpanderSpec extends AbstractGraphDBSpec {
 
@@ -30,10 +31,9 @@ class HitExpanderSpec extends AbstractGraphDBSpec {
         Session session = graphDB.getSession()
 
         HitExpander hitExpander = new HitExpander(session)
-        def mols = [
-                new SimpleSmilesMol("CCOc1ccccc1CN1CCC(O)CC1", "1"),
-                new SimpleSmilesMol("COCC(=O)Nc1cccc(NC(C)=O)c1", "2")
-        ]
+        ConvertedSmilesMols mols = new ConvertedSmilesMols(Constants.MIME_TYPE_SMILES)
+        mols.addMol(null, "CCOc1ccccc1CN1CCC(O)CC1", "1")
+        mols.addMol(null, "COCC(=O)Nc1cccc(NC(C)=O)c1", "2")
 
         when:
         def results = hitExpander.processMolecules(mols, 2, 5, 2, null)

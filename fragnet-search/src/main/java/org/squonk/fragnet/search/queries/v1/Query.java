@@ -66,7 +66,7 @@ public class Query extends AbstractQuery {
      */
     public NeighbourhoodGraph executeNeighbourhoodQuery(@NotNull String smiles, Integer hops, Integer hac, Integer rac) {
 
-        String stdSmiles = MolStandardize.prepareMol(smiles, Constants.MIME_TYPE_SMILES, false, false);
+        String stdSmiles = MolStandardize.prepareNonisoMol(smiles, Constants.MIME_TYPE_SMILES);
 
         QueryAndParams qandp = generateCypherQuery(stdSmiles, hops, hac, rac);
 

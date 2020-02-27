@@ -29,14 +29,14 @@ import java.util.Map;
 @JsonPropertyOrder({"executionDate", "executionTimeMillis", "resultCount", "parameters", "queries", "hitCounts", "results"})
 public class ExpandMultiResult {
 
-    private final List<SimpleSmilesMol> queries;
+    private final ConvertedSmilesMols queries;
     private final Map<String,Object> parameters;
     private List<ExpandedHit> results;
     private final Map<String,Integer> hitCounts = new LinkedHashMap<>();
     private long executionTimeMillis;
     private String executionDate = Utils.getCurrentTime();
 
-    public ExpandMultiResult(List<SimpleSmilesMol> queries, Map<String,Object> parameters) {
+    public ExpandMultiResult(ConvertedSmilesMols queries, Map<String,Object> parameters) {
         this.queries = queries;
         this.parameters = parameters;
     }
@@ -45,7 +45,7 @@ public class ExpandMultiResult {
         return executionDate;
     }
 
-    public List<SimpleSmilesMol> getQueries() {
+    public ConvertedSmilesMols getQueries() {
         return queries;
     }
 

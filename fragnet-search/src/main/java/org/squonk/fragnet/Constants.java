@@ -27,4 +27,5 @@ public interface Constants {
 
     String MIME_TYPE_SMILES = "chemical/x-daylight-smiles";
     String MIME_TYPE_MOLFILE = "chemical/x-mdl-molfile";
+    String MIME_TYPE_SDFILE = "chemical/x-mdl-sdfile";
 }

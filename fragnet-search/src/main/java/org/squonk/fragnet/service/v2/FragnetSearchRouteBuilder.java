@@ -26,7 +26,7 @@ import org.apache.camel.model.rest.RestParamType;
 import org.neo4j.driver.v1.Session;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.chem.Calculator;
-import org.squonk.fragnet.chem.ChemUtils;
+import org.squonk.fragnet.chem.MolStandardize;
 import org.squonk.fragnet.search.model.v2.*;
 import org.squonk.fragnet.search.queries.AbstractQuery;
 import org.squonk.fragnet.search.queries.v2.*;
@@ -40,8 +40,6 @@ import java.io.Writer;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Defines the v2 REST APIs
@@ -239,6 +237,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .param().name("rac").type(RestParamType.query).description("Ring atom count bounds").endParam()
                 .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
                 .param().name("suppliers").type(RestParamType.query).description("Suppliers to include").endParam()
+                .param().name("id_prop").type(RestParamType.query).description("Name of the property for the ID (use _Name for the mol name)").endParam()
                 .produces("application/json")
                 .route()
                 .process((Exchange exch) -> {
@@ -337,8 +336,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "NeighbourhoodQuery Failed", ex);
-            message.setBody("{\"error\": \"NeighbourhoodQuery Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
-            message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+            writeErrorResponse(message, 500, "{\"error\": \"NeighbourhoodQuery Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
         }
     }
 
@@ -364,7 +362,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         return supplierMappings;
     }
 
-    void executeExpansionQuery(Exchange exch, String mimeType) {
+    void executeExpansionQuery(Exchange exch, String conentType) {
 
         expansionSearchRequestsTotal.inc();
 
@@ -391,7 +389,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             List<String> suppliers = parseSuppliers(suppls);
 
             String molecule;
-            if (Constants.MIME_TYPE_SMILES.equals(mimeType)) {
+            if (Constants.MIME_TYPE_SMILES.equals(conentType)) {
                 molecule = message.getHeader("smiles", String.class);
             } else {
                 molecule = message.getBody(String.class);
@@ -408,7 +406,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                     query.setLimit(pathLimit);
                 }
                 long n0 = System.nanoTime();
-                result = query.executeQuery(molecule, mimeType, hops, hac, rac, suppliers);
+                result = query.executeQuery(molecule, conentType, hops, hac, rac, suppliers);
                 long n1 = System.nanoTime();
                 expansionSearchNeo4jSearchDuration.inc((double) (n1 - n0));
                 expansionSearchHitsTotal.inc((double) result.getSize());
@@ -416,9 +414,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
             if (result.getSize() == 0) { // no results found
                 LOG.info("ExpansionQuery found no results");
-                message.setBody("{\"error\": \"No Results\",\"message\": \"ExpansionQuery molecule not found in the database\"}");
-                message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
-
+                writeErrorResponse(message, 404, "{\"error\": \"No Results\",\"message\": \"ExpansionQuery molecule not found in the database\"}");
             } else {
                 message.setBody(result);
                 message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
@@ -432,8 +428,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "ExpansionQuery Failed", ex);
             expansionSearchErrorsTotal.inc();
-            message.setBody("{\"error\": \"ExpansionQuery Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
-            message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+            writeErrorResponse(message, 500, "{\"error\": \"ExpansionQuery Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
 
             long t1 = System.nanoTime();
             writeErrorToQueryLog(username, "ExpansionQuery", t1 - t0, ex.getLocalizedMessage());
@@ -471,12 +466,24 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 message.setBody("{\"error\": \"No Input\",\"message\": \"No molecules POSTed.\"}");
                 message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
             } else {
-                Stream<SimpleSmilesMol> mols = ChemUtils.readSmilesData(body);
-                List<SimpleSmilesMol> queries = mols.collect(Collectors.toList());
-                LOG.info("Read " + queries.size() + " queries");
+                String contentType = message.getHeader(Exchange.CONTENT_TYPE, String.class);
+                String idProp = message.getHeader("id_prop", String.class);
+                ConvertedSmilesMols queries;
+                if (contentType == null || contentType.isEmpty()) {
+                    throw new IllegalStateException("ContentType must be specified");
+                } else if (Constants.MIME_TYPE_SMILES.equals(contentType)) {
+                    queries = MolStandardize.readStdNonisoSmilesFromSmilesData(body);
+                } else if (Constants.MIME_TYPE_SDFILE.equals(contentType)) {
+                    queries = MolStandardize.readStdNonisoSmilesFromSDFData(body, idProp);
+                } else {
+                    throw new IllegalArgumentException("Unexpected content type: " + contentType);
+                }
+                LOG.info("Read " + queries.getMolecules().size() + " queries");
 
-                expansionSearchRequestsTotal.inc(queries.size());
 
+                expansionSearchRequestsTotal.inc(queries.getMolecules().size());
+
+                // run the searches
                 ExpandMultiResult result;
                 try (Session session = graphdb.getSession()) {
                     // execute the query
@@ -499,7 +506,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                     message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
                     long t1 = System.nanoTime();
                     long duration = t1 - t0; //nanos
-                    writeToExpansionQueryLog(username, "ExpansionMulti", duration, result.getResults().size(), queries.size());
+                    writeToExpansionQueryLog(username, "ExpansionMulti", duration, result.getResults().size(), queries.getMolecules().size());
                     expansionSearchRequestsDuration.inc((double) duration);
                 }
             }
