@@ -77,6 +77,7 @@ public class MolStandardize {
      * @return
      */
     public static RWMol uncharge(RWMol mol, boolean standardize) {
+        // TODO - RDKit thows exception when this is called
         return RDKFuncs.chargeParent(mol, DEFAULT_CLEANUP_PARAMS, standardize);
     }
 
@@ -111,18 +112,10 @@ public class MolStandardize {
      * @param mol The mol to standardize
      * @return The standardized mol
      */
-    public static RWMol defaultStandardizeWithUncharge(RWMol mol) {
-        cleanup(mol);
-        // TODO change standardize to false once this is resolved:
-        // https://github.com/rdkit/rdkit/issues/2970
-        mol = uncharge(mol, true);
-        removeIsotopes(mol);
-        return mol;
-    }
-
     public static RWMol defaultStandardize(RWMol mol) {
-        // NOTE: this is an interim that lacks the uncharge step as that causes cor dumps
+        // NOTE: this is an interim that lacks the uncharge step as that causes Exception
         cleanup(mol);
+        //mol = uncharge(mol, false);
         removeIsotopes(mol);
         return mol;
     }

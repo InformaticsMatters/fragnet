@@ -15,6 +15,7 @@
  */
 package org.squonk.fragnet.chem
 
+import org.RDKit.RDKFuncs
 import org.RDKit.RWMol
 
 import spock.lang.Ignore
@@ -26,7 +27,31 @@ class MolStandardizeSpec extends Specification {
         Runtime.getRuntime().loadLibrary0(groovy.lang.GroovyClassLoader.class, "GraphMolWrap")
     }
 
-    @Ignore
+
+    void "rdkit version"() {
+
+        when:
+        String v = org.RDKit.RDKFuncs.getRdkitVersion()
+        println v
+
+        then:
+        v != null
+
+    }
+
+    @Ignore // fails because of https://github.com/rdkit/rdkit/issues/3054
+    void "cleanup vanilla rdkit"() {
+
+        when:
+        def mol = RWMol.MolFromSmiles("[Na]OC(=O)c1ccccc1")
+        RDKFuncs.cleanUp(mol)
+        def smiles = mol.MolToSmiles()
+
+        then:
+        smiles == "O=C([O-])c1ccccc1.[Na+]"
+    }
+
+    @Ignore // https://github.com/rdkit/rdkit/issues/3054
     void "default standardize"() {
 
         when:
@@ -49,7 +74,21 @@ class MolStandardizeSpec extends Specification {
         smiles == "O=C(O)c1ccccc1"
     }
 
-    @Ignore
+    @Ignore // https://github.com/rdkit/rdkit/issues/3053
+    void "uncharge vanilla rdkit"() {
+
+        when:
+        def mol1 = RWMol.MolFromSmiles("O=C([O-])c1ccccc1")
+        println("mol1: " + mol1)
+        def mol2 =  RDKFuncs.chargeParent(mol1, RDKFuncs.getDefaultCleanupParameters(), true)
+        println("mol2: " + mol2)
+        def smiles = mol2.MolToSmiles()
+
+        then:
+        smiles == "O=C(O)c1ccccc1"
+    }
+
+    @Ignore // https://github.com/rdkit/rdkit/issues/3053
     void "uncharge"() {
 
         when:
