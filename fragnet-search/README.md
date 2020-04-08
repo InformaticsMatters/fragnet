@@ -86,9 +86,12 @@ Molecules  in the fragment network are standardised and canonicalised and query 
 strings. This means that the query molecule must be standardised and canonicalised in the same way as was done for the 
 generation of the fragment network. If not then 'equivalent' but non 'identical' smiles molecules will not match.
   
-Currently query molecules for the neighbourhood and expansion searches are canonicalised and standardised, but the 
-standardisation does not currently include neutralising the molecule as a bug in RDKit is preventing this from running 
-in Java (see https://github.com/rdkit/rdkit/issues/2970). This means that you need to provide your query molecule with some care.
+Currently query molecules for the neighbourhood and expansion searches are standardised using the same rules as are
+applied to the fragment network, so in principle you do not need to worry about converting your molecules to standard form.
+This involves basic molecule sketching conventions (e.g. covalently attached metals), conversion to neutral form and
+canonicalisation. If however you unexpectedly find no hits for a molecules you expect to be in the database then it is
+possible that this is a standardisation issue so try specifying your query in the 'standard' form. 
+
 Details of the standardisation can be found
 [here](https://github.com/InformaticsMatters/fragalysis/blob/master/frag/utils/rdkit_utils.py#L245-L268).
 You can use that Python method to perform exactly the same standardisation if you wish. Otherwise here are some simple

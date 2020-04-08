@@ -36,6 +36,8 @@ public class FragnetSearchRouteBuilderCommon extends RouteBuilder {
         // Needs to be done once somewhere before any RDKit code is called.
         LOG.info("Loading RDKit libraries");
         System.loadLibrary("GraphMolWrap");
+
+        LOG.info("Using RDKit version:" + org.RDKit.RDKFuncs.getRdkitVersion());
     }
 
     @Override

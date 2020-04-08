@@ -7,6 +7,8 @@
 **/*.swp
 **/*.log*
 
+data
+
 **/site-*
 
 orchestration/setenv-docker.sh
