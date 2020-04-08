@@ -18,7 +18,6 @@ package org.squonk.fragnet.chem
 import org.RDKit.RDKFuncs
 import org.RDKit.RWMol
 
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class MolStandardizeSpec extends Specification {
@@ -39,28 +38,45 @@ class MolStandardizeSpec extends Specification {
 
     }
 
-    @Ignore // fails because of https://github.com/rdkit/rdkit/issues/3054
     void "cleanup vanilla rdkit"() {
 
         when:
-        def mol = RWMol.MolFromSmiles("[Na]OC(=O)c1ccccc1")
-        RDKFuncs.cleanUp(mol)
-        def smiles = mol.MolToSmiles()
+        def mol1 = RWMol.MolFromSmiles("[Na]OC(=O)c1ccccc1")
+        def mol2 = RDKFuncs.cleanup(mol1)
+        def smiles = mol2.MolToSmiles()
 
         then:
         smiles == "O=C([O-])c1ccccc1.[Na+]"
     }
 
-    @Ignore // https://github.com/rdkit/rdkit/issues/3054
-    void "default standardize"() {
+    void "default cleanup"() {
 
         when:
-        def mol = RWMol.MolFromSmiles("[Na]OC(=O)c1ccccc1")
-        mol = MolStandardize.defaultStandardize(mol)
-        def smiles = mol.MolToSmiles()
+        def mol1 = RWMol.MolFromSmiles("[Na]OC(=O)c1ccccc1")
+        def mol2 = MolStandardize.cleanup(mol1)
+        def smiles = mol2.MolToSmiles()
 
         then:
         smiles == "O=C([O-])c1ccccc1.[Na+]"
+    }
+
+    String standardize(smiles) {
+        def mol = RWMol.MolFromSmiles(smiles)
+        mol = MolStandardize.defaultStandardize(mol)
+        return mol.MolToSmiles()
+    }
+
+    void "default standardize"() {
+
+        expect:
+        standardize(i) == o
+
+        where:
+        i | o
+        "O=C([O-])c1ccccc1"  | "O=C(O)c1ccccc1"
+        "[Na]OC(=O)c1ccccc1" | "O=C(O)c1ccccc1"
+        "O=C(O)c1ccccc1.O"   | "O=C(O)c1ccccc1"
+        "OC(Cn1ccnn1)C1CC1"  | "OC(Cn1ccnn1)C1CC1"
     }
 
     void "remove isotopes"() {
@@ -74,7 +90,6 @@ class MolStandardizeSpec extends Specification {
         smiles == "O=C(O)c1ccccc1"
     }
 
-    @Ignore // https://github.com/rdkit/rdkit/issues/3053
     void "uncharge vanilla rdkit"() {
 
         when:
@@ -88,7 +103,6 @@ class MolStandardizeSpec extends Specification {
         smiles == "O=C(O)c1ccccc1"
     }
 
-    @Ignore // https://github.com/rdkit/rdkit/issues/3053
     void "uncharge"() {
 
         when:

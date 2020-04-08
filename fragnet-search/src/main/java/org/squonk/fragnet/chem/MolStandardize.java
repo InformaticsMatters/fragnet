@@ -77,7 +77,6 @@ public class MolStandardize {
      * @return
      */
     public static RWMol uncharge(RWMol mol, boolean standardize) {
-        // TODO - RDKit thows exception when this is called
         return RDKFuncs.chargeParent(mol, DEFAULT_CLEANUP_PARAMS, standardize);
     }
 
@@ -102,8 +101,9 @@ public class MolStandardize {
      * @param mol
      * @return A clone of the mol which has been cleaned
      */
-    public static void cleanup(RWMol mol) {
-        RDKFuncs.cleanUp(mol);
+    public static RWMol cleanup(RWMol mol) {
+        // Note that there is also a RDKFuncs.cleanUp() method that has a void return type.
+        return RDKFuncs.cleanup(mol, DEFAULT_CLEANUP_PARAMS);
     }
 
     /**
@@ -113,9 +113,8 @@ public class MolStandardize {
      * @return The standardized mol
      */
     public static RWMol defaultStandardize(RWMol mol) {
-        // NOTE: this is an interim that lacks the uncharge step as that causes Exception
-        cleanup(mol);
-        //mol = uncharge(mol, false);
+        mol = cleanup(mol);
+        mol = uncharge(mol, false);
         removeIsotopes(mol);
         return mol;
     }

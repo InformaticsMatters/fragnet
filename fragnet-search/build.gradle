@@ -102,10 +102,11 @@ task stopNeoContainer(type: DockerStopContainer) {
 
 test {
     environment = [
+            // TODO - fix the hard coded RDBASE setup.
             'NEO4J_PASSWORD':'test123',
             'NEO4J_SERVER':'localhost',
-            'LD_LIBRARY_PATH':'/home/timbo/github/rdkit/rdkit/Code/JavaWrappers/gmwrapper:/usr/x86_64-linux-gnu',
-            'RDBASE':'/home/timbo/github/rdkit/rdkit'
+            'LD_LIBRARY_PATH':'/home/timbo/github/rdkit/rdkit_2020_03/Code/JavaWrappers/gmwrapper:/usr/x86_64-linux-gnu',
+            'RDBASE':'/home/timbo/github/rdkit/rdkit_2020_03'
     ]
 //    beforeTest { descriptor ->
 //        logger.lifecycle("Running test: " + descriptor)
@@ -114,18 +115,3 @@ test {
 
 tasks.test.dependsOn("startNeoContainer")
 tasks.test.finalizedBy("stopNeoContainer")
-
-task runApp(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-
-    main = 'org.squonk.fragnet.search.FragmentUtils'
-
-    environment = [
-            'NEO4J_PASSWORD':'test123',
-            'NEO4J_SERVER':'localhost',
-            'RDBASE':'/home/timbo/github/rdkit/rdkit',
-            'LD_LIBRARY_PATH':'/home/timbo/github/rdkit/rdkit/Code/JavaWrappers/gmwrapper:/usr/x86_64-linux-gnu',
-
-    ]
-
-}
