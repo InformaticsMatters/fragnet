@@ -277,17 +277,23 @@ Parameters:
 | Name       | Type  | Required | Description |
 |------------|-------|----------|-------------|
 | smiles     | URL   | Yes      | The smiles string for the molecule to look for. See below for requirements about standardisation and canonicalisation. |
-| hac        | Query | No       | The difference in heavy atom count compared to the query that is allowed it the result molecules. |
-| rac        | Query | No       | The difference in ring atom count compared to the query that is allowed it the result molecules. |
+| hacMin     | Query | No       | The lower difference in heavy atom count compared to the query that is allowed it the result molecules. |
+| hacMax     | Query | No       | The upper difference in heavy atom count compared to the query that is allowed it the result molecules. |
+| racMin     | Query | No       | The lower difference in ring atom count compared to the query that is allowed it the result molecules. |
+| racMax     | Query | No       | The upper difference in ring atom count compared to the query that is allowed it the result molecules. |
 | hops       | Query | No       | The number of graph edges to traverse from the query molecule. Must be 1, 2 or 3. Default is 1. |
 | suppliers  | Query | No       | Comma separated list of suppliers to restrict results to. |
 | pathLimit  | Query | No       | The maximum number of paths to return from the graph query. Default is 1000 and this is usually more than enough. Values greater than 5000 are not permitted. | 
 
-These parameters have the same meaning as in neighbourhood search.
+These parameters have the same meaning as in neighbourhood search, except that the hac and rac queries can specify a min
+and a max value, whereas in neighbourhood search the same value is used for the lower and upper bound.
+For example, if your query molecule has 10 heavy atoms, you can specify hacMin=0 and hacMax=5 to restrict the search to
+molecules with 10-15 heavy atoms. Negative values are allowed, so hacMin=-2 and hacMax=5 will result in molecules with 
+12-15 heavy atoms.
 
 An example query run with [curl] might look like this:
 ```
-curl "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/expand/COc1ccccc1CN1CCCC1?hac=3&rac=1&hops=1"
+ curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand/OC(Cn1ccnn1)C1CC1?hacMin=5&hacMax=10&racMin=3&racMax=3&hops=2"
 ```
 
 #### Expansion search results
@@ -296,54 +302,76 @@ This is a simple JSON datastructure as follows:
 
 ```json
 {
-  "query": "MATCH p=(m:F2)-[:FRAG]-(e:Mol)<-[:NonIso*0..1]-(c:Mol)\nWHERE m.smiles=$smiles AND e.smiles <> $smiles AND abs(m.hac - e.hac) <= $hac AND abs(m.chac - e.chac) <= $rac\nRETURN p LIMIT $limit",
+  "query": "MATCH p=(m:F2)-[:FRAG*1..2]-(e:Mol)<-[:NonIso*0..1]-(c:Mol)\nWHERE m.smiles=$smiles AND e.smiles <> $smiles AND m.hac - e.hac <= $hacMin AND e.hac - m.hac <= $hacMax AND m.chac - e.chac <= $racMin AND e.chac - m.chac <= $racMax\nRETURN p LIMIT $limit",
   "parameters": {
+    "racMin": 3,
+    "smiles": "OC(Cn1ccnn1)C1CC1",
+    "hacMin": 5,
+    "hacMax": 10,
     "limit": 5000,
-    "hac": 3,
-    "smiles": "c1ccc(Nc2nc3ccccc3o2)cc1",
-    "rac": 1
+    "racMax": 3
   },
-  "refmol": "c1ccc(Nc2nc3ccccc3o2)cc1",
-  "resultAvailableAfter": 1,
-  "processingTime": 97,
-  "pathCount": 12,
-  "size": 12,
+  "refmol": "OC(Cn1ccnn1)C1CC1",
+  "resultAvailableAfter": 3,
+  "processingTime": 35,
+  "pathCount": 17,
+  "size": 17,
   "members": [
     {
-      "smiles": "O=C(O)c1cccc(Nc2nc3ccccc3o2)c1",
+      "smiles": "OC(CN1CCCC1)C1CC1",
       "props": {
-        "chac": 15,
-        "neighbours": 6,
-        "hac": 19
+        "chac": 8,
+        "hac": 11
       },
       "cmpd_ids": [
-        "MOLPORT:010-317-842"
+        "REAL:Z2311621453"
       ]
     },
     {
-      "smiles": "O=C(O)c1ccc(Nc2nc3ccccc3o2)cc1",
+      "smiles": "OC(CN1CCCCC1)C1CC1",
       "props": {
-        "chac": 15,
-        "neighbours": 4,
-        "hac": 19
+        "chac": 9,
+        "hac": 12
       },
       "cmpd_ids": [
-        "MOLPORT:010-317-843"
+        "REAL:Z2311631443"
       ]
     },
     {
-      "smiles": "Nc1cccc2oc(Nc3ccccc3)nc12",
+      "smiles": "OC(CN1CCSCC1)C1CC1",
       "props": {
-        "chac": 15,
-        "neighbours": 19,
-        "hac": 17
+        "chac": 9,
+        "hac": 12
       },
       "cmpd_ids": [
-        "CHEMSPACE-BB:CSC008446951"
+        "REAL:Z2311658997"
       ]
-    }
+    },
+    {
+      "smiles": "O=C(CCc1c[nH]nn1)NC1CC1",
+      "props": {
+        "chac": 8,
+        "hac": 13
+      },
+      "cmpd_ids": [
+        "REAL:Z2763035825"
+      ]
+    },
+    {
+      "smiles": "O=C(CCn1ccnn1)NC1CC1",
+      "props": {
+        "chac": 8,
+        "hac": 13
+      },
+      "cmpd_ids": [
+        "REAL:Z295950954"
+      ]
+    },
+ 
+    ...
   ]
 }
+
 ```
 
 The main part is the members property that holds an array of the related molecules.
@@ -366,7 +394,7 @@ for the ID.
 
 An example execution using [curl] is:
 ```
- curl --data-binary "@queries.smi" -H "Content-Type: chemical/x-daylight-smiles" "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand-multi?hac=5&rac=2&hops=2"
+ curl --data-binary "@queries.smi" -H "Content-Type: chemical/x-daylight-smiles" "$FRAGNET_SERVER/fragnet-search/rest/v2/search/expand-multi?hacMin=5&hacMax=5&racMin=2&racMax=2&hops=2"
 ```
 
 Specifying the `Content-Type` is required. Data can also be sent in SDF format, in which case the `Content-Type`

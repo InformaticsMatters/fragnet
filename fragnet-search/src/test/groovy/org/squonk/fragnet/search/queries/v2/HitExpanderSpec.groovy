@@ -36,7 +36,7 @@ class HitExpanderSpec extends AbstractGraphDBSpec {
         mols.addMol(null, "COCC(=O)Nc1cccc(NC(C)=O)c1", "2")
 
         when:
-        def results = hitExpander.processMolecules(mols, 2, 5, 2, null)
+        def results = hitExpander.processMolecules(mols, 2, 5, 5, 2, 2, null)
 //        println "Found ${results.getResultCount()} items"
 
         then:

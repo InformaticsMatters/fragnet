@@ -74,8 +74,10 @@ public class ExpansionQuery extends AbstractQuery {
      * @param mol The query structure. Will be canonicalised and made achiral before being queried.
      * @param mimeType The format of the molecule. Currently must be one of chemical/x-daylight-smiles or chemical/x-mdl-molfile
      * @param hops The number of edges to traverse. Defaults to 1 if not specified.
-     * @param hac A limit for the change in the heavy atom counts. If null then no limit.
-     * @param rac A limit for the change in the ring atom counts. If null then no limit.
+     * @param hacMin Lower limit for the change in the heavy atom counts. If null then no limit.
+     * @param hacMax Upper limit for the change in the heavy atom counts. If null then no limit.
+     * @param racMin Lower limit for the change in the ring atom counts. If null then no limit.
+     * @param racMax Upper limit for the change in the ring atom counts. If null then no limit.
      * @param suppliers Comma separated list of suppliers to include. If null or empty then all suppliers are returned.
      * @return
      */
@@ -83,15 +85,17 @@ public class ExpansionQuery extends AbstractQuery {
             @NotNull String mol,
             @NotNull String mimeType,
             Integer hops,
-            Integer hac,
-            Integer rac,
+            Integer hacMin,
+            Integer hacMax,
+            Integer racMin,
+            Integer racMax,
             List<String> suppliers) {
 
         String stdSmiles = MolStandardize.prepareNonisoMol(mol, mimeType);
 //        LOG.info("Supplied SMILES: " + smiles);
 //        LOG.info("Using SMILES: " + stdSmiles);
 
-        QueryAndParams qandp = generateCypherQuery(stdSmiles, hops, hac, rac, suppliers);
+        QueryAndParams qandp = generateCypherQuery(stdSmiles, hops, hacMin, hacMax, racMin, racMax, suppliers);
 
         ExpansionResults results = getSession().writeTransaction((tx) -> {
             LOG.info("Executing ExpansionQuery: " + qandp.getQuery());
@@ -101,7 +105,11 @@ public class ExpansionQuery extends AbstractQuery {
         return results;
     }
 
-    private QueryAndParams generateCypherQuery(String stdSmiles, Integer hops, Integer hac, Integer rac, List<String> suppliers) {
+    private QueryAndParams generateCypherQuery(
+            String stdSmiles, Integer hops,
+            Integer hacMin, Integer hacMax,
+            Integer racMin, Integer racMax,
+            List<String> suppliers) {
 
         if (hops == null) {
             hops = 1;
@@ -115,20 +123,32 @@ public class ExpansionQuery extends AbstractQuery {
 
         String filter = "";
 
-        if (hac != null) {
-            filter += " AND abs(m.hac - e.hac) <= $hac";
-            params.add("hac");
-            params.add(hac);
+        if (hacMin != null) {
+            filter += " AND m.hac - e.hac <= $hacMin";
+            params.add("hacMin");
+            params.add(hacMin);
         }
 
-        if (rac != null) {
-            filter += " AND abs(m.chac - e.chac) <= $rac";
-            params.add("rac");
-            params.add(rac);
+        if (hacMax != null) {
+            filter += " AND e.hac - m.hac <= $hacMax";
+            params.add("hacMax");
+            params.add(hacMax);
+        }
+
+        if (racMin != null) {
+            filter += " AND m.chac - e.chac <= $racMin";
+            params.add("racMin");
+            params.add(racMin);
+        }
+
+        if (racMax != null) {
+            filter += " AND e.chac - m.chac <= $racMax";
+            params.add("racMax");
+            params.add(racMax);
         }
 
         String queryTemplate = getQueryTemplate();
-        String vendorLabels = null;
+        String vendorLabels;
         if (suppliers == null || suppliers.isEmpty()) {
             vendorLabels = "";
         } else {
