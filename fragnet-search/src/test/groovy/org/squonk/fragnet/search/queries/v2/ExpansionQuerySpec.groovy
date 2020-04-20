@@ -31,7 +31,7 @@ class ExpansionQuerySpec extends AbstractGraphDBSpec {
 
         when:
         ExpansionResults results = query.executeQuery("CCOc1ccccc1CN1CCC(O)CC1", "chemical/x-daylight-smiles",
-                1, 10, 3, null)
+                1, 10, 10, 3, 3, null)
         println "Found ${results.getSize()} items"
 
         then:

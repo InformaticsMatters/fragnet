@@ -38,9 +38,9 @@ public class HitExpander {
         this.session = session;
     }
 
-    protected ExpansionResults executeQuery(String smiles, int hops, int hac, int rac, List<String> suppliers) throws IOException {
+    protected ExpansionResults executeQuery(String smiles, Integer hops, Integer hacMin, Integer hacMax, Integer racMin, Integer racMax, List<String> suppliers) throws IOException {
         ExpansionQuery query = new ExpansionQuery(session, null);
-        ExpansionResults results = query.executeQuery(smiles, "chemical/x-daylight-smiles", hops, hac, rac, suppliers);
+        ExpansionResults results = query.executeQuery(smiles, "chemical/x-daylight-smiles", hops, hacMin, hacMax, racMin, racMax, suppliers);
         return results;
     }
 
@@ -51,21 +51,36 @@ public class HitExpander {
      *
      * @param queries The molecules to process (must be standardized correctly as the search is for an exact match on the SMILES).
      * @param hops The number of fragment network edges to traverse.
-     * @param hac The difference in heavy atom count that is allowed.
-     * @param rac The difference in ring atom count that is allowed.
+     * @param hacMin Lower limit for the change in the heavy atom counts. If null then no limit.
+     * @param hacMax Upper limit for the change in the heavy atom counts. If null then no limit.
+     * @param racMin Lower limit for the change in the ring atom counts. If null then no limit.
+     * @param racMax Upper limit for the change in the ring atom counts. If null then no limit.
      * @param suppliers Suppliers to restrict the results to. Can be null for all suppliers.
      * @return ExpandMultiResult instance containing the aggregated results and information about the query.
      * @throws IOException
      */
-    public ExpandMultiResult processMolecules(ConvertedSmilesMols queries, int hops, int hac, int rac, List<String> suppliers) throws IOException {
+    public ExpandMultiResult processMolecules(
+            ConvertedSmilesMols queries, Integer hops,
+            Integer hacMin, Integer hacMax, Integer racMin, Integer racMax,
+            List<String> suppliers) throws IOException {
 
         // standardize molecules
 
         Map<String,ExpandedHit> queryResults = new LinkedHashMap<>();
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("hops", hops);
-        params.put("hac", hac);
-        params.put("rac", rac);
+        if (hacMin != null) {
+            params.put("hacMin", hacMin);
+        }
+        if (hacMax != null) {
+            params.put("hacMax", hacMax);
+        }
+        if (racMin != null) {
+            params.put("racMin", racMin);
+        }
+        if (racMax != null) {
+            params.put("racMax", racMin);
+        }
         if (suppliers != null && !suppliers.isEmpty()) {
             params.put("suppliers", suppliers);
         }
@@ -77,7 +92,7 @@ public class HitExpander {
         for (ConvertedSmilesMols.Mol mol : queries.getMolecules()) {
             String query = mol.getSmiles();
             LOG.fine("Processing " + query);
-            ExpansionResults result = executeQuery(query, hops, hac, rac, suppliers);
+            ExpansionResults result = executeQuery(query, hops, hacMin, hacMax, racMin, racMax, suppliers);
             LOG.info(String.format("Found %s hits for query %s", result.getMembers().size(), count ));
             for (ExpansionResults.Member m : result.getMembers()) {
                 String smiles = m.getSmiles();

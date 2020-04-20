@@ -377,14 +377,16 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
         try {
             Integer hops = message.getHeader("hops", Integer.class);
-            Integer hac = message.getHeader("hac", Integer.class);
-            Integer rac = message.getHeader("rac", Integer.class);
+            Integer hacMin = message.getHeader("hacMin", Integer.class);
+            Integer hacMax = message.getHeader("hacMax", Integer.class);
+            Integer racMin = message.getHeader("racMin", Integer.class);
+            Integer racMax = message.getHeader("racMax", Integer.class);
             Integer pathLimit = message.getHeader("pathLimit", Integer.class);
             if (pathLimit != null && pathLimit > AbstractQuery.DEFAULT_LIMIT) {
                 throw new IllegalArgumentException("Path limit cannot be greater than " + AbstractQuery.DEFAULT_LIMIT);
             }
             String suppls = message.getHeader("suppliers", String.class);
-            LOG.info(String.format("hops=&s hac=%s rac=%s", hops, hac, rac));
+            LOG.info(String.format("hops=%s hacMin=%s hacMax=%s racMin=%s racMax=%s", hops, hacMin, hacMax, racMin, racMax));
 
             List<String> suppliers = parseSuppliers(suppls);
 
@@ -406,7 +408,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                     query.setLimit(pathLimit);
                 }
                 long n0 = System.nanoTime();
-                result = query.executeQuery(molecule, conentType, hops, hac, rac, suppliers);
+                result = query.executeQuery(molecule, conentType, hops, hacMin, hacMax, racMin, racMax, suppliers);
                 long n1 = System.nanoTime();
                 expansionSearchNeo4jSearchDuration.inc((double) (n1 - n0));
                 expansionSearchHitsTotal.inc((double) result.getSize());
@@ -449,14 +451,16 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
         try {
             Integer hops = message.getHeader("hops", Integer.class);
-            Integer hac = message.getHeader("hac", Integer.class);
-            Integer rac = message.getHeader("rac", Integer.class);
+            Integer hacMin = message.getHeader("hacMin", Integer.class);
+            Integer hacMax = message.getHeader("hacMax", Integer.class);
+            Integer racMin = message.getHeader("racMin", Integer.class);
+            Integer racMax = message.getHeader("racMax", Integer.class);
             Integer pathLimit = message.getHeader("pathLimit", Integer.class);
             if (pathLimit != null && pathLimit > AbstractQuery.DEFAULT_LIMIT) {
                 throw new IllegalArgumentException("Path limit cannot be greater than " + AbstractQuery.DEFAULT_LIMIT);
             }
             String suppls = message.getHeader("suppliers", String.class);
-            LOG.info(String.format("hops=&s hac=%s rac=%s", hops, hac, rac));
+            LOG.info(String.format("hops=%s hacMin=%s hacMax=%s racMin=%s racMax=%s", hops, hacMin, hacMax, racMin, racMax));
 
             List<String> suppliers = parseSuppliers(suppls);
 
@@ -490,7 +494,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                     HitExpander expander = new HitExpander(session);
 
                     long n0 = System.nanoTime();
-                    result = expander.processMolecules(queries, hops, hac, rac, suppliers);
+                    result = expander.processMolecules(queries, hops, hacMin, hacMax, racMin, racMax, suppliers);
                     long n1 = System.nanoTime();
                     expansionSearchNeo4jSearchDuration.inc((double) (n1 - n0));
                     expansionSearchHitsTotal.inc((double) result.getResults().size());
