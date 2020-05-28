@@ -79,7 +79,7 @@ public class HitExpander {
             params.put("racMin", racMin);
         }
         if (racMax != null) {
-            params.put("racMax", racMin);
+            params.put("racMax", racMax);
         }
         if (suppliers != null && !suppliers.isEmpty()) {
             params.put("suppliers", suppliers);
