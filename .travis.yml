@@ -14,13 +14,13 @@ services:
 - docker
 
 stages:
-  # The 'compile' stage
+  # The 'compile' stage
   # - Compiles the code.
 - name: compile
-  # The 'build' stage
+  # The 'build' stage
   # - Compiles the code and also used to run unit tests.
 - name: test
-  # The 'publish' stage
+  # The 'publish' stage
   # - Assembles docker images and pushes the resultant images to Docker Hub.
   #   We execute the 'publish' stage and always publish an image
   #   on master or when tagged. When tagged the tag value is used for the
