@@ -31,11 +31,13 @@ Refer to the project's `.travis.yml` for details of the build, which uses
 scripts present in the `scripts` directory.
 
 ## Building (developer)
-Run the buildDockerImage target `./gradlew buildDockerImage`.
-This builds a Docker image running Tomcat and deploys the war files
-for fragnet-search and fragnet-depict.
+Run the buildDockerImages target  to build the container images `./gradlew buildDockerImages`.
+This builds two Docker images running Tomcat and deploys the war files
+for fragnet-search and fragnet-depict. These container images are `squonk/fragnet-search` and `squonk/fragnet-depict`.
+The `squonk/fragnet-search` image contains the Keycloak jars, but authentication needs to be enabled by modifying the
+web app.
 
-Test the container using the [docker-compose-test.yml](docker-compose-test.yml)
+Test the container using the [docker-compose.yml](docker-compose.yml)
 file:
 
     docker-compose -f docker-compose-test.yml up

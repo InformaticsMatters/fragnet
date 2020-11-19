@@ -30,16 +30,12 @@ plugins {
 
 description = 'Fragment Network tools and services'
 
-// The version is not used if FRAGNET_IMAGE_TAG is set.
-// The version is then only used if it's not a snapshot.
-// If it's a snapshot images are tagged 'latest'
-version = '0.3.3-SNAPSHOT'
-
-import com.bmuschko.gradle.docker.tasks.container.*
-import com.bmuschko.gradle.docker.tasks.image.*
-
-
 allprojects {
+
+    // The version is not used if  is set.
+    // The version is then only used if it's not a snapshot.
+    // If it's a snapshot images are tagged 'latest'
+    version = '0.3.3-SNAPSHOT'
 
     group = 'org.squonk.fragnet'
 
@@ -60,16 +56,16 @@ allprojects {
     // or the value of our 'version' property.
     def dockerImageTag = System.getenv('FRAGNET_IMAGE_TAG')
     if (dockerImageTag == null || dockerImageTag.length() == 0) {
-        // As we're here SQUONK_IMAGE_TAG is not set.
+        // As we're here FRAGNET_IMAGE_TAG is not set.
         // the version number is 'latest' if a snapshot
         // otherwise it's the version.
         if (!version.endsWith('-SNAPSHOT')) {
-            dockerImageTag = version
+            project.ext.set('dockerImageTag', version)
         } else {
-            dockerImageTag = 'latest'
+            project.ext.set('dockerImageTag', 'latest')
         }
     }
-    project.ext.set('dockerImageTag', dockerImageTag)
+
 
     // In this section you declare where to find the dependencies of your project
     repositories {
@@ -99,79 +95,9 @@ wrapper {
     gradleVersion = '5.6'
 }
 
-docker {
-    url = dockerHost
-    certPath = null
-}
-
-task copyKeycloakJarsFiles(type: Copy) {
-    from "./lib/keycloak-2.1.0-jars-tomcat8"
-    into "build/libs/keycloak-2.1.0-jars-tomcat8/"
-    include "*.jar"
-}
-
-task copyFragnetSearchWarFiles(type: Copy) {
+task buildDockerImages {
     dependsOn = [
-            'fragnet-search:war'
+            'fragnet-search:buildDockerImage',
+            'fragnet-depict:buildDockerImage'
     ]
-    from "./fragnet-search/build/libs/"
-    into "build/libs/"
-    include "fragnet-search.war"
-}
-
-task copyFragnetDepictWarFiles(type: Copy) {
-    dependsOn = [
-            'fragnet-depict:war'
-    ]
-    from "./fragnet-depict/build/libs/"
-    into "build/libs/"
-    include "fragnet-depict.war"
-}
-
-task buildDockerFile(type: Dockerfile) {
-
-    dependsOn = [
-            copyFragnetSearchWarFiles,
-            copyFragnetDepictWarFiles,
-            copyKeycloakJarsFiles
-    ]
-
-    destFile = project.file('build/Dockerfile')
-    from "informaticsmatters/rdkit-tomcat-debian:Release_2020_09_1"
-    label(['maintainer': 'Tim Dudgeon "tdudgeon@informaticsmatters.com"'])
-
-    // include the keycloak adapters
-    runCommand('''mkdir keycloak && cd keycloak && curl -s -o keycloak.tar.gz\
- https://downloads.jboss.org/keycloak/3.4.3.Final/adapters/keycloak-oidc/keycloak-tomcat8-adapter-dist-3.4.3.Final.tar.gz &&\
- tar xfz keycloak.tar.gz &&\
- rm keycloak.tar.gz &&\
- mv *.jar $CATALINA_HOME/lib &&\
- cd $CATALINA_HOME && rm -rf keycloak''')
-
-    addFile('./libs/fragnet-*.war', "/usr/local/tomcat/webapps/")
-    runCommand("cd /usr/local/tomcat/webapps && " +
-            "unzip -d fragnet-search fragnet-search.war && " +
-            "unzip -d fragnet-depict fragnet-depict.war && " +
-            "rm fragnet-*.war")
-
-    // this bit handles the conflicting jars in lib and webapps/fragnet-search/WEB-INF/lib.
-    // the old ones in lib are removed and the correct ones moved from the webapp lib dir to the tomcat lib dir.
-    runCommand('''rm $CATALINA_HOME/lib/jackson* $CATALINA_HOME/lib/jboss-logging* &&\
-mv $CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-core*.jar \
-$CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-annotations*.jar \
-$CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-databind*.jar \
-$CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jboss-logging*.jar \
-$CATALINA_HOME/lib/''')
-
-}
-
-/** Build a Docker image
- * run the generated image with something like this:
- *
- * docker run -d --name fragnet-services -p 8080:8080 squonk/fragnet-services:latest
- *
- */
-task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
-    inputDir = buildDockerFile.destFile.get().asFile.parentFile
-    tags.add("squonk/fragnet-services:${dockerImageTag}")
 }

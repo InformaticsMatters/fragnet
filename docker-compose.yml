@@ -1,29 +1,49 @@
 version: '3.1'
 services:
+
+  # This is a test container with a small amount of data (1000 molecules).
+  # Loading this data takes a few seconds. After loading you can connect to the database
+  # at http://localhost:7474/browser/
+  # You might want to add the following indexes, but for such a small amount of data it may
+  # have little impact:
+  # CREATE INDEX ON :VENDOR(cmpd_id);
+  # CREATE INDEX ON :F2(smiles);
+  #
   neo4j:
-    image: informaticsmatters/neo4j:3.5
+    image: informaticsmatters/fragnet-test:fragalysis-ro4-xchem-11
     environment:
-      NEO4J_dbms_memory_pagecache_size: 12g
-      NEO4J_dbms_memory_heap_initial__size: 6g
-      NEO4J_dbms_memory_heap_max__size: 6g
-      NEO4J_dbms_directories_data: '/data'
-      NEO4J_EDITION: community
-      NEO4J_AUTH: neo4j/hts
-      EXTENSION_SCRIPT: /data-loader/load_neo4j.sh
-    volumes:
-    - "/home/timbo/dev/docker-neo4j-frag/hts/data-loader:/data-loader:Z"
-    - "/home/timbo/dev/docker-neo4j-frag/hts/data:/data:Z"
-    - "/home/timbo/dev/docker-neo4j-frag/hts/logs:/logs:Z"
+      NEO4J_dbms_memory_pagecache_size: 2g
+      NEO4J_dbms_memory_heap_initial__size: 2g
+      NEO4J_dbms_memory_heap_max__size: 2g
+      NEO4J_AUTH: neo4j/test123
+      NEO4J_USERNAME: neo4j
+      NEO4J_PASSWORD: test123
     ports:
     - "7474:7474"
     - "7687:7687"
 
-  fragnet-services:
-    image: squonk/fragnet-services:latest
-    environment:
-      NEOJ4_PASSWORD: hts
-      CdkUseLegacyAtomContainer: 1
+  # This container runs the REST API that queries the test database.
+  # Some useful queries are:
+  # export FRAGNET_SERVER=http://localhost
+  # curl $FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/suppliers
+  # curl $FRAGNET_SERVER:8080/fragnet-search/rest/ping
+  # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/neighbourhood/OC(Cn1ccnn1)C1CC1?hac=3&rac=1&hops=2"
+  # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/availability/OC(Cn1ccnn1)C1CC1"
+  # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/expand/OC(Cn1ccnn1)C1CC1?hacMin=5&hacMax=10&racMin=3&racMax=3&hops=2"
+  # curl --data-binary "@fragnet-search/src/test/data/expand.smi" -H "Content-Type: chemical/x-daylight-smiles" "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/expand-multi?hacMin=5&hacMax=5&racMin=2&racMax=2&hops=2"
+  fragnet-search:
+          image: squonk/fragnet-services:latest
+          environment:
+            NEO4J_PASSWORD: test123
+          ports:
+            - "8080:8080"
+          depends_on:
+            - neo4j
+
+  # Some useful queries are:
+  # export FRAGNET_SERVER=http://localhost
+  # curl "$FRAGNET_SERVER:8090/fragnet-depict/moldepict?&w=75&h=60&bg=0x33FFFF00&mol=CN1C%3DNC2%3DC1C(%3DO)N(C)C(%3DO)N2C"
+  fragnet-depict:
+    image: squonk/fragnet-depict:latest
     ports:
-    - "80:8080"
-    depends_on:
-      - neo4j
+      - "8090:8080"

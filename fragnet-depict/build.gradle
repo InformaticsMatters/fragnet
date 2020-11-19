@@ -1,5 +1,7 @@
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+
 /*
- * Copyright (c) 2019 Informatics Matters Ltd.
+ * Copyright (c) 2020 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +16,12 @@
  * limitations under the License.
  */
 
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+
+plugins {
+    id 'com.bmuschko.docker-remote-api'
+}
 
 description = 'Fragment network depiction'
 
@@ -26,10 +34,7 @@ dependencies {
     providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
 
     def cdkVersion = '2.3'
-    def smsdVersion = '2.0.0'
     def tomcatVersion = '8.5.43'
-
-//    compile "org.openscience.cdk:cdk-bundle:$cdkVersion"
 
     compile "org.openscience.cdk:cdk-core:$cdkVersion"
     compile "org.openscience.cdk:cdk-data:$cdkVersion"
@@ -42,9 +47,6 @@ dependencies {
     compile "org.openscience.cdk:cdk-depict:$cdkVersion"
     compile "org.openscience.cdk:cdk-smsd:$cdkVersion"
     compile "org.openscience.cdk:cdk-legacy:$cdkVersion"
-
-//    compile "uk.ac.ebi.smsd:smsd-core:$smsdVersion"
-//    compile "uk.ac.ebi.smsd:smsd-exec:$smsdVersion"
     
     tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
             "org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}"
@@ -58,4 +60,29 @@ tomcat {
     enableSSL = false
     httpProtocol = 'org.apache.coyote.http11.Http11Nio2Protocol'
     ajpProtocol  = 'org.apache.coyote.ajp.AjpNio2Protocol'
+}
+
+task buildDockerFile(type: Dockerfile) {
+
+    dependsOn = [
+            war
+    ]
+
+    destFile = project.file('build/Dockerfile')
+    from "informaticsmatters/tomcat:8.5-jre11"
+    label(['maintainer': 'Tim Dudgeon "tdudgeon@informaticsmatters.com"'])
+
+    // no need to unpack the zip
+    addFile('./libs/fragnet-depict*.war', "/usr/local/tomcat/webapps/fragnet-depict.war")
+}
+
+/** Build a Docker image
+ * run the generated image with something like this:
+ *
+ * docker run -d --name fragnet-depict -p 8080:8080 squonk/fragnet-depict:latest
+ *
+ */
+task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
+    inputDir = buildDockerFile.destFile.get().asFile.parentFile
+    tags.add("squonk/fragnet-depict:${dockerImageTag}")
 }
