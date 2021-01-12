@@ -45,12 +45,12 @@ public class FragnetSearchRouteBuilderCommon extends RouteBuilder {
 
 
         restConfiguration().component("servlet").host("0.0.0.0")
-                .enableCORS(true)
-                .corsHeaderProperty("Access-Control-Allow-Headers",
-                        "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, " +
-                                "Access-Control-Request-Headers, Authorization")
-                .corsHeaderProperty("Access-Control-Allow-Credentials", "true")
-                .apiProperty("cors", "true")
+//                .enableCORS(true)
+//                .corsHeaderProperty("Access-Control-Allow-Headers",
+//                        "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, " +
+//                                "Access-Control-Request-Headers, Authorization")
+//                .corsHeaderProperty("Access-Control-Allow-Credentials", "true")
+//                .apiProperty("cors", "true")
                 .apiContextPath("/api-doc")
                 .apiProperty("api.title", "Fragnet services").apiProperty("api.version", "2");
 
