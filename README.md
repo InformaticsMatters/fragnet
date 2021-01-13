@@ -1,6 +1,9 @@
 # Fragnet
 
+![build and push latest](https://github.com/InformaticsMatters/fragnet/workflows/build%20and%20push%20latest/badge.svg)
+
 [![Build Status](https://travis-ci.com/InformaticsMatters/fragnet.svg?branch=master)](https://travis-ci.com/InformaticsMatters/fragnet)
+
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/informaticsmatters/fragnet)
 [![project](https://img.shields.io/badge/Clubhouse%20Project-Fragnet%20Search-5000d2)](https://app.clubhouse.io/informaticsmatters/project/161)
 
