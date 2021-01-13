@@ -1,8 +1,0 @@
----
-
-- hosts: graph
-
-  tasks:
-  - include_role:
-      name: fragnet
-      tasks_from: stop-graph.yaml

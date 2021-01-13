@@ -32,8 +32,8 @@ The project containers are built automatically using GitHub Actions
 (see the project workflows in `.github/workflows` for details of the build).
 `latest` images pushed to Docker Hub for each change on the
 master branch. Tagged releases are also automatically built and pushed to
-Docker hub, with `stable` images also produced when the tag is _official_
-(i.e. of the form `N.N.N`)
+Docker hub, with `stable` images also produced when the release is _official_
+(i.e. of the form `N.N.N`).
 
 ## Building (developer)
 Run the buildDockerImages target  to build the container images `./gradlew buildDockerImages`.
@@ -50,14 +50,8 @@ file:
 This uses a sample Neo4j database with a small amount of data.
 
 ## Official deployments
->   For the legacy deployment process (to AWS EC2 instances) refer to 
-    the instructions in [orchestration](orchestration/).
-
-New deployments are achieved through the use of Ansible playbooks and Roles
-that can be found in the [fragnet-ansible] repository. These are used to
-form **Job Templates** that run on our [AWX server].
-
-Official deployments (to Kubernetes) now use AWX.
+Official deployments (to Kubernetes) use AWX and our [fragnet-ansible]
+playbooks.
 
 ## Image versions
 Official image versions are defined by and obtained from repository tags,
