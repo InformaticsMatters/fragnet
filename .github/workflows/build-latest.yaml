@@ -2,7 +2,9 @@
 name: build and push latest
 
 on:
-- push
+  push:
+    branches:
+    - 'master'
 
 jobs:
   build-and-publish-latest:
