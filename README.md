@@ -1,6 +1,9 @@
 # Fragnet
 
 ![build and push latest](https://github.com/InformaticsMatters/fragnet/workflows/build%20and%20push%20latest/badge.svg)
+![build](https://github.com/InformaticsMatters/fragnet/workflows/build/badge.svg)
+![build and push tag](https://github.com/InformaticsMatters/fragnet/workflows/build%20and%20push%20tag/badge.svg)
+![build and push latest](https://github.com/InformaticsMatters/fragnet/workflows/build%20and%20push%20stable/badge.svg)
 
 [![Build Status](https://travis-ci.com/InformaticsMatters/fragnet.svg?branch=master)](https://travis-ci.com/InformaticsMatters/fragnet)
 
@@ -24,14 +27,13 @@ For more information see:
 * [Talk at 2018 RDKit UGM](https://github.com/rdkit/UGM_2018/blob/master/Lightning/tim_dudgeon_fragment-network.pdf).
 * [Informatics Matters website](https://www.informaticsmatters.com/pages/fragment_network.html)
 
-## Building (Travis)
-The project's `squonk/fragnet-services` container is built automatically
-by Travis with `latest` images pushed to Docker Hub for each change on the
+## Building (CI)
+The project containers are built automatically using GitHub Actions
+(see the project workflows in `.github/workflows` for details of the build).
+`latest` images pushed to Docker Hub for each change on the
 master branch. Tagged releases are also automatically built and pushed to
-Docker hub.
-
-Refer to the project's `.travis.yml` for details of the build, which uses
-scripts present in the `scripts` directory.
+Docker hub, with `stable` images also produced when the tag is _official_
+(i.e. of the form `N.N.N`)
 
 ## Building (developer)
 Run the buildDockerImages target  to build the container images `./gradlew buildDockerImages`.
