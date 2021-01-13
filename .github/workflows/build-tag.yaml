@@ -26,8 +26,6 @@ jobs:
         java-version: 11
     - name: Build
       run: ./gradlew buildDockerImages -x test
-      env:
-        FRAGNET_IMAGE_TAG: ${{ env.GITHUB_REF_SLUG }}
     - name: Login to DockerHub
       uses: docker/login-action@v1
       with:
@@ -40,5 +38,7 @@ jobs:
         install: true
     - name: Push tag
       run: |
+        docker tag squonk/fragnet-depict:latest squonk/fragnet-depict:${{ env.GITHUB_REF_SLUG }}
         docker push squonk/fragnet-depict:${{ env.GITHUB_REF_SLUG }}
+        docker tag squonk/fragnet-search:latest squonk/fragnet-search:${{ env.GITHUB_REF_SLUG }}
         docker push squonk/fragnet-search:${{ env.GITHUB_REF_SLUG }}

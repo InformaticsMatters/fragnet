@@ -17,8 +17,6 @@ jobs:
         java-version: 11
     - name: Build
       run: ./gradlew buildDockerImages -x test
-      env:
-        FRAGNET_IMAGE_TAG: latest
     - name: Login to DockerHub
       uses: docker/login-action@v1
       with:
