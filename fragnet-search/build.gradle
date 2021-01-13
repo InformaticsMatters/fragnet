@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Informatics Matters Ltd.
+ * Copyright (c) 2020 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 
 plugins {
     id 'com.bmuschko.docker-remote-api'
@@ -24,7 +26,7 @@ plugins {
 
 description = 'Fragment network search'
 
-String RDBASE = System.getenv('RDBASE')
+String RDBASE = System.getenv('RDBASE') ?: ''
 String RDKitJarFile = RDBASE + '/Code/JavaWrappers/gmwrapper/org.RDKit.jar'
 boolean RDKitJava = RDBASE && file(RDKitJarFile).exists()
 println "jar $RDKitJarFile exists? $RDKitJava"
@@ -80,7 +82,7 @@ tomcat {
 }
 
 task createNeoContainer(type: DockerCreateContainer) {
-    targetImageId 'informaticsmatters/fragnet-test:3.5'
+    targetImageId 'informaticsmatters/fragnet-test:3.5-xchem-v1-build-2'
     portBindings = ['7474:7474','7687:7687']
     envVars = ['NEO4J_dbms_memory_pagecache_size': '2g',
                'NEO4J_dbms_memory_heap_initial__size': '2g',
@@ -115,3 +117,50 @@ test {
 
 tasks.test.dependsOn("startNeoContainer")
 tasks.test.finalizedBy("stopNeoContainer")
+
+task copyKeycloakJars(type: Copy) {
+    from "../lib/keycloak-2.1.0-jars-tomcat8"
+    into "build/libs/keycloak-2.1.0-jars-tomcat8/"
+    include "*.jar"
+}
+
+task buildDockerFile(type: Dockerfile) {
+
+    dependsOn = [
+            war,
+            copyKeycloakJars
+    ]
+
+    destFile = project.file('build/Dockerfile')
+    from "informaticsmatters/rdkit-tomcat-debian:Release_2019_09"
+    label(['maintainer': 'Tim Dudgeon "tdudgeon@informaticsmatters.com"'])
+
+    // include the keycloak adapters
+    runCommand('''mkdir keycloak && cd keycloak && curl -s -o keycloak.tar.gz\
+ https://downloads.jboss.org/keycloak/3.4.3.Final/adapters/keycloak-oidc/keycloak-tomcat8-adapter-dist-3.4.3.Final.tar.gz &&\
+ tar xfz keycloak.tar.gz &&\
+ rm keycloak.tar.gz &&\
+ mv *.jar $CATALINA_HOME/lib &&\
+ cd $CATALINA_HOME && rm -rf keycloak''')
+
+    addFile('./libs/fragnet-search*.war', "/usr/local/tomcat/webapps/")
+    // need to unpack the zip as we need to mess with the keycloak related jars
+    runCommand("cd /usr/local/tomcat/webapps && " +
+            "unzip -d fragnet-search fragnet-search*.war && " +
+            "rm fragnet-*.war")
+
+    // this bit handles the conflicting jars in lib and webapps/fragnet-search/WEB-INF/lib.
+    // the old ones in lib are removed and the correct ones moved from the webapp lib dir to the tomcat lib dir.
+    runCommand('''rm $CATALINA_HOME/lib/jackson* $CATALINA_HOME/lib/jboss-logging* &&\
+mv $CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-core*.jar \
+$CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-annotations*.jar \
+$CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-databind*.jar \
+$CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jboss-logging*.jar \
+$CATALINA_HOME/lib/''')
+
+}
+
+task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
+    inputDir = buildDockerFile.destFile.get().asFile.parentFile
+    tags.add("squonk/fragnet-search:${dockerImageTag}")
+}
