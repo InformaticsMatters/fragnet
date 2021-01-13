@@ -16,7 +16,7 @@ jobs:
       with:
         java-version: 11
     - name: Build
-      run: ./gradlew buildDockerImage -x test
+      run: ./gradlew buildDockerImages -x test
     - name: Login to DockerHub
       uses: docker/login-action@v1
       with:
@@ -28,4 +28,6 @@ jobs:
       with:
         install: true
     - name: Push latest
-      run: docker push squonk/fragnet-services:latest
+      run: |
+        docker push squonk/fragnet-depict:latest
+        docker push squonk/fragnet-search:latest
