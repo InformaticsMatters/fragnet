@@ -2,14 +2,35 @@
 name: build and push stable
 
 # Actions for an 'official' tag.
-
-# An official tag is a 3-digit value (i.e. 'N.N.N').
+#
+# An official tag is a 2 or 3-digit value (i.e. 'N.N[.N]').
 # We publish images using the tag as a tag and one using 'stable' as s tag.
+
+# -----------------
+# Control variables (GitHub Secrets)
+# -----------------
+#
+# At the GitHub 'organisation' or 'project' level you must have the following
+# GitHub 'Repository Secrets' defined (i.e. via 'Settings -> Secrets'): -
+#
+# DOCKERHUB_USERNAME
+# DOCKERHUB_TOKEN
+#
+# -----------
+# Environment (GitHub Environments)
+# -----------
+#
+# Environment         (none)
+#
+# For automated deployment we expect the following in the environment: -
+#
+# (none)
 
 on:
   push:
     tags:
     - '[0-9]+.[0-9]+.[0-9]+'
+    - '[0-9]+.[0-9]+'
 
 jobs:
   push-stable:

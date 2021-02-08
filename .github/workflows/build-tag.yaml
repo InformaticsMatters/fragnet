@@ -2,15 +2,35 @@
 name: build and push tag
 
 # Actions for any 'unofficial' tag.
+#
+# It's not an official tag if it's not formed from 2 or 3 digits
+# (i.e. is not 'N.N[.N]'). We publish images using the tag as a tag.
 
-# It's not an official tag if it's not formed from three digits
-# (i.e. is not 'N.N.N').
-# We publish images using the tag as a tag.
+# -----------------
+# Control variables (GitHub Secrets)
+# -----------------
+#
+# At the GitHub 'organisation' or 'project' level you must have the following
+# GitHub 'Repository Secrets' defined (i.e. via 'Settings -> Secrets'): -
+#
+# DOCKERHUB_USERNAME
+# DOCKERHUB_TOKEN
+#
+# -----------
+# Environment (GitHub Environments)
+# -----------
+#
+# Environment         (none)
+#
+# For automated deployment we expect the following in the environment: -
+#
+# (none)
 
 on:
   push:
     tags:
     - '**'
+    - '![0-9]+.[0-9]+'
     - '![0-9]+.[0-9]+.[0-9]+'
 
 jobs:
