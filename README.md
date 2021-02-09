@@ -26,6 +26,7 @@ For more information see:
 
 * [Talk at 2018 RDKit UGM](https://github.com/rdkit/UGM_2018/blob/master/Lightning/tim_dudgeon_fragment-network.pdf).
 * [Informatics Matters website](https://www.informaticsmatters.com/pages/fragment_network.html)
+* [Fragnet Search application](https://fragnet.informaticsmatters.com/)
 
 ## Building (CI)
 The project containers are built automatically using GitHub Actions
@@ -45,9 +46,9 @@ web app.
 Test the container using the [docker-compose.yml](docker-compose.yml)
 file:
 
-    docker-compose -f docker-compose-test.yml up
+    docker-compose up
 
-This uses a sample Neo4j database with a small amount of data.
+This uses a sample Neo4j database with a small amount of data. It takes a short time to initialise.
 
 ## Official deployments
 Official deployments (to Kubernetes) use AWX and our [fragnet-ansible]

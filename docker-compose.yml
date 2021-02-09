@@ -25,8 +25,8 @@ services:
   # This container runs the REST API that queries the test database.
   # Some useful queries are:
   # export FRAGNET_SERVER=http://localhost
-  # curl $FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/suppliers
   # curl $FRAGNET_SERVER:8080/fragnet-search/rest/ping
+  # curl $FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/suppliers
   # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/neighbourhood/OC(Cn1ccnn1)C1CC1?hac=3&rac=1&hops=2"
   # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/availability/OC(Cn1ccnn1)C1CC1"
   # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/expand/OC(Cn1ccnn1)C1CC1?hacMin=5&hacMax=10&racMin=3&racMax=3&hops=2"
