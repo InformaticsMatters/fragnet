@@ -1,6 +1,38 @@
 ---
 name: build and push latest
 
+# -----------------
+# Control variables (GitHub Secrets)
+# -----------------
+#
+# At the GitHub 'organisation' or 'project' level you must have the following
+# GitHub 'Repository Secrets' defined (i.e. via 'Settings -> Secrets'): -
+#
+# DOCKERHUB_USERNAME
+# DOCKERHUB_TOKEN
+#
+# ------------
+# Environments (GitHub Environments)
+# ------------
+#
+# Environment         awx/im-main
+#
+# For automated deployment we expect the following in the environment: -
+#
+# AWX_HOST            The fully-qualified URL to AWX.
+#                     If not set, AWX triggering does not take place.
+# AWX_USER            The username of someone that can execute the AWX Job.
+# AWX_USER_PASSWORD   The user's password.
+#
+# Environment         awx/dls-dev
+#
+# For automated deployment we expect the following in the environment: -
+#
+# AWX_HOST            The fully-qualified URL to AWX.
+#                     If not set, AWX triggering does not take place.
+# AWX_USER            The username of someone that can execute the AWX Job.
+# AWX_USER_PASSWORD   The user's password.
+
 on:
   push:
     branches:
@@ -31,3 +63,35 @@ jobs:
       run: |
         docker push squonk/fragnet-depict:latest
         docker push squonk/fragnet-search:latest
+
+  # Deploy 'Depict'
+  # (to the AWX/im-main Environment)
+  trigger-awx-depict:
+    needs: build-and-push-latest
+    runs-on: ubuntu-latest
+    environment: awx/im-main
+    steps:
+    - uses: informaticsmatters/trigger-awx-action@v1
+      with:
+        template: FragnetDepict -staging-
+        template-host: ${{ secrets.AWX_HOST }}
+        template-user: ${{ secrets.AWX_USER }}
+        template-user-password: ${{ secrets.AWX_USER_PASSWORD }}
+        template-var: fs_image_tag
+        template-var-value: latest
+
+  # Deploy 'Search API'
+  # (to the AWX/DLS Development Environment)
+  trigger-awx-search:
+    needs: build-and-push-latest
+    runs-on: ubuntu-latest
+    environment: awx/dls-dev
+    steps:
+    - uses: informaticsmatters/trigger-awx-action@v1
+      with:
+        template: FragnetSearch API -staging-
+        template-host: ${{ secrets.AWX_HOST }}
+        template-user: ${{ secrets.AWX_USER }}
+        template-user-password: ${{ secrets.AWX_USER_PASSWORD }}
+        template-var: fs_image_tag
+        template-var-value: latest
