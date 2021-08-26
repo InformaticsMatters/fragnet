@@ -6,8 +6,6 @@ The aim is to provide strongly opinionated searches against specific types of da
 that is independent of the Neo4j graph model that can be used on the client side and that somewhat insulates client code
 for the exact details of the Neo4j data model.
 
-Currently this work is at an early stage and much more is planned.
-
 ## API versions
 
 The APIs are versioned. Currently `v2` is in use, but the older `v1` is still supported. See [README_v1.md]() for details.
@@ -27,10 +25,11 @@ The current search types that are supported are:
 
 1. Supplier search - find the different suppliers that are in the database. Other searches can be
 restricted to specific suppliers.
-2. Molecule neighbourhood search - find the local graph network surrounding a specific molecule.
-3. Availability search - find the forms of a molecule from the fragment network that are available from suppliers 
-4. Expansion search - expand out a single molecule returning isomeric molecules that can be purchased
-5. Expansion multi search - expand out a set of molecules returning isomeric molecules that can be purchased
+2. Molecule search - is the specified molecule part of the fragment network.
+3. Molecule neighbourhood search - find the local graph network surrounding a specific molecule.
+4. Availability search - find the forms of a molecule from the fragment network that are available from suppliers 
+5. Expansion search - expand out a single molecule returning isomeric molecules that can be purchased
+6. Expansion multi search - expand out a set of molecules returning isomeric molecules that can be purchased
 
 
 ### Supplier search
@@ -43,6 +42,33 @@ This is a simple JSON array of supplier objects. e.g. `[{"name":"MolPort","label
 Each supplier object has a name and label property.
 If restricting searches to specific suppliers then specify the suppliers query parameter and give it the value
 of a comma separated list of supplier names. These must be specified __exactly__ as found in the result of this query.
+
+### Molecule search
+
+This allows you to find out if the specified molecule is part of the fragment network.
+This is available from the `fragnet-search/rest/v2/search/molecule/{smiles}` endpoint.
+If the molecule is not present you get a 404 response. If it is present you get back a 200 response containing JSON
+with basic information about the molecule, e.g.
+```
+{
+  "id": 3101538,
+  "smiles": "OC(Cn1ccnn1)C1CC1",
+  "molType": "NET_FRAG",
+  "labels": [
+    "F2"
+  ],
+  "props": {
+    "inchik": "RRDAVGHEBCZBLM-UHFFFAOYNA-N",
+    "osmiles": "OC(CC1CCCC1)C1CC1",
+    "chac": 8,
+    "hac": 11,smiles
+    "inchis": "InChI=1/C7H11N3O/c11-7(6-1-2-6)5-10-4-3-8-9-10/h3-4,6-7,11H,1-2,5H2MA"
+  }
+}
+```
+The molecule is typically specified as SMILES as illustrated above, but it can be specified as in Molfile format in which 
+case the molfile must be POSTed to the `fragnet-search/rest/v2/search/molecule` endpoint AND the mime-type must be set to
+`chemical/x-mdl-molfile` using the `Content-type` header.
 
 ### Molecule neighbourhood search
 

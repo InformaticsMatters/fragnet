@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Informatics Matters Ltd.
+ * Copyright (c) 2021 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,11 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
     private List<Map<String, String>> suppliers;
     private Map<String, String> supplierMappings;
 
+    private final Counter moleculeSearchRequestsTotal = Counter.build()
+            .name("requests_molecule_total")
+            .help("Total number of molecule search requests")
+            .register();
+
     private final Counter neighbourhoodSearchRequestsTotal = Counter.build()
             .name("requests_neighbourhood_total")
             .help("Total number of neighbourhood search requests")
@@ -74,6 +79,11 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             .help("Total duration of calculations")
             .register();
 
+    private final Counter moleculeSearchNeo4jSearchDuration = Counter.build()
+            .name("duration_molecule_neo4j_ns")
+            .help("Total duration of molecule Neo4j cypher query")
+            .register();
+
     private final Counter neighbourhoodSearchNeo4jSearchDuration = Counter.build()
             .name("duration_neighbourhood_neo4j_ns")
             .help("Total duration of neighbourhood Neo4j cypher query")
@@ -82,6 +92,16 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
     private final Counter neighbourhoodSearchMCSDuration = Counter.build()
             .name("duration_neighbourhood_mcs_ns")
             .help("Total duration of mcs determination")
+            .register();
+
+    private final Counter moleculeSearchHitsTotal = Counter.build()
+            .name("results_molecules_hits_molecules")
+            .help("Total number of molecule search hits")
+            .register();
+
+    private final Counter moleculeSearchMissesTotal = Counter.build()
+            .name("results_molecules_misses_molecules")
+            .help("Total number of molecule search misses")
             .register();
 
     private final Counter neighbourhoodSearchHitsTotal = Counter.build()
@@ -159,6 +179,27 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .process((Exchange exch) -> {
                     getUserInfo(exch);
                 })
+                .endRest()
+                // Is this molecule part of the fragment network
+                // example:
+                // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/molecule/OC(Cn1ccnn1)C1CC1"
+                .get("molecule/{smiles}").description("Molecule search")
+                .param().name("smiles").type(RestParamType.path).description("SMILES query").endParam()
+                .produces("application/json")
+                .route()
+                .process((Exchange exch) -> {
+                    executeMoleculeQuery(exch);
+                })
+                .endRest()
+                .post("molecule/").description("Molecule search")
+                .bindingMode(RestBindingMode.off)
+                .param().name("molfile").type(RestParamType.body).description("Molfile query").endParam()
+                .produces("application/json")
+                .route()
+                .process((Exchange exch) -> {
+                    executeMoleculeQuery(exch);
+                })
+                .marshal().json(JsonLibrary.Jackson)
                 .endRest()
                 // example:
                 // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
@@ -291,15 +332,15 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         try {
             Availability availability = getAvailability(smiles);
             if (availability == null || availability.getItems().size() == 0) {
-                message.setBody("{\"error\": \"NeighbourhoodQuery Failed\",\"message\",\"SMILES not found\"}");
+                message.setBody("{\"error\": \"AvailabilityQuery Failed\",\"message\": \"SMILES not found\"}");
                 message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
             } else {
                 message.setBody(availability);
                 message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
             }
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "NeighbourhoodQuery Failed", ex);
-            message.setBody("{\"error\": \"NeighbourhoodQuery Failed\",\"message\",\"" + ex.getLocalizedMessage() + "\"}");
+            LOG.log(Level.SEVERE, "AvailabilityQuery Failed", ex);
+            message.setBody("{\"error\": \"AvailabilityQuery Failed\",\"message\": \"" + ex.getLocalizedMessage() + "\"}");
             message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
         }
     }
@@ -416,7 +457,8 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
             if (result.getSize() == 0) { // no results found
                 LOG.info("ExpansionQuery found no results");
-                writeErrorResponse(message, 404, "{\"error\": \"No Results\",\"message\": \"ExpansionQuery molecule not found in the database\"}");
+                writeErrorResponse(message, 404,
+                        "{\"error\": \"No Results\",\"message\": \"ExpansionQuery molecule not found in the database or could not be expanded\"}");
             } else {
                 message.setBody(result);
                 message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
@@ -526,6 +568,67 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         }
     }
 
+    void executeMoleculeQuery(Exchange exch) {
+
+        LOG.info("Executing executeMoleculeQuery");
+
+        moleculeSearchRequestsTotal.inc();
+
+        Message message = exch.getIn();
+
+        long t0 = System.nanoTime();
+        String username = getUsername(exch);
+
+        try {
+            String queryMol = null;
+            String mimeType = message.getHeader(Exchange.CONTENT_TYPE, String.class);
+            LOG.info("mime-type is " + mimeType);
+            if (mimeType == null) {
+                mimeType = Constants.MIME_TYPE_SMILES;
+            }
+            if (Constants.MIME_TYPE_SMILES.equals(mimeType)) {
+                queryMol = message.getHeader("smiles", String.class);
+            } else if (Constants.MIME_TYPE_MOLFILE.equals(mimeType)) {
+                queryMol = message.getBody(String.class);
+            } else {
+                throw new IllegalStateException("Only support SMILES using GET or molfile using POST");
+            }
+
+            if (queryMol == null || queryMol.isEmpty()) {
+                throw new IllegalArgumentException("Query molecule must be specified");
+            }
+
+            MoleculeNode molNode;
+            try (Session session = graphdb.getSession()) {
+                // execute the query
+                MoleculeQuery query = new MoleculeQuery(session);
+
+                long n0 = System.nanoTime();
+                molNode = query.execute(queryMol, mimeType);
+                long n1 = System.nanoTime();
+                moleculeSearchNeo4jSearchDuration.inc((double) (n1 - n0));
+                if (molNode == null) {
+                    moleculeSearchMissesTotal.inc(1.0d);
+                    // throw 404
+                    message.setBody("{\"error\": \"MoleculeQuery Failed\",\"message\": \"Molecule not found\"}");
+                    message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+                } else {
+                    moleculeSearchHitsTotal.inc(1.0d);
+                    message.setBody(molNode);
+                    message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+                }
+            }
+
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "MoleculeQuery Failed", ex);
+            neighbourhoodSearchErrorsTotal.inc();
+            message.setBody("{\"error\": \"MoleculeQuery Failed\",\"message\":\"" + ex.getLocalizedMessage() + "\"}");
+            message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+
+            long t1 = System.nanoTime();
+            writeErrorToQueryLog(username, "MoleculeQuery", t1 - t0, ex.getLocalizedMessage());
+        }
+    }
 
     void executeNeighbourhoodQuery(Exchange exch) {
 

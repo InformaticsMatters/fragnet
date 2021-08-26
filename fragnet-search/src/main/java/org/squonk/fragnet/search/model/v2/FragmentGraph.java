@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Informatics Matters Ltd.
+ * Copyright (c) 2021 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -289,7 +289,7 @@ public class FragmentGraph {
         });
     }
 
-    private MoleculeNode generateMoleculeNode(Node node) {
+    public static MoleculeNode generateMoleculeNode(Node node) {
         List<String> labels = new ArrayList<>();
         node.labels().forEach((l) -> labels.add(l));
         MoleculeNode.MoleculeType type = null;

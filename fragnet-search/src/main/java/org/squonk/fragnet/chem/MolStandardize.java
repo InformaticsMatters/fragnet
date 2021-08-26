@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Informatics Matters Ltd.
+ * Copyright (c) 2021 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class MolStandardize {
         if (Constants.MIME_TYPE_SMILES.equals(mimeType)) {
             mol = RWMol.MolFromSmiles(molecule);
         } else if (Constants.MIME_TYPE_MOLFILE.equals(mimeType)) {
-            LOG.info("MOL: |" + molecule + "|");
+            LOG.fine("MOL: |" + molecule + "|");
             mol = RWMol.MolFromMolBlock(molecule, true);
         } else {
             throw new IllegalArgumentException("Unexpected molecule format: " + mimeType);

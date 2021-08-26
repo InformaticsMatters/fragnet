@@ -10,14 +10,16 @@ services:
   # CREATE INDEX ON :F2(smiles);
   #
   neo4j:
-    image: informaticsmatters/fragnet-test:fragalysis-ro4-xchem-11
+    #image: informaticsmatters/fragnet-test:fragalysis-ro4-xchem-11
+    image: informaticsmatters/fragnet-test:3.5.25-xchem-combi-sample-2021-02
     environment:
       NEO4J_dbms_memory_pagecache_size: 2g
       NEO4J_dbms_memory_heap_initial__size: 2g
       NEO4J_dbms_memory_heap_max__size: 2g
-      NEO4J_AUTH: neo4j/test123
-      NEO4J_USERNAME: neo4j
-      NEO4J_PASSWORD: test123
+      #NEO4J_AUTH: neo4j/neo4j
+      #NEO4J_USERNAME: neo4j
+      #NEO4J_PASSWORD: neo4j
+      GRAPH_PASSWORD: test123
     ports:
     - "7474:7474"
     - "7687:7687"
@@ -25,8 +27,9 @@ services:
   # This container runs the REST API that queries the test database.
   # Some useful queries are:
   # export FRAGNET_SERVER=http://localhost
-  # curl $FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/suppliers
   # curl $FRAGNET_SERVER:8080/fragnet-search/rest/ping
+  # curl $FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/suppliers
+  # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/molecule/OC(Cn1ccnn1)C1CC1"
   # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/neighbourhood/OC(Cn1ccnn1)C1CC1?hac=3&rac=1&hops=2"
   # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/availability/OC(Cn1ccnn1)C1CC1"
   # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/expand/OC(Cn1ccnn1)C1CC1?hacMin=5&hacMax=10&racMin=3&racMax=3&hops=2"
