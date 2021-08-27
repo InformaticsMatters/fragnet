@@ -59,6 +59,11 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             .help("Total number of molecule search requests")
             .register();
 
+    private final Counter fragmentSearchRequestsTotal = Counter.build()
+            .name("requests_fragment_total")
+            .help("Total number of fragment search requests")
+            .register();
+
     private final Counter neighbourhoodSearchRequestsTotal = Counter.build()
             .name("requests_neighbourhood_total")
             .help("Total number of neighbourhood search requests")
@@ -84,6 +89,11 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             .help("Total duration of molecule Neo4j cypher query")
             .register();
 
+    private final Counter fragmentSearchNeo4jSearchDuration = Counter.build()
+            .name("duration_fragment_neo4j_ns")
+            .help("Total duration of fragment Neo4j cypher query")
+            .register();
+
     private final Counter neighbourhoodSearchNeo4jSearchDuration = Counter.build()
             .name("duration_neighbourhood_neo4j_ns")
             .help("Total duration of neighbourhood Neo4j cypher query")
@@ -102,6 +112,16 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
     private final Counter moleculeSearchMissesTotal = Counter.build()
             .name("results_molecules_misses_molecules")
             .help("Total number of molecule search misses")
+            .register();
+
+    private final Counter fragmentSearchMissesTotal = Counter.build()
+            .name("results_fragment_misses_molecules")
+            .help("Total number of fragment search misses")
+            .register();
+
+    private final Counter fragmentSearchMoleculesTotal = Counter.build()
+            .name("results_fragments_molecules")
+            .help("Total number of fragment search fragments")
             .register();
 
     private final Counter neighbourhoodSearchHitsTotal = Counter.build()
@@ -191,13 +211,34 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                     executeMoleculeQuery(exch);
                 })
                 .endRest()
-                .post("molecule/").description("Molecule search")
+                .post("molecule").description("Molecule search")
                 .bindingMode(RestBindingMode.off)
                 .param().name("molfile").type(RestParamType.body).description("Molfile query").endParam()
                 .produces("application/json")
                 .route()
                 .process((Exchange exch) -> {
                     executeMoleculeQuery(exch);
+                })
+                .marshal().json(JsonLibrary.Jackson)
+                .endRest()
+                // Is this molecule part of the fragment network
+                // example:
+                // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/molecule/OC(Cn1ccnn1)C1CC1"
+                .get("fragments/{smiles}").description("Find fragments of a molecule")
+                .param().name("smiles").type(RestParamType.path).description("SMILES query").endParam()
+                .produces("application/json")
+                .route()
+                .process((Exchange exch) -> {
+                    executeFragmentQuery(exch);
+                })
+                .endRest()
+                .post("fragments").description("MFind fragments of a molecule")
+                .bindingMode(RestBindingMode.off)
+                .param().name("molfile").type(RestParamType.body).description("Molfile query").endParam()
+                .produces("application/json")
+                .route()
+                .process((Exchange exch) -> {
+                    executeFragmentQuery(exch);
                 })
                 .marshal().json(JsonLibrary.Jackson)
                 .endRest()
@@ -568,6 +609,23 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         }
     }
 
+    private String[] fetchSmilesOrMolfile(Message message) {
+        String queryMol = null;
+        String mimeType = message.getHeader(Exchange.CONTENT_TYPE, String.class);
+        LOG.info("mime-type is " + mimeType);
+        if (mimeType == null) {
+            mimeType = Constants.MIME_TYPE_SMILES;
+        }
+        if (Constants.MIME_TYPE_SMILES.equals(mimeType)) {
+            queryMol = message.getHeader("smiles", String.class);
+        } else if (Constants.MIME_TYPE_MOLFILE.equals(mimeType)) {
+            queryMol = message.getBody(String.class);
+        } else {
+            throw new IllegalStateException("Only support SMILES using GET or molfile using POST");
+        }
+        return new String[] {queryMol, mimeType};
+    }
+
     void executeMoleculeQuery(Exchange exch) {
 
         LOG.info("Executing executeMoleculeQuery");
@@ -580,19 +638,9 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         String username = getUsername(exch);
 
         try {
-            String queryMol = null;
-            String mimeType = message.getHeader(Exchange.CONTENT_TYPE, String.class);
-            LOG.info("mime-type is " + mimeType);
-            if (mimeType == null) {
-                mimeType = Constants.MIME_TYPE_SMILES;
-            }
-            if (Constants.MIME_TYPE_SMILES.equals(mimeType)) {
-                queryMol = message.getHeader("smiles", String.class);
-            } else if (Constants.MIME_TYPE_MOLFILE.equals(mimeType)) {
-                queryMol = message.getBody(String.class);
-            } else {
-                throw new IllegalStateException("Only support SMILES using GET or molfile using POST");
-            }
+            String[] data = fetchSmilesOrMolfile(message);
+            String queryMol = data[0];
+            String mimeType = data[1];
 
             if (queryMol == null || queryMol.isEmpty()) {
                 throw new IllegalArgumentException("Query molecule must be specified");
@@ -615,6 +663,59 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 } else {
                     moleculeSearchHitsTotal.inc(1.0d);
                     message.setBody(molNode);
+                    message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+                }
+            }
+
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "MoleculeQuery Failed", ex);
+            neighbourhoodSearchErrorsTotal.inc();
+            message.setBody("{\"error\": \"MoleculeQuery Failed\",\"message\":\"" + ex.getLocalizedMessage() + "\"}");
+            message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+
+            long t1 = System.nanoTime();
+            writeErrorToQueryLog(username, "MoleculeQuery", t1 - t0, ex.getLocalizedMessage());
+        }
+    }
+
+    void executeFragmentQuery(Exchange exch) {
+        LOG.info("Executing executeMoleculeQuery");
+
+        fragmentSearchRequestsTotal.inc();
+
+        Message message = exch.getIn();
+
+        long t0 = System.nanoTime();
+        String username = getUsername(exch);
+
+        try {
+            String[] data = fetchSmilesOrMolfile(message);
+            String queryMol = data[0];
+            String mimeType = data[1];
+
+            if (queryMol == null || queryMol.isEmpty()) {
+                throw new IllegalArgumentException("Query molecule must be specified");
+            }
+
+            List<String> smiles;
+            try (Session session = graphdb.getSession()) {
+                // execute the query
+                FragmentQuery query = new FragmentQuery(session);
+
+                long n0 = System.nanoTime();
+                smiles = query.execute(queryMol, mimeType);
+                long n1 = System.nanoTime();
+                fragmentSearchNeo4jSearchDuration.inc((double) (n1 - n0));
+                if (smiles == null || smiles.isEmpty()) {
+                    fragmentSearchMissesTotal.inc(1.0d);
+                    // throw 404
+                    message.setBody("{\"error\": \"MoleculeQuery Failed\",\"message\": \"Molecule not found\"}");
+                    message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+                } else {
+                    int size = smiles.size();
+                    fragmentSearchMoleculesTotal.inc((double)size);
+                    LOG.info(size + " fragments found");
+                    message.setBody(smiles);
                     message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
                 }
             }

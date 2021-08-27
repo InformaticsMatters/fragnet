@@ -588,6 +588,34 @@ hit as well as various information about the query. Example output (part of data
 }
 ```
   
+### Fragments search
+
+This search returns all the child fragments (recursive) of a molecule. The input is the same as the Molecule search,
+comprising a single molecule in SMILES or Molfile format.
+
+If that molecule is not found your get a 404 response. If it is found you get a 200 response containing a list of child 
+fragments in JSON format.
+
+Typical execution looks like this:
+```
+curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/fragments/OC(Cn1ccnn1)C1CC1"
+```
+
+The response would look like this:
+```
+[
+  "[Xe]C1CC1",
+  "C1CC1",
+  "c1c[nH]nn1",
+  "CC(O)[Xe]",
+  "[Xe]C1CC1.[Xe]n1ccnn1",
+  "OC(C[Xe])C1CC1",
+  "[Xe]n1ccnn1",
+  "OC([Xe])Cn1ccnn1",
+  "OC([Xe])C[Xe]",
+  "OCC[Xe]"
+]
+```
 
 ## Authentication
 
