@@ -23,10 +23,13 @@ import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.chem.MolStandardize;
+import org.squonk.fragnet.search.model.v2.FragmentGraph;
+import org.squonk.fragnet.search.model.v2.MoleculeNode;
 import org.squonk.fragnet.search.queries.AbstractQuery;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
@@ -45,7 +48,7 @@ public class SynthonExpandQuery extends AbstractQuery {
             "-[:FRAG*0..%s]-(:F2)" +
             "<-[e:FRAG]-(c:Mol) WHERE %s" +
             " (split(e.label, '|')[1] = $synthon OR split(e.label, '|')[4] = $synthon)" +
-            " RETURN DISTINCT c";
+            " RETURN DISTINCT c LIMIT $limit";
 
     @Override
     protected String getQueryTemplate() {
@@ -79,28 +82,39 @@ public class SynthonExpandQuery extends AbstractQuery {
     }
 
     public List<String> execute(@NotNull String mol, @NotNull String synthon, @NotNull Integer hops,
-                                Integer hacMin, Integer hacMax, Integer racMin, Integer racMax) {
+                                Integer hacMin, Integer hacMax, Integer racMin, Integer racMax, Integer limit) {
+
+        if (limit == null) {
+            limit = 1000;
+        }
+        if (limit > 5000) {
+            throw new IllegalArgumentException("Limits over 5000 are not supported");
+        }
 
         // standardize the mol. It must be in smiles format
-        String stdSmiles = MolStandardize.prepareNonisoMol(mol, Constants.MIME_TYPE_SMILES);
-        String stdSynthon = MolStandardize.prepareNonisoMol(synthon, Constants.MIME_TYPE_SMILES);
-
+        final String stdSmiles = MolStandardize.prepareNonisoMol(mol, Constants.MIME_TYPE_SMILES);
+        final String stdSynthon = MolStandardize.prepareNonisoMol(synthon, Constants.MIME_TYPE_SMILES);
+        final int limitf = limit;
         final String query = expandTemplate(hops, hacMin, hacMax, racMin, racMax);
 
-        HashSet<String> values = getSession().writeTransaction((tx) -> {
+        HashMap<String, MoleculeNode> values = getSession().writeTransaction((tx) -> {
             LOG.info("Executing Synthon Query: " + query);
-            StatementResult result = tx.run(query, parameters(new Object[]{"smiles", stdSmiles, "synthon", stdSynthon}));
-            HashSet<String> smiles = new HashSet<>();
+            StatementResult result = tx.run(query, parameters(new Object[]{
+                    "smiles", stdSmiles, "synthon", stdSynthon, "limit", limitf}));
+            HashMap<String, MoleculeNode> molNodes = new HashMap<>();
             while (result.hasNext()) {
                 Record rec = result.next();
                 Value val = rec.get(0);
                 Node node = val.asNode();
                 String smi = node.get("smiles").asString();
-                smiles.add(smi);
+                if (!molNodes.containsKey(smi)) {
+                    molNodes.put(smi, FragmentGraph.generateMoleculeNode(node));
+                }
+
             }
-            return smiles;
+            return molNodes;
         });
 
-        return new ArrayList(values);
+        return new ArrayList(values.values());
     }
 }

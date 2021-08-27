@@ -629,41 +629,73 @@ Parameters:
 |------------|-------|----------|-------------|
 | smiles     | URL   | Yes      | The smiles string for the query molecule. |
 | synthon    | Query | Yes      | The smiles string for the synthon molecule. |
+| hops       | Query | Yes      | The number of graph edges to traverse from the query molecule. Typically use 3 or 4. |
 | hacMin     | Query | No       | The minimum heavy atom count of the resulting molecules. |
 | hacMax     | Query | No       | The maximum heavy atom count of the resulting molecules. |
 | racMin     | Query | No       | The minimum ring atom count of the resulting molecules. |
 | racMax     | Query | No       | The maximum ring atom count of the resulting molecules. |
-| hops       | Query | Yes      | The number of graph edges to traverse from the query molecule. Typically use 3 or 4. |
+| limit      | Query | No       | The maximum number of results to fetch. Default is 1000, values over 500 not allowed. |
 
-Note that these searches can be quite slow. Start with a small number of hops, and increase if you have no results.
+Be careful with the query parameters as using a large number of hops may result in queries that take a long time 
+to execute and return a large number of results. Start with a small number of hops, and increase if you get no results.
+To provide some control over this there is a limit to the number of results that will be returned.
+By default this is set to 1000, but it can be adjusted using the `limit` query parameter, but this value cannot be set
+to a value greater than 5000. 
 
-Typcial execution:
+Typical execution:
 ```
 curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/synthon-expand/OC(Cn1ccnn1)C1CC1?synthon=%5BXe%5Dn1ccnn1&hops=3&hacMin=14&hacMax=18"
 ```
 
-Typcial results:
+The results are in JSON format and comprise an array of molecule info objects (the same data object as is returned by the
+molecule search endpoint). e.g.:
 ```
 [
-  "NC(CCCNCCn1ccnn1)=NO",
-  "NN=C(NCCn1ccnn1)NC1CC1",
-  "CCC(NCCn1ccnn1)C(C)(C)C",
-  "CC(CC(N)=O)NCCCn1ccnn1",
-  "O=C(O)C(=O)C(=O)NCCn1ccnn1",
-  "NN=C(NCCCn1ccnn1)NC1CC1",
-  "CCOC(C)(C)CNCCn1ccnn1",
-  "CCNC(C)CNC(=O)Cn1ccnn1",
-  "CCC(CN)NC(=O)CCn1ccnn1",
-  "CN(C(=O)Cn1ccnn1)C(C)(C)C#N",
-  "O=C(O)C=CC(=O)NCCn1ccnn1",
-  "COCCNC(=NN)NCCn1ccnn1",
-  "CC(NC(=O)CCn1ccnn1)C(N)=O",
-  "CC(C)N(CC#N)C(=O)Cn1ccnn1",
-  "CCC(NCCCn1ccnn1)C(N)=NO",
-  "CN(CCC(=O)O)C(=O)CCn1ccnn1",
-  "NCC=CCNC(=O)CCn1ccnn1",
-  "COC(=O)C=CNCCCn1ccnn1",
-  "NC(CCCCNCCn1ccnn1)=NO"
+   {
+    "id": 3573384,
+    "smiles": "NC(CCCNCCn1ccnn1)=NO",
+    "molType": "NET_FRAG",
+    "labels": [
+      "CanSmi",
+      "Mol",
+      "F2",
+      "V_CS_BB"
+    ],
+    "props": {
+      "inchik": "LMBOOOPIIROSSY-JSGPKCTENA-N",
+      "osmiles": "NC(CCCNCCC1CCCC1)NO",
+      "chac": 5,
+      "neighbours": 2,
+      "hac": 15,
+      "inchis": "InChI=1/C8H16N6O/c9-8(12-15)2-1-3-10-4-6-14-7-5-11-13-14/h5,7,10,15H,1-4,6H2,(H2,9,12)/f/h9H2MA",
+      "cmpd_ids": [
+        "CHEMSPACE-BB:CSC033999226"
+      ]
+    }
+  },
+  {
+    "id": 3287068,
+    "smiles": "OCCc1ccc(-n2ccnn2)cc1",
+    "molType": "NET_FRAG",
+    "labels": [
+      "CanSmi",
+      "Mol",
+      "F2",
+      "V_CS_BB"
+    ],
+    "props": {
+      "inchik": "PTDSMQOYRRMILK-UHFFFAOYNA-N",
+      "osmiles": "OCCC1CCC(C2CCCC2)CC1",
+      "chac": 11,
+      "neighbours": 4,
+      "hac": 14,
+      "inchis": "InChI=1/C10H11N3O/c14-8-5-9-1-3-10(4-2-9)13-7-6-11-12-13/h1-4,6-7,14H,5,8H2MA",
+      "cmpd_ids": [
+        "CHEMSPACE-BB:CSC021068907"
+      ]
+    }
+  },
+  ...
 ]
 ```
 

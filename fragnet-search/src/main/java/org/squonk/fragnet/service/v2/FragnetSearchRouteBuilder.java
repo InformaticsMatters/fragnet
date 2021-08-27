@@ -263,11 +263,12 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .get("synthon-expand/{smiles}").description("Find expansions of a molecule using a particular synthon")
                 .param().name("smiles").type(RestParamType.path).description("SMILES query").endParam()
                 .param().name("synthon").type(RestParamType.query).description("SMILES synthon").endParam()
+                .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
                 .param().name("hacMin").type(RestParamType.query).description("Heavy atom count reduction ").endParam()
                 .param().name("hacMax").type(RestParamType.query).description("Heavy atom count increase ").endParam()
                 .param().name("racMin").type(RestParamType.query).description("Ring atom count reduction").endParam()
                 .param().name("racMax").type(RestParamType.query).description("Ring atom count increase").endParam()
-                .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
+                .param().name("limit").type(RestParamType.query).description("Max number of results to be returned").endParam()
                 .produces("application/json")
                 .route()
                 .process((Exchange exch) -> {
@@ -787,6 +788,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         Integer hacMax = message.getHeader("hacMax", Integer.class);
         Integer racMin = message.getHeader("racMin", Integer.class);
         Integer racMax = message.getHeader("racMax", Integer.class);
+        Integer limit = message.getHeader("limit", Integer.class);
 
         List<String> smiles;
         try (Session session = graphdb.getSession()) {
@@ -794,7 +796,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             SynthonExpandQuery query = new SynthonExpandQuery(session);
 
             long n0 = System.nanoTime();
-            smiles = query.execute(queryMol, synthon, hops, hacMin, hacMax, racMin, racMax);
+            smiles = query.execute(queryMol, synthon, hops, hacMin, hacMax, racMin, racMax, limit);
             long n1 = System.nanoTime();
             synthonExpandNeo4jSearchDuration.inc((double) (n1 - n0));
             if (smiles == null || smiles.isEmpty()) {
