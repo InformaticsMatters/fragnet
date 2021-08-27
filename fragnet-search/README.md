@@ -285,7 +285,7 @@ The suppliers code for that form is present in the `items.code` property. The pa
 identifier that will be recognised by the supplier.
 The `smiles` that is the first property you see (e.g. as a top level property) is the SMILES that was queried.
 
-#### Expansion search
+### Expansion search
 
 This is a simple API that fetches molecules related to a query molecule. Many aspects are the same as the 
 Neighbourhood search, except for:
@@ -402,7 +402,7 @@ This is a simple JSON datastructure as follows:
 
 The main part is the members property that holds an array of the related molecules.
 
-#### Expansion multi search
+### Expansion multi search
 
 This is a simplified version of expansion search allowing multiple queries to be expanded in one go.
 
