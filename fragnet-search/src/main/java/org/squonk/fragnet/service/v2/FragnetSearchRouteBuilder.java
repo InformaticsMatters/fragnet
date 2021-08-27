@@ -221,9 +221,9 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 })
                 .marshal().json(JsonLibrary.Jackson)
                 .endRest()
-                // Is this molecule part of the fragment network
+                // Fetch the child fragments of a molecule
                 // example:
-                // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/molecule/OC(Cn1ccnn1)C1CC1"
+                // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/fragments/OC(Cn1ccnn1)C1CC1"
                 .get("fragments/{smiles}").description("Find fragments of a molecule")
                 .param().name("smiles").type(RestParamType.path).description("SMILES query").endParam()
                 .produces("application/json")
@@ -232,7 +232,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                     executeFragmentQuery(exch);
                 })
                 .endRest()
-                .post("fragments").description("MFind fragments of a molecule")
+                .post("fragments").description("Find fragments of a molecule")
                 .bindingMode(RestBindingMode.off)
                 .param().name("molfile").type(RestParamType.body).description("Molfile query").endParam()
                 .produces("application/json")
