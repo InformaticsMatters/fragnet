@@ -617,6 +617,56 @@ The response would look like this:
 ]
 ```
 
+### Synthon expansion search
+
+This search finds molecules in the neighbourhood of the query molecule that incorporate a specific "synthon". Those 
+synthons are child fragments that can be found using the fragments search endpoint. This can be useful to generate
+"fragment merges", molecules that incorporate parts of 2 different molecules.
+
+Parameters:
+
+| Name       | Type  | Required | Description |
+|------------|-------|----------|-------------|
+| smiles     | URL   | Yes      | The smiles string for the query molecule. |
+| synthon    | Query | Yes      | The smiles string for the synthon molecule. |
+| hacMin     | Query | No       | The minimum heavy atom count of the resulting molecules. |
+| hacMax     | Query | No       | The maximum heavy atom count of the resulting molecules. |
+| racMin     | Query | No       | The minimum ring atom count of the resulting molecules. |
+| racMax     | Query | No       | The maximum ring atom count of the resulting molecules. |
+| hops       | Query | Yes      | The number of graph edges to traverse from the query molecule. Typically use 3 or 4. |
+
+Note that these searches can be quite slow. Start with a small number of hops, and increase if you have no results.
+
+Typcial execution:
+```
+curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/synthon-expand/OC(Cn1ccnn1)C1CC1?synthon=%5BXe%5Dn1ccnn1&hops=3&hacMin=14&hacMax=18"
+```
+
+Typcial results:
+```
+[
+  "NC(CCCNCCn1ccnn1)=NO",
+  "NN=C(NCCn1ccnn1)NC1CC1",
+  "CCC(NCCn1ccnn1)C(C)(C)C",
+  "CC(CC(N)=O)NCCCn1ccnn1",
+  "O=C(O)C(=O)C(=O)NCCn1ccnn1",
+  "NN=C(NCCCn1ccnn1)NC1CC1",
+  "CCOC(C)(C)CNCCn1ccnn1",
+  "CCNC(C)CNC(=O)Cn1ccnn1",
+  "CCC(CN)NC(=O)CCn1ccnn1",
+  "CN(C(=O)Cn1ccnn1)C(C)(C)C#N",
+  "O=C(O)C=CC(=O)NCCn1ccnn1",
+  "COCCNC(=NN)NCCn1ccnn1",
+  "CC(NC(=O)CCn1ccnn1)C(N)=O",
+  "CC(C)N(CC#N)C(=O)Cn1ccnn1",
+  "CCC(NCCCn1ccnn1)C(N)=NO",
+  "CN(CCC(=O)O)C(=O)CCn1ccnn1",
+  "NCC=CCNC(=O)CCn1ccnn1",
+  "COC(=O)C=CNCCCn1ccnn1",
+  "NC(CCCCNCCn1ccnn1)=NO"
+]
+```
+
 ## Authentication
 
 ### Linux or Mac

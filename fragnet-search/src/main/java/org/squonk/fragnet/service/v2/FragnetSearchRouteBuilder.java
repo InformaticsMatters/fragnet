@@ -59,9 +59,29 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             .help("Total number of molecule search requests")
             .register();
 
+    private final Counter moleculeSearchNeo4jSearchDuration = Counter.build()
+            .name("duration_molecule_neo4j_ns")
+            .help("Total duration of molecule Neo4j cypher query")
+            .register();
+
     private final Counter fragmentSearchRequestsTotal = Counter.build()
             .name("requests_fragment_total")
             .help("Total number of fragment search requests")
+            .register();
+
+    private final Counter synthonExpandRequestsTotal = Counter.build()
+            .name("synthon_expand_total")
+            .help("Total number of synthon expansion requests")
+            .register();
+
+    private final Counter synthonExpandNeo4jSearchDuration = Counter.build()
+            .name("duration_synthon_expand_neo4j_ns")
+            .help("Total duration of synthon expansion Neo4j cypher query")
+            .register();
+
+    private final Counter synthonExpandMoleculesTotal = Counter.build()
+            .name("results_synthon_expand_molecules")
+            .help("Total number of synthon expansion search fragments")
             .register();
 
     private final Counter neighbourhoodSearchRequestsTotal = Counter.build()
@@ -82,11 +102,6 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
     private final Counter neighbourhoodSearchCalculationsDuration = Counter.build()
             .name("duration_neighbourhood_calculations_ns")
             .help("Total duration of calculations")
-            .register();
-
-    private final Counter moleculeSearchNeo4jSearchDuration = Counter.build()
-            .name("duration_molecule_neo4j_ns")
-            .help("Total duration of molecule Neo4j cypher query")
             .register();
 
     private final Counter fragmentSearchNeo4jSearchDuration = Counter.build()
@@ -242,6 +257,23 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 })
                 .marshal().json(JsonLibrary.Jackson)
                 .endRest()
+                // Fetch the expansions of a molecule that involve a specific synthon
+                // example:
+                // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/synthon-expand/OC(Cn1ccnn1)C1CC1"
+                .get("synthon-expand/{smiles}").description("Find expansions of a molecule using a particular synthon")
+                .param().name("smiles").type(RestParamType.path).description("SMILES query").endParam()
+                .param().name("synthon").type(RestParamType.query).description("SMILES synthon").endParam()
+                .param().name("hacMin").type(RestParamType.query).description("Heavy atom count reduction ").endParam()
+                .param().name("hacMax").type(RestParamType.query).description("Heavy atom count increase ").endParam()
+                .param().name("racMin").type(RestParamType.query).description("Ring atom count reduction").endParam()
+                .param().name("racMax").type(RestParamType.query).description("Ring atom count increase").endParam()
+                .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
+                .produces("application/json")
+                .route()
+                .process((Exchange exch) -> {
+                    executeSynthonExpand(exch);
+                })
+                .endRest()
                 // example:
                 // curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/neighbourhood/c1ccc%28Nc2nc3ccccc3o2%29cc1?hac=3&rac=1&hops=2&calcs=LOGP,SIM_RDKIT_TANIMOTO"
                 .get("neighbourhood/{smiles}").description("Neighbourhood search")
@@ -285,8 +317,10 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .get("expand/{smiles}").description("Expansion search")
                 .bindingMode(RestBindingMode.off)
                 .param().name("smiles").type(RestParamType.path).description("SMILES query").endParam()
-                .param().name("hac").type(RestParamType.query).description("Heavy atom count bounds").endParam()
-                .param().name("rac").type(RestParamType.query).description("Ring atom count bounds").endParam()
+                .param().name("hacMin").type(RestParamType.query).description("Heavy atom count reduction ").endParam()
+                .param().name("hacMax").type(RestParamType.query).description("Heavy atom count increase ").endParam()
+                .param().name("racMin").type(RestParamType.query).description("Ring atom count reduction").endParam()
+                .param().name("racMax").type(RestParamType.query).description("Ring atom count increase").endParam()
                 .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
                 .param().name("suppliers").type(RestParamType.query).description("Suppliers to include").endParam()
                 .param().name("pathLimit").type(RestParamType.query).description("Limit for the number of paths to return from the graph query").endParam()
@@ -299,8 +333,10 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .endRest()
                 .post("expand").description("Expansion search")
                 .bindingMode(RestBindingMode.off)
-                .param().name("hac").type(RestParamType.query).description("Heavy atom count bounds").endParam()
-                .param().name("rac").type(RestParamType.query).description("Ring atom count bounds").endParam()
+                .param().name("hacMin").type(RestParamType.query).description("Heavy atom count reduction ").endParam()
+                .param().name("hacMax").type(RestParamType.query).description("Heavy atom count increase ").endParam()
+                .param().name("racMin").type(RestParamType.query).description("Ring atom count reduction").endParam()
+                .param().name("racMax").type(RestParamType.query).description("Ring atom count increase").endParam()
                 .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
                 .param().name("suppliers").type(RestParamType.query).description("Suppliers to include").endParam()
                 .param().name("pathLimit").type(RestParamType.query).description("Limit for the number of paths to return from the graph query").endParam()
@@ -315,8 +351,10 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                 .post("expand-multi").description("Expansion search (multiple inputs)")
                 .bindingMode(RestBindingMode.off)
                 .param().name("smiles").type(RestParamType.body).description("SMILES queries").endParam()
-                .param().name("hac").type(RestParamType.query).description("Heavy atom count bounds").endParam()
-                .param().name("rac").type(RestParamType.query).description("Ring atom count bounds").endParam()
+                .param().name("hacMin").type(RestParamType.query).description("Heavy atom count reduction ").endParam()
+                .param().name("hacMax").type(RestParamType.query).description("Heavy atom count increase ").endParam()
+                .param().name("racMin").type(RestParamType.query).description("Ring atom count reduction").endParam()
+                .param().name("racMax").type(RestParamType.query).description("Ring atom count increase").endParam()
                 .param().name("hops").type(RestParamType.query).description("Number of edge traversals").endParam()
                 .param().name("suppliers").type(RestParamType.query).description("Suppliers to include").endParam()
                 .param().name("id_prop").type(RestParamType.query).description("Name of the property for the ID (use _Name for the mol name)").endParam()
@@ -623,7 +661,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
         } else {
             throw new IllegalStateException("Only support SMILES using GET or molfile using POST");
         }
-        return new String[] {queryMol, mimeType};
+        return new String[]{queryMol, mimeType};
     }
 
     void executeMoleculeQuery(Exchange exch) {
@@ -713,7 +751,7 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
                     message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
                 } else {
                     int size = smiles.size();
-                    fragmentSearchMoleculesTotal.inc((double)size);
+                    fragmentSearchMoleculesTotal.inc((double) size);
                     LOG.info(size + " fragments found");
                     message.setBody(smiles);
                     message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
@@ -729,6 +767,60 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
             long t1 = System.nanoTime();
             writeErrorToQueryLog(username, "MoleculeQuery", t1 - t0, ex.getLocalizedMessage());
         }
+    }
+
+
+    void executeSynthonExpand(Exchange exch) {
+        LOG.info("Executing executeMoleculeQuery");
+
+        synthonExpandRequestsTotal.inc();
+
+        Message message = exch.getIn();
+
+        long t0 = System.nanoTime();
+        String username = getUsername(exch);
+
+        String queryMol = message.getHeader("smiles", String.class);
+        String synthon = message.getHeader("synthon", String.class);
+        Integer hops = message.getHeader("hops", Integer.class);
+        Integer hacMin = message.getHeader("hacMin", Integer.class);
+        Integer hacMax = message.getHeader("hacMax", Integer.class);
+        Integer racMin = message.getHeader("racMin", Integer.class);
+        Integer racMax = message.getHeader("racMax", Integer.class);
+
+        List<String> smiles;
+        try (Session session = graphdb.getSession()) {
+            // execute the query
+            SynthonExpandQuery query = new SynthonExpandQuery(session);
+
+            long n0 = System.nanoTime();
+            smiles = query.execute(queryMol, synthon, hops, hacMin, hacMax, racMin, racMax);
+            long n1 = System.nanoTime();
+            synthonExpandNeo4jSearchDuration.inc((double) (n1 - n0));
+            if (smiles == null || smiles.isEmpty()) {
+                fragmentSearchMissesTotal.inc(1.0d);
+                // throw 404
+                message.setBody("{\"error\": \"MoleculeQuery Failed\",\"message\": \"Molecule not found\"}");
+                message.setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+            } else {
+                int size = smiles.size();
+                synthonExpandMoleculesTotal.inc((double) size);
+                LOG.info(size + " expansions found");
+                message.setBody(smiles);
+                message.setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+            }
+
+        } catch (
+                Exception ex) {
+            LOG.log(Level.SEVERE, "MoleculeQuery Failed", ex);
+            neighbourhoodSearchErrorsTotal.inc();
+            message.setBody("{\"error\": \"MoleculeQuery Failed\",\"message\":\"" + ex.getLocalizedMessage() + "\"}");
+            message.setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+
+            long t1 = System.nanoTime();
+            writeErrorToQueryLog(username, "MoleculeQuery", t1 - t0, ex.getLocalizedMessage());
+        }
+
     }
 
     void executeNeighbourhoodQuery(Exchange exch) {
