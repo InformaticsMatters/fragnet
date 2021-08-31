@@ -26,7 +26,7 @@ services:
 
   # This container runs the REST API that queries the test database.
   # Some useful queries are:
-  # export FRAGNET_SERVER=http://localhost
+  # export FRAGNET_SERVER="http://localhost:8080"
   # curl $FRAGNET_SERVER:8080/fragnet-search/rest/ping
   # curl $FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/suppliers
   # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/molecule/OC(Cn1ccnn1)C1CC1"
@@ -34,6 +34,8 @@ services:
   # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/availability/OC(Cn1ccnn1)C1CC1"
   # curl "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/expand/OC(Cn1ccnn1)C1CC1?hacMin=5&hacMax=10&racMin=3&racMax=3&hops=2"
   # curl --data-binary "@fragnet-search/src/test/data/expand.smi" -H "Content-Type: chemical/x-daylight-smiles" "$FRAGNET_SERVER:8080/fragnet-search/rest/v2/search/expand-multi?hacMin=5&hacMax=5&racMin=2&racMax=2&hops=2"
+  # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/fragments/OC(Cn1ccnn1)C1CC1"
+  # curl "$FRAGNET_SERVER/fragnet-search/rest/v2/search/synthon-expand/OC(Cn1ccnn1)C1CC1?synthon=%5BXe%5Dn1ccnn1&hops=2&hacMin=14&hacMax=18"
   fragnet-search:
           image: squonk/fragnet-search:latest
           environment:

@@ -30,6 +30,8 @@ restricted to specific suppliers.
 4. Availability search - find the forms of a molecule from the fragment network that are available from suppliers 
 5. Expansion search - expand out a single molecule returning isomeric molecules that can be purchased
 6. Expansion multi search - expand out a set of molecules returning isomeric molecules that can be purchased
+7. Fragments search - fetch all child fragments of a molecule
+8. Synthon expansion search - find expansions of a molecule that contain a particular "synthon"
 
 
 ### Supplier search
@@ -46,7 +48,10 @@ of a comma separated list of supplier names. These must be specified __exactly__
 ### Molecule search
 
 This allows you to find out if the specified molecule is part of the fragment network.
-This is available from the `fragnet-search/rest/v2/search/molecule/{smiles}` endpoint.
+This is available from the `fragnet-search/rest/v2/search/molecule/{smiles}` endpoint. For example:
+```
+curl "${FRAGNET_SERVER}/fragnet-search/rest/v2/search/molecule/OC(Cn1ccnn1)C1CC1"
+```
 If the molecule is not present you get a 404 response. If it is present you get back a 200 response containing JSON
 with basic information about the molecule, e.g.
 ```
@@ -714,7 +719,7 @@ To achieve this you will need to:
 For instance, assuming have [curl] and [jq] installed, to perform step 3 you will need to do something like this:
 
 ```
-token=$(curl -d "grant_type=password" -d "client_id=fragnet-search" -d "username=<username>" -d "password=<password>"\
+token=$(curl -d "grant_type=password" -d "client_id=fragnet-search-ui" -d "username=<username>" -d "password=<password>"\
   https://squonk.it/auth/realms/squonk/protocol/openid-connect/token 2> /dev/null \
   | jq -r '.access_token')
 ```
