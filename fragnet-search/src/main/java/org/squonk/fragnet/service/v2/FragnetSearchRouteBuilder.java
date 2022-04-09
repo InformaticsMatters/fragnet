@@ -392,12 +392,15 @@ public class FragnetSearchRouteBuilder extends AbstractFragnetSearchRouteBuilder
 
         List<Map<String, String>> list = new ArrayList<>();
         for (Calculator.Calculation calc : Calculator.Calculation.values()) {
-            Map<String, String> map = new LinkedHashMap<>();
-            map.put("id", calc.toString());
-            map.put("name", calc.propname);
-            map.put("description", calc.description);
-            map.put("type", calc.type);
-            list.add(map);
+            // don't add the morgan fingerprints as they cause a strange RDKit crash in the servlet
+            if (!calc.name().startsWith("SIM_MORGAN")) {
+                Map<String, String> map = new LinkedHashMap<>();
+                map.put("id", calc.toString());
+                map.put("name", calc.propname);
+                map.put("description", calc.description);
+                map.put("type", calc.type);
+                list.add(map);
+            }
         }
 
         message.setBody(list);
