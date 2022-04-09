@@ -19,7 +19,9 @@ import org.neo4j.driver.v1.Session
 import org.squonk.fragnet.AbstractGraphDBSpec
 import org.squonk.fragnet.Constants
 import org.squonk.fragnet.search.model.v2.ConvertedSmilesMols
+import spock.lang.IgnoreIf
 
+@IgnoreIf({!env.RDBASE})
 class HitExpanderSpec extends AbstractGraphDBSpec {
 
     static {

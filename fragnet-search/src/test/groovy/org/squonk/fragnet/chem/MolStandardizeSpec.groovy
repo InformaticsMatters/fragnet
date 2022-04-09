@@ -17,15 +17,15 @@ package org.squonk.fragnet.chem
 
 import org.RDKit.RDKFuncs
 import org.RDKit.RWMol
-
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 
+@IgnoreIf({!env.RDBASE})
 class MolStandardizeSpec extends Specification {
 
     static {
         Runtime.getRuntime().loadLibrary0(groovy.lang.GroovyClassLoader.class, "GraphMolWrap")
     }
-
 
     void "rdkit version"() {
 

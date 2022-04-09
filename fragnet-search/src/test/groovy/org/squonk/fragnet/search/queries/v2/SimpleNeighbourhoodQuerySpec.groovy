@@ -20,26 +20,15 @@ import org.squonk.fragnet.AbstractGraphDBSpec
 import org.squonk.fragnet.search.model.v2.NeighbourhoodGraph
 import org.squonk.fragnet.service.GraphDB
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 
+@IgnoreIf({!env.RDBASE})
 class SimpleNeighbourhoodQuerySpec extends AbstractGraphDBSpec {
 
     static {
         Runtime.getRuntime().loadLibrary0(groovy.lang.GroovyClassLoader.class, "GraphMolWrap")
     }
 
-    @Ignore
-    void "4-hydroxy-biphenyl-1-hop"() {
-        GraphDB db = new GraphDB()
-        Session session = db.getSession()
-
-        when:
-        NeighbourhoodQuery query = new NeighbourhoodQuery(session, [:])
-        NeighbourhoodGraph result = query.executeNeighbourhoodQuery('Oc1ccc(-c2ccccc2)cc1', 1, 3, 1, null, 10)
-        print "Results: $result.nodeCount"
-
-        then:
-        result.nodeCount > 0
-    }
 
     void "1-hop neighbourhood query"() {
         GraphDB db = new GraphDB()
@@ -47,7 +36,7 @@ class SimpleNeighbourhoodQuerySpec extends AbstractGraphDBSpec {
 
         when:
         NeighbourhoodQuery query = new NeighbourhoodQuery(session, [:])
-        NeighbourhoodGraph result = query.executeNeighbourhoodQuery('CCOc1ccccc1CN1CCC(O)CC1', 1, 3, 1, null, 10)
+        NeighbourhoodGraph result = query.executeNeighbourhoodQuery('Brc1cnc(N2CCCC2)nc1', 1, 3, 1, null, 10)
         print "Results: $result.nodeCount"
 
         then:

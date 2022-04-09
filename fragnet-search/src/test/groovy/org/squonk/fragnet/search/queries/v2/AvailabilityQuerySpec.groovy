@@ -18,9 +18,10 @@ package org.squonk.fragnet.search.queries.v2
 import org.neo4j.driver.v1.Session
 import org.squonk.fragnet.AbstractGraphDBSpec
 import org.squonk.fragnet.search.model.v2.Availability
+import spock.lang.IgnoreIf
 
+@IgnoreIf({!env.RDBASE})
 class AvailabilityQuerySpec extends AbstractGraphDBSpec {
-
 
     void "simple search"() {
 
@@ -28,7 +29,7 @@ class AvailabilityQuerySpec extends AbstractGraphDBSpec {
         AvailabilityQuery query = new AvailabilityQuery(session)
 
         when:
-        Availability a = query.getAvailability("CCOc1ccccc1CN1CCC(O)CC1")
+        Availability a = query.getAvailability("N#Cc1cccc(N(CC(=O)O)C2CC2)n1")
         println "Found ${a.items.size()} items"
 
         then:

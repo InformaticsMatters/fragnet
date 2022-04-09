@@ -18,7 +18,9 @@ package org.squonk.fragnet.search.queries.v2
 import org.neo4j.driver.v1.Session
 import org.squonk.fragnet.AbstractGraphDBSpec
 import org.squonk.fragnet.search.model.v2.ExpansionResults
+import spock.lang.IgnoreIf
 
+@IgnoreIf({!env.RDBASE})
 class ExpansionQuerySpec extends AbstractGraphDBSpec {
 
     static {
@@ -30,7 +32,7 @@ class ExpansionQuerySpec extends AbstractGraphDBSpec {
         ExpansionQuery query = new ExpansionQuery(session, null)
 
         when:
-        ExpansionResults results = query.executeQuery("CCOc1ccccc1CN1CCC(O)CC1", "chemical/x-daylight-smiles",
+        ExpansionResults results = query.executeQuery("Cc1cc(Cl)c(C(=O)CN)s1", "chemical/x-daylight-smiles",
                 1, 10, 10, 3, 3, null)
         println "Found ${results.getSize()} items"
 

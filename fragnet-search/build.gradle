@@ -26,6 +26,15 @@ plugins {
 
 description = 'Fragment network search'
 
+// To run the tests you must setup RDBASE to point to a valid RDKit build that includes
+// The Java wrappers. To do this follow the "Building from Source" instructions found here:
+// http://rdkit.org/docs/Install.html#building-from-source
+// Just do a build - don't do a `make install` and then set the RDBASE environment variable
+// to the top level directory for that checkout.
+// You do not need to do this to build the code, just to test it. If RDBASE is not defined a locally provided
+// org.RDKit.jar is user to allow compilation.
+// If the RDBASE environment variable is not defined the tests that require RDKit functionality are ignored.
+
 String RDBASE = System.getenv('RDBASE') ?: ''
 String RDKitJarFile = RDBASE + '/Code/JavaWrappers/gmwrapper/org.RDKit.jar'
 boolean RDKitJava = RDBASE && file(RDKitJarFile).exists()
@@ -82,7 +91,7 @@ tomcat {
 }
 
 task createNeoContainer(type: DockerCreateContainer) {
-    targetImageId 'informaticsmatters/fragnet-test:3.5-xchem-v1-build-2'
+    targetImageId 'informaticsmatters/fragnet-test:3.5.25-xchem-combi-sample-2021-02'
     portBindings = ['7474:7474','7687:7687']
     envVars = ['NEO4J_dbms_memory_pagecache_size': '2g',
                'NEO4J_dbms_memory_heap_initial__size': '2g',
@@ -104,11 +113,10 @@ task stopNeoContainer(type: DockerStopContainer) {
 
 test {
     environment = [
-            // TODO - fix the hard coded RDBASE setup.
-            'NEO4J_PASSWORD':'test123',
-            'NEO4J_SERVER':'localhost',
-            'LD_LIBRARY_PATH':'/home/timbo/github/rdkit/rdkit_2020_03/Code/JavaWrappers/gmwrapper:/usr/x86_64-linux-gnu',
-            'RDBASE':'/home/timbo/github/rdkit/rdkit_2020_03'
+            'NEO4J_PASSWORD': 'test123',
+            'NEO4J_SERVER': 'localhost',
+            'LD_LIBRARY_PATH': RDBASE + '/build/Code/JavaWrappers/gmwrapper:/usr/x86_64-linux-gnu',
+            'RDBASE': RDBASE
     ]
 //    beforeTest { descriptor ->
 //        logger.lifecycle("Running test: " + descriptor)
@@ -126,7 +134,7 @@ task buildDockerFile(type: Dockerfile) {
     ]
 
     destFile = project.file('build/Dockerfile')
-    from "informaticsmatters/rdkit-tomcat-debian:Release_2020_09"
+    from "informaticsmatters/rdkit-tomcat-debian:latest"
     label(['maintainer': 'Tim Dudgeon "tdudgeon@informaticsmatters.com"'])
 
     // include the keycloak adapters

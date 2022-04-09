@@ -19,8 +19,10 @@ import org.RDKit.RWMol
 import org.squonk.fragnet.search.model.v2.GroupingType
 import org.squonk.fragnet.search.model.v2.MolTransform
 import org.squonk.fragnet.search.model.v2.TransformData
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 
+@IgnoreIf({!env.RDBASE})
 class TransformClassifierSpec extends Specification {
 
     static {
