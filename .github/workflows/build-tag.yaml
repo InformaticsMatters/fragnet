@@ -60,3 +60,35 @@ jobs:
         docker push squonk/fragnet-depict:${{ env.GITHUB_REF_SLUG }}
         docker tag squonk/fragnet-search:latest squonk/fragnet-search:${{ env.GITHUB_REF_SLUG }}
         docker push squonk/fragnet-search:${{ env.GITHUB_REF_SLUG }}
+
+  # Deploy 'Depict'
+  # (to the AWX/im-main Environment)
+  trigger-awx-depict:
+    needs: build-and-push-latest
+    runs-on: ubuntu-latest
+    environment: awx/im-main
+    steps:
+    - uses: informaticsmatters/trigger-awx-action@v1
+      with:
+        template: FragnetDepict
+        template-host: ${{ secrets.AWX_HOST }}
+        template-user: ${{ secrets.AWX_USER }}
+        template-user-password: ${{ secrets.AWX_USER_PASSWORD }}
+        template-var: fs_image_tag
+        template-var-value: latest
+
+  # Deploy 'Search API'
+  # (to the AWX/DLS Development Environment)
+  trigger-awx-search:
+    needs: build-and-push-latest
+    runs-on: ubuntu-latest
+    environment: awx/dls-dev
+    steps:
+    - uses: informaticsmatters/trigger-awx-action@v1
+      with:
+        template: FragnetSearch API
+        template-host: ${{ secrets.AWX_HOST }}
+        template-user: ${{ secrets.AWX_USER }}
+        template-user-password: ${{ secrets.AWX_USER_PASSWORD }}
+        template-var: fs_image_tag
+        template-var-value: latest
