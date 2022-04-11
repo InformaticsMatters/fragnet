@@ -28,13 +28,19 @@ For more information see:
 * [Informatics Matters website](https://www.informaticsmatters.com/pages/fragment_network.html)
 * [Fragnet Search application](https://fragnet.informaticsmatters.com/)
 
-## Building (CI)
+## Building and deploying (CI)
 The project containers are built automatically using GitHub Actions
 (see the project workflows in `.github/workflows` for details of the build).
-`latest` images pushed to Docker Hub for each change on the
-master branch. Tagged releases are also automatically built and pushed to
-Docker hub, with `stable` images also produced when the release is _official_
-(i.e. of the form `N.N.N`).
+
+- `latest` images pushed to Docker Hub for each change on the master branch.
+- Tagged releases are built and pushed to  Docker hub, with `stable` images also
+  produced when the release is _official_ (i.e. of the form `N.N[.N]`).
+
+Deployment to the designated **staging** site is AUTOMATIC and occurs for every
+change to Master.
+
+Deployment to the designated **production** site is AUTOMATIC and occurs for
+every _official_ tag (i.e. of the form `N.N[.N]`).
 
 ## Building (developer)
 Run the buildDockerImages target  to build the container images `./gradlew buildDockerImages`.
