@@ -22,6 +22,16 @@ class ChemUtilsSpec extends Specification {
         result.getAtom(0).getPoint2d() != null
     }
 
+    void "prepareForMCS"() {
+        IAtomContainer mol = ChemUtils.generate2D(smilesParser.parseSmiles('NC1=CC=CC=C1'))
+
+        when:
+        def isAro = ChemUtils.prepareForMCS(mol)
+
+        then:
+        isAro == true
+    }
+
     void "determineMCS"() {
 
         IAtomContainer query = ChemUtils.generate2D(smilesParser.parseSmiles('NC1=CC=CC=C1'))

@@ -1,25 +1,27 @@
 package org.squonk.fragnet.depict;
 
+import org.openscience.cdk.aromaticity.Aromaticity;
+import org.openscience.cdk.aromaticity.ElectronDonation;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.geometry.GeometryUtil;
+import org.openscience.cdk.graph.CycleFinder;
+import org.openscience.cdk.graph.Cycles;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Writer;
+import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
+import org.openscience.cdk.isomorphism.mcss.RMap;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesParser;
-import org.openscience.cdk.smsd.Isomorphism;
-import org.openscience.cdk.smsd.interfaces.Algorithm;
-import org.openscience.cdk.smsd.tools.ExtAtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import javax.vecmath.Point2d;
 import javax.vecmath.Vector2d;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class ChemUtils {
@@ -60,23 +62,18 @@ public class ChemUtils {
      * @return
      * @throws CDKException
      */
-    public static void prepareForMCS(IAtomContainer mol) throws CDKException {
-        ExtAtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(mol);
-        ExtAtomContainerManipulator.aromatizeMolecule(mol);
+    public static boolean prepareForMCS(IAtomContainer mol) throws CDKException {
+        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(mol);
+        ElectronDonation model       = ElectronDonation.daylight();
+        CycleFinder cycles      = Cycles.or(Cycles.all(), Cycles.all(6));
+        Aromaticity aromaticity = new Aromaticity(model, cycles);
+        boolean isAtomatic = aromaticity.apply(mol);
+        return isAtomatic;
     }
 
-//    This is the external SMSD code that has problems
-//    /**
-//     * Determine the maximum common substructure (MCS) of the querey and target molecules.
-//     * Note: the query and target molecules should already have been prepared using the {@link #prepareForMCS(IAtomContainer)}
-//     * method.
-//     *
-//     * @param query
-//     * @param target
-//     * @return A mapping of the common atoms in the query to the target structures.
-//     * @throws CDKException
-//     */
-//    public static AtomAtomMapping determineMCS(IAtomContainer query, IAtomContainer target) throws CDKException {
+
+//    This uses the CDK legacy SMSD code that is deprecated
+//    public static Map<IAtom, IAtom> determineMCSxxx(IAtomContainer query, IAtomContainer target) throws CDKException {
 //
 //        boolean bondSensitive = true;
 //        boolean ringMatch = false;
@@ -84,14 +81,14 @@ public class ChemUtils {
 //        boolean fragmentMinimization = true;
 //        boolean energyMinimization = true;
 //
-//        Isomorphism comparison = new Isomorphism(query, target, Algorithm.DEFAULT, bondSensitive, ringMatch, false);
+//        Isomorphism comparison = new Isomorphism(Algorithm.DEFAULT, true);
+//        comparison.init(query, target, false, false);
 //        //comparison.setChemFilters(stereoMatch, fragmentMinimization, energyMinimization);
-//        AtomAtomMapping firstAtomMapping = comparison.getFirstAtomMapping();
+//        Map<IAtom, IAtom> firstAtomMapping = comparison.getFirstAtomMapping();
 //
 //        return firstAtomMapping;
 //    }
 
-//    This uses the CDK legacy SMSD code that is deprecated but avoids buts present in the external SMSD code (see above).
     /**
      * Determine the maximum common substructure (MCS) of the querey and target molecules.
      * Note: the query and target molecules should already have been prepared using the {@link #prepareForMCS(IAtomContainer)}
@@ -104,18 +101,15 @@ public class ChemUtils {
      */
     public static Map<IAtom, IAtom> determineMCS(IAtomContainer query, IAtomContainer target) throws CDKException {
 
-        boolean bondSensitive = true;
-        boolean ringMatch = false;
-        boolean stereoMatch = true;
-        boolean fragmentMinimization = true;
-        boolean energyMinimization = true;
+        UniversalIsomorphismTester tester = new UniversalIsomorphismTester();
+        List<RMap> matches = tester.getIsomorphAtomsMap(query, target);
 
-        Isomorphism comparison = new Isomorphism(Algorithm.DEFAULT, true);
-        comparison.init(query, target, false, false);
-        //comparison.setChemFilters(stereoMatch, fragmentMinimization, energyMinimization);
-        Map<IAtom, IAtom> firstAtomMapping = comparison.getFirstAtomMapping();
-
-        return firstAtomMapping;
+        Map<IAtom, IAtom> result = new HashMap<>();
+        if (matches != null && !matches.isEmpty()) {
+            RMap m = matches.get(0);
+            result.put(query.getAtom(m.getId1()), target.getAtom(m.getId2()));
+        }
+        return result;
     }
 
 
