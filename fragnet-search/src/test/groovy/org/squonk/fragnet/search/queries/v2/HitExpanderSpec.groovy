@@ -15,7 +15,7 @@
  */
 package org.squonk.fragnet.search.queries.v2
 
-import org.neo4j.driver.v1.Session
+import org.neo4j.driver.Session
 import org.squonk.fragnet.AbstractGraphDBSpec
 import org.squonk.fragnet.Constants
 import org.squonk.fragnet.search.model.v2.ConvertedSmilesMols

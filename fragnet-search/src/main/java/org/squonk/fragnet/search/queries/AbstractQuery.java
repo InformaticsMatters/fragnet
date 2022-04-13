@@ -1,6 +1,6 @@
 package org.squonk.fragnet.search.queries;
 
-import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.Session;
 
 import java.util.logging.Logger;
 

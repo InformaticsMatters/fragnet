@@ -15,12 +15,12 @@
  */
 package org.squonk.fragnet.search.queries.v2;
 
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.types.Node;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Relationship;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.chem.MolStandardize;
 import org.squonk.fragnet.search.model.v2.FragmentGraph;
@@ -34,7 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static org.neo4j.driver.v1.Values.parameters;
+import static org.neo4j.driver.Values.parameters;
 
 public class SynthonExpandQuery extends AbstractQuery {
 
@@ -99,7 +99,7 @@ public class SynthonExpandQuery extends AbstractQuery {
 
         HashMap<String, MoleculeNode> values = getSession().writeTransaction((tx) -> {
             LOG.info("Executing Synthon Query: " + query);
-            StatementResult result = tx.run(query, parameters(new Object[]{
+            Result result = tx.run(query, parameters(new Object[]{
                     "smiles", stdSmiles, "synthon", stdSynthon, "limit", limitf}));
             HashMap<String, MoleculeNode> molNodes = new HashMap<>();
             while (result.hasNext()) {

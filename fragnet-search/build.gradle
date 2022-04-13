@@ -70,7 +70,7 @@ dependencies {
         compile files("../lib/rdkit/org.RDKit.jar")
     }
 
-    compile 'org.neo4j.driver:neo4j-java-driver:1.7.2'
+    compile 'org.neo4j.driver:neo4j-java-driver:4.4.5'
     
     providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
 

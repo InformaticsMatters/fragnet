@@ -16,9 +16,9 @@
 package org.squonk.fragnet.search.queries.v2;
 
 
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.types.Path;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.types.Path;
 import org.squonk.fragnet.chem.MolStandardize;
 import org.squonk.fragnet.search.model.v2.ExpansionResults;
 import org.squonk.fragnet.search.queries.AbstractQuery;
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
-import static org.neo4j.driver.v1.Values.parameters;
+import static org.neo4j.driver.Values.parameters;
 
 /**
  * v2 API ExpansionQuery for fragment network neighbours.
@@ -99,7 +99,7 @@ public class ExpansionQuery extends AbstractQuery {
 
         ExpansionResults results = getSession().writeTransaction((tx) -> {
             LOG.info("Executing ExpansionQuery: " + qandp.getQuery());
-            StatementResult result = tx.run(qandp.getQuery(), parameters(qandp.getParams().toArray()));
+            Result result = tx.run(qandp.getQuery(), parameters(qandp.getParams().toArray()));
             return handleResult(result, stdSmiles);
         });
         return results;
@@ -179,7 +179,7 @@ public class ExpansionQuery extends AbstractQuery {
         return new QueryAndParams(q, params);
     }
 
-    protected ExpansionResults handleResult(@NotNull StatementResult result, @NotNull String querySmiles) {
+    protected ExpansionResults handleResult(@NotNull Result result, @NotNull String querySmiles) {
 
         ExpansionResults expansion = new ExpansionResults(querySmiles);
         long t0 = new Date().getTime();
@@ -196,9 +196,9 @@ public class ExpansionQuery extends AbstractQuery {
         });
         expansion.setPathCount(pathCount.get());
         long t1 = new Date().getTime();
-        expansion.setQuery(result.summary().statement().text());
-        expansion.setParameters(result.summary().statement().parameters().asMap());
-        expansion.setResultAvailableAfter(result.summary().resultAvailableAfter(TimeUnit.MILLISECONDS));
+        expansion.setQuery(result.consume().query().text());
+        expansion.setParameters(result.consume().query().parameters().asMap());
+        expansion.setResultAvailableAfter(result.consume().resultAvailableAfter(TimeUnit.MILLISECONDS));
         expansion.setProcessingTime(t1 - t0);
 
         if (getLimit() <= expansion.getPathCount()) {

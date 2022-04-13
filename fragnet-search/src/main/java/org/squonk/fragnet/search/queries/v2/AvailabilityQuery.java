@@ -15,20 +15,15 @@
  */
 package org.squonk.fragnet.search.queries.v2;
 
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.types.Node;
 import org.squonk.fragnet.search.model.v2.Availability;
-import org.squonk.fragnet.service.GraphDB;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import static org.neo4j.driver.v1.Values.parameters;
+import static org.neo4j.driver.Values.parameters;
 
 public class AvailabilityQuery {
 
@@ -45,7 +40,7 @@ public class AvailabilityQuery {
     public Availability getAvailability(String smiles) {
         Availability value = session.writeTransaction((tx) -> {
             LOG.fine("Executing NeighbourhoodQuery: " + QUERY);
-            StatementResult result = tx.run(QUERY, parameters(new Object[] {"smiles", smiles}));
+            Result result = tx.run(QUERY, parameters(new Object[] {"smiles", smiles}));
             Availability availability = new Availability(smiles);
             result.stream().forEachOrdered((r) -> {
                 LOG.fine("Handling record " + r);

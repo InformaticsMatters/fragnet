@@ -22,9 +22,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.RDKit.ExplicitBitVect;
 import org.RDKit.RWMol;
 import org.RDKit.SparseIntVectu32;
-import org.neo4j.driver.v1.types.Node;
-import org.neo4j.driver.v1.types.Path;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Relationship;
 import org.squonk.fragnet.chem.Calculator;
 import org.squonk.fragnet.search.FragmentUtils;
 

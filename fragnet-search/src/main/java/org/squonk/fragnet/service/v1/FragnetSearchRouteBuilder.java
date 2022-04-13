@@ -19,7 +19,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
-import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.Session;
 import org.squonk.fragnet.chem.Calculator;
 import org.squonk.fragnet.search.model.v1.NeighbourhoodGraph;
 import org.squonk.fragnet.search.queries.v1.Query;

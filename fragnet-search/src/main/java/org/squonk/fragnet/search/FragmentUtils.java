@@ -15,10 +15,10 @@
  */
 package org.squonk.fragnet.search;
 
-import org.neo4j.driver.v1.types.MapAccessor;
-import org.neo4j.driver.v1.types.Node;
-import org.neo4j.driver.v1.types.Path;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.types.MapAccessor;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Relationship;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.search.model.v1.MoleculeEdge;
 import org.squonk.fragnet.search.model.v1.MoleculeNode;

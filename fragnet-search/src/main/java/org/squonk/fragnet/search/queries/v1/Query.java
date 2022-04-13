@@ -17,8 +17,8 @@ package org.squonk.fragnet.search.queries.v1;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.neo4j.driver.v1.*;
-import org.neo4j.driver.v1.types.Path;
+import org.neo4j.driver.*;
+import org.neo4j.driver.types.Path;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.chem.Calculator;
 import org.squonk.fragnet.chem.MolStandardize;
@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import static org.neo4j.driver.v1.Values.parameters;
+import static org.neo4j.driver.Values.parameters;
 
 /**
  * v1 API NeighbourhoodQuery for fragment network neighbours
@@ -72,7 +72,7 @@ public class Query extends AbstractQuery {
 
         NeighbourhoodGraph graph = getSession().writeTransaction((tx) -> {
             LOG.info("Executing NeighbourhoodQuery: " + qandp.getQuery());
-            StatementResult result = tx.run(qandp.getQuery(), parameters(qandp.getParams().toArray()));
+            Result result = tx.run(qandp.getQuery(), parameters(qandp.getParams().toArray()));
             return handleResult(result, stdSmiles);
         });
         return graph;
@@ -117,7 +117,7 @@ public class Query extends AbstractQuery {
         return new QueryAndParams(q, params);
     }
 
-    protected NeighbourhoodGraph handleResult(@NotNull StatementResult result, @NotNull String querySmiles) {
+    protected NeighbourhoodGraph handleResult(@NotNull Result result, @NotNull String querySmiles) {
 
         NeighbourhoodGraph graph = new NeighbourhoodGraph(querySmiles);
         long t0 = new Date().getTime();
@@ -131,9 +131,9 @@ public class Query extends AbstractQuery {
             });
         });
         long t1 = new Date().getTime();
-        graph.setQuery(result.summary().statement().text());
-        graph.setParameters(result.summary().statement().parameters().asMap());
-        graph.setResultAvailableAfter(result.summary().resultAvailableAfter(TimeUnit.MILLISECONDS));
+        graph.setQuery(result.consume().query().text());
+        graph.setParameters(result.consume().query().parameters().asMap());
+        graph.setResultAvailableAfter(result.consume().resultAvailableAfter(TimeUnit.MILLISECONDS));
         graph.setProcessingTime(t1 - t0);
 
         LOG.info(String.format("Results built. %s nodes, %s edges", graph.numNodes(), graph.numEdges()));

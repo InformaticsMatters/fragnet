@@ -15,10 +15,10 @@
  */
 package org.squonk.fragnet.search.queries.v2;
 
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.types.Node;
 import org.squonk.fragnet.service.GraphDB;
 
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class SuppliersQuery {
     public List<Map<String,String>> getSuppliers() {
         List<Map<String,String>> suppliers = session.writeTransaction((tx) -> {
             LOG.info("Executing NeighbourhoodQuery: " + QUERY);
-            StatementResult result = tx.run(QUERY);
+            Result result = tx.run(QUERY);
             List<Map<String,String>> results = new ArrayList<>();
             result.stream().forEachOrdered((r) -> {
                 LOG.finer("Handling record " + r);

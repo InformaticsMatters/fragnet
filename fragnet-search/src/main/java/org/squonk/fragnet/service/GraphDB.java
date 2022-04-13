@@ -1,6 +1,6 @@
 package org.squonk.fragnet.service;
 
-import org.neo4j.driver.v1.*;
+import org.neo4j.driver.*;
 import org.squonk.fragnet.Utils;
 import org.squonk.fragnet.service.v1.FragnetSearchRouteBuilder;
 
@@ -48,9 +48,9 @@ public class GraphDB implements AutoCloseable {
     public boolean connectionOK(int timeout_secs) {
         try {
             Config config = Config
-                    .build()
+                    .builder()
                     .withConnectionTimeout(timeout_secs, TimeUnit.SECONDS)
-                    .toConfig();
+                    .build();
             Driver driver = GraphDatabase.driver(NEO4J_URL, AuthTokens.basic(NEO4J_USER, NEO4J_PASSWORD), config);
             if (driver != null) {
                 driver.close();
@@ -79,8 +79,12 @@ public class GraphDB implements AutoCloseable {
      * @throws IOException
      */
     public Session getSession(AccessMode mode) throws IOException {
+        SessionConfig config = SessionConfig.builder()
+                .withDefaultAccessMode(mode)
+                .build();
+
         try {
-            return getDriver().session(mode);
+            return getDriver().session(config);
         } catch (ExecutionException | InterruptedException ex) {
             throw new IOException("Failed to connect to database", ex);
         }

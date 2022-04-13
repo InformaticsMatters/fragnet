@@ -18,8 +18,8 @@ package org.squonk.fragnet.search.model.v2;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import org.neo4j.driver.v1.types.Node;
-import org.neo4j.driver.v1.types.Path;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.search.FragmentUtils;
 

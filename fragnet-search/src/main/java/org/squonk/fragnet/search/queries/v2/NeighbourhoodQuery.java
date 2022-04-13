@@ -16,9 +16,9 @@
 package org.squonk.fragnet.search.queries.v2;
 
 
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.types.Path;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.types.Path;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.chem.MolStandardize;
 import org.squonk.fragnet.search.model.v2.NeighbourhoodGraph;
@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
-import static org.neo4j.driver.v1.Values.parameters;
+import static org.neo4j.driver.Values.parameters;
 
 /**
  * v2 API NeighbourhoodQuery for fragment network neighbours
@@ -88,7 +88,7 @@ public class NeighbourhoodQuery extends AbstractQuery {
 
         NeighbourhoodGraph graph = getSession().writeTransaction((tx) -> {
             LOG.info("Executing NeighbourhoodQuery: " + qandp.getQuery());
-            StatementResult result = tx.run(qandp.getQuery(), parameters(qandp.getParams().toArray()));
+            Result result = tx.run(qandp.getQuery(), parameters(qandp.getParams().toArray()));
             return handleResult(result, stdSmiles, groupLimit);
         });
         return graph;
@@ -150,7 +150,7 @@ public class NeighbourhoodQuery extends AbstractQuery {
         return new QueryAndParams(q, params);
     }
 
-    protected NeighbourhoodGraph handleResult(@NotNull StatementResult result, @NotNull String querySmiles, Integer groupLimit) {
+    protected NeighbourhoodGraph handleResult(@NotNull Result result, @NotNull String querySmiles, Integer groupLimit) {
 
         NeighbourhoodGraph graph = new NeighbourhoodGraph(querySmiles, groupLimit);
         long t0 = new Date().getTime();
@@ -167,9 +167,9 @@ public class NeighbourhoodQuery extends AbstractQuery {
         });
         graph.setPathCount(pathCount.get());
         long t1 = new Date().getTime();
-        graph.setQuery(result.summary().statement().text());
-        graph.setParameters(result.summary().statement().parameters().asMap());
-        graph.setResultAvailableAfter(result.summary().resultAvailableAfter(TimeUnit.MILLISECONDS));
+        graph.setQuery(result.consume().query().text());
+        graph.setParameters(result.consume().query().parameters().asMap());
+        graph.setResultAvailableAfter(result.consume().resultAvailableAfter(TimeUnit.MILLISECONDS));
         graph.setProcessingTime(t1 - t0);
 
         if (getLimit() <= graph.getPathCount()) {

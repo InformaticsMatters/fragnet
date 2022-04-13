@@ -15,11 +15,11 @@
  */
 package org.squonk.fragnet.search.queries.v2;
 
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.types.Relationship;
 import org.squonk.fragnet.chem.MolStandardize;
 import org.squonk.fragnet.search.queries.AbstractQuery;
 
@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static org.neo4j.driver.v1.Values.parameters;
+import static org.neo4j.driver.Values.parameters;
 
 public class FragmentQuery extends AbstractQuery {
 
@@ -54,7 +54,7 @@ public class FragmentQuery extends AbstractQuery {
 
         HashSet<String> values = getSession().writeTransaction((tx) -> {
             LOG.fine("Executing MoleculeQuery: " + SYNTHON_QUERY);
-            StatementResult result = tx.run(SYNTHON_QUERY, parameters(new Object[]{"smiles", stdSmiles}));
+            Result result = tx.run(SYNTHON_QUERY, parameters(new Object[]{"smiles", stdSmiles}));
             HashSet<String> smiles = new HashSet<>();
             while (result.hasNext()) {
                 Record rec = result.next();
