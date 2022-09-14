@@ -53,6 +53,7 @@ public class GraphDB implements AutoCloseable {
                     .build();
             Driver driver = GraphDatabase.driver(NEO4J_URL, AuthTokens.basic(NEO4J_USER, NEO4J_PASSWORD), config);
             if (driver != null) {
+                driver.verifyConnectivity();
                 driver.close();
                 return true;
             }
