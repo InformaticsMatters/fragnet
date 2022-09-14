@@ -75,6 +75,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: awx/im-main
     steps:
+    - name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v3.x
     - uses: informaticsmatters/trigger-awx-action@v1
       with:
         template: FragnetDepict
@@ -91,6 +93,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: awx/dls-dev
     steps:
+    - name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v3.x
     - uses: informaticsmatters/trigger-awx-action@v1
       with:
         template: FragnetSearch API
