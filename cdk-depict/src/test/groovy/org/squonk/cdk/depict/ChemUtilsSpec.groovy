@@ -1,4 +1,4 @@
-package org.squonk.fragnet.depict
+package org.squonk.cdk.depict
 
 import org.openscience.cdk.geometry.GeometryUtil
 import org.openscience.cdk.interfaces.IAtom

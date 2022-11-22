@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Informatics Matters Ltd.
+ * Copyright (c) 2022 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.squonk.fragnet.depict;
 
 import org.openscience.cdk.exception.CDKException;
+import org.squonk.cdk.depict.ChemUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

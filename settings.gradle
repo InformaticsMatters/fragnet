@@ -15,4 +15,6 @@
  */
 
 
-include 'fragnet-search', 'fragnet-depict'
+include 'fragnet-search',
+        'cdk-depict',
+        'fragnet-depict'

@@ -24,10 +24,6 @@ buildscript {
     }
 }
 
-plugins {
-    id 'com.bmuschko.docker-remote-api' version '4.10.0' // needs gradle >= 5.1
-}
-
 description = 'Fragment Network tools and services'
 
 allprojects {
@@ -74,11 +70,11 @@ allprojects {
 
     // In this section you declare the dependencies for your production and test code
     dependencies {
-        compile 'org.slf4j:slf4j-jdk14:1.7.25'
+        implementation 'org.slf4j:slf4j-jdk14:1.7.25'
 
         // Spock for unit testing
-        testCompile "org.codehaus.groovy:groovy-all:$groovyVersion"
-        testCompile "org.spockframework:spock-core:1.2-groovy-2.5"
+        testImplementation "org.codehaus.groovy:groovy-all:$groovyVersion"
+        testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
     }
 
 }
@@ -92,11 +88,12 @@ String getDockerHost() {
 }
 
 wrapper {
-    gradleVersion = '5.6'
+    gradleVersion = '7.4.1'
 }
 
-task buildDockerImages {
+task buildImages {
     dependsOn = [
+            'cdk-depict:dockerBuildImage',
             'fragnet-search:buildDockerImage',
             'fragnet-depict:buildDockerImage'
     ]

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Informatics Matters Ltd.
+ * Copyright (c) 2022 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.squonk.fragnet.depict;
+package org.squonk.cdk.depict;
 
 import org.openscience.cdk.depict.Depiction;
 import org.openscience.cdk.depict.DepictionGenerator;
@@ -41,6 +41,10 @@ import java.util.logging.Logger;
 /**
  * Mol depiction using CDK. Can be used to generate SVG or image files.
  * <p>
+ * This uses the CDK DepictionGenerator class
+ * (http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/depict/DepictionGenerator.html)
+ * to do the heavy lifting.
+ * <p>
  * Options include:
  * <ul>
  * <li>image width, height and margin</li>
@@ -49,9 +53,11 @@ import java.util.logging.Logger;
  * <li>expand molecule to fit the available space</li>
  * <li>highlight a substructure (defined as MSC)</li>
  * <li>highlight user specified atoms</li>
+ * <li>show atom labels</li>
  * </ul>
  * <p>
- * See the moleculeToSVG and moleculeToImage methods for more details.
+ * See the depict() methods for more details. The Depiction object returned by those methods can then be converted
+ * to several graphic formats. See the tests for examples.
  * <p>
  * Created by timbo on 01/08/2019.
  */
@@ -85,7 +91,44 @@ public class CDKMolDepict {
      * Create with default parameters
      */
     public CDKMolDepict() {
-        this(null, null, null, null, null, null, null);
+        this(
+                250,
+                250,
+                null,
+                null,
+                Color.WHITE,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+    }
+
+    /** Minimal set of params used in tests
+     *
+     * @param outerGlow
+     */
+    protected CDKMolDepict(Boolean outerGlow, Boolean removeStereo) {
+        this(
+                250,
+                250,
+                null,
+                DEFAULT_COLORER,
+                Color.WHITE,
+                null,
+                null,
+                outerGlow,
+                null,
+                null,
+                true,
+                removeStereo,
+                null,
+                null);
+
     }
 
     /**
@@ -96,15 +139,28 @@ public class CDKMolDepict {
                         Double margin,
                         IAtomColorer colorScheme,
                         Color backgroundColor,
+                        Color annotationColor,
+                        Color titleColor,
+                        Boolean outerGlow,
+                        Double annotationScale,
+                        Double titleScale,
                         Boolean expandToFit,
-                        Boolean removeStereo) {
+                        Boolean removeStereo,
+                        Double padding,
+                        Map<Class, Object> extraParams) {
 
         DepictionGenerator dg = new DepictionGenerator()
                 .withTerminalCarbons()
                 .withBackgroundColor(backgroundColor == null ? DEFAULT_BACKGROUND : backgroundColor)
+                .withAnnotationColor(annotationColor == null ? Color.BLACK : annotationColor)
+                .withAnnotationScale(annotationScale == null ? 1d : annotationScale)
+                .withTitleColor(titleColor == null ? Color.BLACK : titleColor)
+                .withTitleScale(titleScale == null ? 1.0 : titleScale)
                 .withSize(width == null ? DEFAULT_SIZE : width, height == null ? DEFAULT_SIZE : height)
                 .withAtomColors(colorScheme == null ? DEFAULT_COLORER : colorScheme)
                 .withMargin(margin == null ? 0d : margin)
+                .withAtomValues()
+                .withPadding(padding == null ? 1d : padding)
                 .withParam(StandardGenerator.Visibility.class,
                         new SymbolVisibility() {
                             @Override
@@ -124,6 +180,14 @@ public class CDKMolDepict {
 
         if (expandToFit == null || expandToFit.booleanValue()) {
             dg = dg.withFillToFit();
+        }
+        if (outerGlow != null && outerGlow) {
+            dg = dg.withOuterGlowHighlight();
+        }
+        if (extraParams != null) {
+            for (Class key : extraParams.keySet()) {
+                dg = dg.withParam(key, extraParams.get(key));
+            }
         }
 
         this.generator = dg;
@@ -152,7 +216,7 @@ public class CDKMolDepict {
     }
 
     /**
-     * Set a molecucle to align the rendered molecules to (using MCS).
+     * Set a molecule to align the rendered molecules to (using MCS).
      * If the molecule does not contain 2D coordinates these are generated which will modify the molecule that is
      * specified as input.
      *
@@ -189,110 +253,93 @@ public class CDKMolDepict {
         return COLORERS.get(name);
     }
 
-    /**
-     * Generate SVG from the provided SMILES
-     *
-     * @param smiles
-     * @return
-     * @throws IOException
-     * @throws CDKException
-     */
-    public String smilesToSVG(String smiles) throws IOException, CDKException, CloneNotSupportedException {
-        if (smiles == null || smiles.length() == 0) {
-            throw new IllegalArgumentException("Smiles must be defined");
-        }
-
-        IAtomContainer mol = ChemUtils.readSmiles(smiles);
-        return moleculeToSVG(mol);
+    public Depiction depict(IAtomContainer mol, Color highlightColor, List<Integer> atomHighlights) throws CDKException, CloneNotSupportedException {
+        Map<Color, List<List<Integer>>> map = (highlightColor == null || atomHighlights == null ? null :
+                Collections.singletonMap(highlightColor, Collections.singletonList(atomHighlights)));
+        return depict(Collections.singletonList(mol), map);
     }
 
-    /**
-     * Generate SVG from the provided CDK IAtomContainer
-     *
-     * @param mol
-     * @return
-     * @throws CDKException
-     */
-    public String moleculeToSVG(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
-        return moleculeToSVG(mol, null, null, null);
+    public Depiction depict(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
+        return depict(Collections.singletonList(mol), null);
     }
 
-    /**
-     * Create a SVG for the molecule.
-     *
-     * @param mol            The molecule to depict
-     * @param highlightColor The colour to highlight atoms and bonds with
-     * @param atomHighlights The indexes of the atoms to highlight. Bonds between these atoms are also highlighted.
-     * @param outerGlow      Whether to use 'outer glow' highlighting instead of colouring the atoms and bonds directly.
-     *                       If null then defaults to false.
-     * @return A string with the SVG content (XML)
-     * @throws CDKException
-     * @throws CloneNotSupportedException
-     */
-    public String moleculeToSVG(IAtomContainer mol, Color highlightColor, List<Integer> atomHighlights, Boolean outerGlow)
-            throws CDKException, CloneNotSupportedException {
-
-        if (mol == null) {
-            throw new IllegalArgumentException("Molecule must be defined");
-        }
-        Depiction depiction = depict(mol, highlightColor, atomHighlights, outerGlow);
-        return depiction.toSvgStr();
+    public Depiction depict(List<IAtomContainer> mols) throws CDKException, CloneNotSupportedException {
+        return depict(mols, null);
     }
 
-    /**
-     * Depict molecule with no highlighting.
+    /** Generate a depiction of the molecule with the specified highlights.
+     * The Highlights are supplied as a Map, the keys being the color to use for the highlight, the values being a
+     * list of lists, the outer list corresponding to each molecule, the inner one being the atom indexes for that
+     * molecule.
      *
-     * @param mol
+     * @param mols The molecules to render
+     * @param atomHighlights A Map containing the data to highlight
      * @return
      * @throws CDKException
      * @throws CloneNotSupportedException
      */
-    public BufferedImage moleculeToImage(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
-        return moleculeToImage(mol, null, null, null);
-    }
-
-    /**
-     * Create an image for the molecule. The images can then be written in a number of formats such as PNG.
-     *
-     * @param mol            The molecule to depict
-     * @param highlightColor The colour to highlight atoms and bonds with
-     * @param atomHighlights The indexes of the atoms to highlight. Bonds between these atoms are also highlighted.
-     * @param outerGlow      Whether to use 'outer glow' highlighting instead of colouring the atoms and bonds directly.
-     *                       If null then defaults to false.
-     * @return
-     * @throws CDKException
-     * @throws CloneNotSupportedException
-     */
-    public BufferedImage moleculeToImage(
-            IAtomContainer mol,
-            Color highlightColor, List<Integer> atomHighlights,
-            Boolean outerGlow)
+    public Depiction depict(List<IAtomContainer> mols, Map<Color, List<List<Integer>>> atomHighlights)
             throws CDKException, CloneNotSupportedException {
 
-        if (mol == null) {
-            throw new IllegalArgumentException("Molecule must be defined");
+        List<IAtomContainer> mols2 = new ArrayList<>();
+        if (alignTo != null) {
+            mols2.add(alignTo);
+        }
+        Map<Color, List<IChemObject>> allHighlights = new HashMap<>();
+        int count = 0;
+
+        // first do all the MCS alignments so that "user defined" ones override
+        if (alignTo != null) {
+            List<IChemObject> allMcsAtoms = new ArrayList<>();
+            if (mcsColor != null) {
+                allHighlights.put(mcsColor, allMcsAtoms);
+            }
+
+            for (IAtomContainer mol : mols) {
+                List<IChemObject> mcsAtoms = alignAndLayoutMolecule(mol);
+                if (!mcsAtoms.isEmpty()) {
+                    allMcsAtoms.addAll(mcsAtoms);
+                }
+            }
         }
 
-        Depiction depiction = depict(mol, highlightColor, atomHighlights, outerGlow);
-        return depiction.toImg();
-    }
+        // now do the rest of the processing
+        for (IAtomContainer mol : mols) {
 
-    private Depiction depict(IAtomContainer mol, Color highlightColor, List<Integer> atomHighlights, Boolean outerGlow)
-            throws CDKException, CloneNotSupportedException {
+            IAtomContainer mol2 = fixMolecule(mol, showOnlyExplicitH);
 
-        // fix the molecule so that it displays as required
-        IAtomContainer mol2 = fixMolecule(mol, showOnlyExplicitH);
+            // the remove stereo trick only works if 2D coordinates are already present so we make sure that is the case
+            ChemUtils.layoutMoleculeIn2D(mol, false);
+            // fix the molecule so that it displays as required
 
-        // align the molecule if a query is defined and ensure we have 2D coordinates or the removeStereo trick won't work
-        List<Integer> mcsAtomIndexes = alignAndLayoutMolecule(mol2);
+            if (removeStereo) {
+                // we need to display without stereochemistry e.g. no wedge/dash/squiggle bonds
+                removeStereoChemistry(mol2);
+            }
 
-        if (removeStereo) {
-            // we need to display without stereochemistry e.g. no wedge/dash/squiggle bonds
-            removeStereoChemistry(mol2);
+            Map<Color, List<Integer>> molHighlights = new HashMap<>();
+            if (atomHighlights != null) {
+                for (Color col : atomHighlights.keySet()) {
+                    List<Integer> molAtoms = atomHighlights.get(col).get(count);
+                    // TODO - check the color doesn't exist from the mcs phase
+                    molHighlights.put(col, molAtoms);
+                }
+            }
+            findHighlights(mol2, allHighlights, molHighlights);
+
+            mols2.add(mol2);
+            count++;
         }
 
-        DepictionGenerator dg = fixHighlights(mol2, highlightColor, atomHighlights, mcsAtomIndexes, outerGlow);
-        Depiction depiction = dg.depict(mol2);
+        DepictionGenerator dg = generator;
+        dg = dg.withMolTitle();
+        if (allHighlights.size() > 0) {
+            for (Color col : allHighlights.keySet()) {
+                dg = dg.withHighlight(allHighlights.get(col), col);
+            }
+        }
+
+        Depiction depiction = dg.depict(mols);
         return depiction;
     }
 
@@ -303,16 +350,16 @@ public class CDKMolDepict {
         return mol;
     }
 
-    private List<Integer> alignAndLayoutMolecule(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
-        List<Integer> atoms = new ArrayList<>();
+    private List<IChemObject> alignAndLayoutMolecule(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
+        List<IChemObject> atoms = new ArrayList<>();
         if (alignTo != null) {
             LOG.fine("Aligning molecule");
             try {
-                Map<IAtom,IAtom> mapping = determineMCS(mol);
+                Map<IAtom, IAtom> mapping = determineMCS(mol);
                 if (mapping != null) {
                     ChemUtils.alignMolecule(alignTo, mol, mapping);
                     for (IAtom a : mapping.values()) {
-                        atoms.add(mol.indexOf(a));
+                        atoms.add(a);
                     }
                 }
             } catch (Exception ex) {
@@ -321,8 +368,6 @@ public class CDKMolDepict {
                 LOG.log(Level.WARNING, "Failed to align molecule", ex);
             }
         }
-        // the remove stereo trick only works if 2D coordinates are already present so we make sure that is the case
-        ChemUtils.layoutMoleculeIn2D(mol, false);
         LOG.fine("MCS atoms to highlight: " + atoms);
         return atoms;
     }
@@ -352,13 +397,13 @@ public class CDKMolDepict {
         return mol;
     }
 
-    private Map<IAtom,IAtom> determineMCS(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
+    private Map<IAtom, IAtom> determineMCS(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
         if (alignTo == null) {
             LOG.warning("No query molecule to align to");
             return null;
         }
         ChemUtils.prepareForMCS(mol);
-        Map<IAtom,IAtom> mapping = ChemUtils.determineMCS(alignTo, mol);
+        Map<IAtom, IAtom> mapping = ChemUtils.determineMCS(alignTo, mol);
         return mapping;
     }
 
@@ -396,43 +441,36 @@ public class CDKMolDepict {
         return bondHighlightList;
     }
 
-    private DepictionGenerator highlight(DepictionGenerator generator, List<IAtom> atoms, List<IBond> bonds, Color color) {
-        DepictionGenerator g = generator;
-        if (bonds.size() > 0) {
-            List<IChemObject> highlightList = new ArrayList<>();
-            highlightList.addAll(atoms);
-            highlightList.addAll(bonds);
-            g = g.withHighlight(highlightList, color);
-        } else {
-            g = g.withHighlight(atoms, color);
-        }
-        return g;
-    }
-
-    private DepictionGenerator fixHighlights(
+    /**
+     * Call this for each molecule to accumulate the atoms and bonds that have to be highlighted
+     *
+     * @param mol            The molecule
+     * @param allHighLights  Map that accumulates all the atom and bond objects that need to be highlighted for each color
+     *                       during multiple calls.
+     * @param atomHighlights The atom indices of the atoms to highlight with each color
+     */
+    private void findHighlights(
             IAtomContainer mol,
-            Color highlightColor,
-            List<Integer> atomHighlights,
-            List<Integer> mcsHighlights,
-            Boolean outerGlow) {
+            Map<Color, List<IChemObject>> allHighLights,
+            Map<Color, List<Integer>> atomHighlights) {
 
-        DepictionGenerator g = generator;
+        if (atomHighlights != null) {
+            for (Color color : atomHighlights.keySet()) {
+                List<Integer> atomIndices = atomHighlights.get(color);
+                List<IAtom> atomHighlightList = findAtomHighlights(mol, atomIndices);
+                List<IBond> bondHighlightList = findBondHighlights(mol, atomHighlightList);
 
-        if (mcsColor != null) {
-            List<IAtom> mcsAtomHighlightList = findAtomHighlights(mol, mcsHighlights);
-            List<IBond> mcsBondHighlightList = findBondHighlights(mol, mcsAtomHighlightList);
-            g = highlight(g, mcsAtomHighlightList, mcsBondHighlightList, mcsColor);
+                List<IChemObject> chemObjs;
+                if (allHighLights.containsKey(color)) {
+                    chemObjs = allHighLights.get(color);
+                } else {
+                    chemObjs = new ArrayList<>();
+                    allHighLights.put(color, chemObjs);
+                }
+                chemObjs.addAll(atomHighlightList);
+                chemObjs.addAll(bondHighlightList);
+            }
         }
-
-        List<IAtom> atomHighlightList = findAtomHighlights(mol, atomHighlights);
-        List<IBond> bondHighlightList = findBondHighlights(mol, atomHighlightList);
-
-        g = highlight(g, atomHighlightList, bondHighlightList, highlightColor);
-
-        if (outerGlow != null && outerGlow.booleanValue()) {
-            g = g.withOuterGlowHighlight();
-        }
-        return g;
     }
 
     /**
@@ -460,6 +498,5 @@ public class CDKMolDepict {
         }
         return numHeavy;
     }
-
 
 }

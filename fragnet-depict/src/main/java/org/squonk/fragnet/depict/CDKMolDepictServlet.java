@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Informatics Matters Ltd.
+ * Copyright (c) 2022 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,13 @@
 
 package org.squonk.fragnet.depict;
 
+import org.openscience.cdk.depict.Depiction;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.renderer.color.IAtomColorer;
+import org.squonk.cdk.depict.CDKMolDepict;
+import org.squonk.cdk.depict.ChemUtils;
+import org.squonk.cdk.depict.Colors;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -36,6 +40,8 @@ import java.util.logging.Logger;
 
 /**
  * Mol depiction servlet using CDK.
+ * Uses the CDKMolDepict class from the cdk-depict project for doing the depictions.
+ *
  * Example URL: /moldepict?&w=_width_&h=_height_&bg=_rgba_&expand=_expand_&mol=_smiles_
  * where:
  * <ul>
@@ -82,7 +88,6 @@ public class CDKMolDepictServlet extends HttpServlet {
         }
     }
 
-
     protected void generateSVG(
             HttpServletRequest req,
             HttpServletResponse resp,
@@ -96,11 +101,13 @@ public class CDKMolDepictServlet extends HttpServlet {
             List<Integer> highlightedAtoms = readHighlightedAtoms(params);
             if (highlightedAtoms == null || highlightedAtoms.isEmpty()) {
                 // no atom highlighting
-                svg = moldepict.moleculeToSVG(mol);
+                Depiction d = moldepict.depict(mol);
+                svg = d.toSvgStr();
             } else {
                 boolean outerGlow = getBooleanHttpParameter("outerGlow", params, false);
                 Color highlightColor = getColorHttpParameter("highlightColor", params, Color.RED);
-                svg = moldepict.moleculeToSVG(mol, highlightColor, highlightedAtoms, outerGlow);
+                Depiction d = moldepict.depict(mol, highlightColor, highlightedAtoms);
+                svg = d.toSvgStr();
             }
 
 
@@ -131,6 +138,7 @@ public class CDKMolDepictServlet extends HttpServlet {
 
         String mcs = getStringHttpParameter("mcs", params, null);
         Color mcsColor = getColorHttpParameter("mcsColor", params, null);
+
         IAtomContainer query = mcs == null ? null : ChemUtils.readSmiles(mcs);
 
         String colorer = getStringHttpParameter("colorScheme", params, null);
@@ -143,9 +151,11 @@ public class CDKMolDepictServlet extends HttpServlet {
         boolean expandToFit = getBooleanHttpParameter("expand", params, true);
         boolean showExplicitHOnly = getBooleanHttpParameter("explicitHOnly", params, false);
         boolean noStereo = getBooleanHttpParameter("noStereo", params, false);
+        boolean outerGlow = getBooleanHttpParameter("outerGlow", params, false);
 
         CDKMolDepict depict = new CDKMolDepict(
-                width, height, margin, colorScheme, backgroundColor, expandToFit, noStereo);
+                width, height, margin, colorScheme, backgroundColor, null, null, outerGlow,
+                null, null, expandToFit, noStereo, null, null);
         depict.setShowOnlyExplicitH(showExplicitHOnly);
         depict.setMCSAlignment(query, mcsColor);
 

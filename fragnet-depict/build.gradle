@@ -20,14 +20,13 @@ import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 
 plugins {
-    id 'com.bmuschko.docker-remote-api'
+    id 'war'
+    id 'groovy'
+    id 'com.bmuschko.docker-remote-api' version '7.4.0'
+    id 'com.bmuschko.tomcat'
 }
 
 description = 'Fragment network depiction'
-
-apply plugin: 'war'
-apply plugin: 'groovy'
-apply plugin: 'com.bmuschko.tomcat'
 
 dependencies {
     
@@ -36,24 +35,26 @@ dependencies {
     def cdkVersion = '2.3'
     def tomcatVersion = '8.5.43'
 
-    compile "org.openscience.cdk:cdk-core:$cdkVersion"
-    compile "org.openscience.cdk:cdk-data:$cdkVersion"
-    compile "org.openscience.cdk:cdk-silent:$cdkVersion"
-    compile "org.openscience.cdk:cdk-io:$cdkVersion"
-    compile "org.openscience.cdk:cdk-ioformats:$cdkVersion"
-    compile "org.openscience.cdk:cdk-smiles:$cdkVersion"
-    compile "org.openscience.cdk:cdk-renderbasic:$cdkVersion"
-    compile "org.openscience.cdk:cdk-renderawt:$cdkVersion"
-    compile "org.openscience.cdk:cdk-depict:$cdkVersion"
-    compile "org.openscience.cdk:cdk-smsd:$cdkVersion"
-    compile "org.openscience.cdk:cdk-legacy:$cdkVersion"
+    implementation project(':cdk-depict')
+
+    implementation "org.openscience.cdk:cdk-core:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-data:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-silent:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-io:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-ioformats:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-smiles:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-renderbasic:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-renderawt:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-depict:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-smsd:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-legacy:$cdkVersion"
     
     tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
             "org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}"
 
 
-    testCompile "org.codehaus.groovy:groovy-all:2.5.7"
-    testCompile "org.spockframework:spock-core:1.3-groovy-2.5"
+    testImplementation "org.codehaus.groovy:groovy-all:2.5.7"
+    testImplementation "org.spockframework:spock-core:1.3-groovy-2.5"
 }
 
 tomcat {
@@ -84,5 +85,5 @@ task buildDockerFile(type: Dockerfile) {
  */
 task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
     inputDir = buildDockerFile.destFile.get().asFile.parentFile
-    tags.add("squonk/fragnet-depict:${dockerImageTag}")
+    images.add("squonk/fragnet-depict:${dockerImageTag}")
 }

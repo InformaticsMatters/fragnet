@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Informatics Matters Ltd.
+ * Copyright (c) 2022 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.squonk.fragnet.depict;
+package org.squonk.cdk.depict;
 
 import java.awt.*;
 import java.util.logging.Logger;
@@ -70,5 +70,13 @@ public class Colors {
         }
     }
 
+    public static Color getColorByName(String name) {
+        try {
+            return (Color)Color.class.getField(name.toUpperCase()).get(null);
+        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 }
