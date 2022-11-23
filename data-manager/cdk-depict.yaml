@@ -112,7 +112,6 @@ jobs:
           mcs_smiles:
             title: MCS to highlight/align (SMILES)
             type: string
-            pattern: "^[A-za-z0-9=\[\]\(\)\+\-\.\/%#@\\]+$"
           mcs_color:
             title: MCS color
             type: string
