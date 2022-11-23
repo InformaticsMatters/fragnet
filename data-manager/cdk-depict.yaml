@@ -51,7 +51,7 @@ jobs:
         - background_color
         - title_scale
         - title_color
-        - mcs_scale
+        - mcs_smiles
         - mcs_color
         - highlight_fields
         - highlight_colors
@@ -123,6 +123,9 @@ jobs:
           label_distance:
             title: Label distance from atom (default 0.25)
             type: number
+          outer_glow:
+            title: Highlight atoms using outer glow
+            type: boolean
     tests:
       simple-svg:
         inputs:
