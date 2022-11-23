@@ -1,0 +1,140 @@
+---
+# Tools using the Chemistry Development Kit
+kind: DataManagerJobDefinition
+kind-version: '2021.1'
+name: ChemAxon molecular properties
+collection: chemaxon
+
+jobs:
+  cdk-depict-mols:
+    name: Depict molecules
+    description: >-
+      Depict molecules using CDK
+    version: '1.0.0'
+    category: miscellaneous
+    keywords:
+    - cdk
+    - depict
+    image:
+      name: squonk/cdk-depict
+      tag: latest
+      project-directory: /data
+      working-directory: /data
+      fix-permissions: true
+    # The container has no entrypoint so this is the command that is executed.
+    # The CLASSPATH environment variable in the container is set.
+    command: >-
+      java org.squonk.cdk.depict.Mol2Image
+      --input '{{ inputFile }}'
+      --output '{{ outputFile }}'
+      {% if width is defined %}--width {{ width }}{% endif %}
+      {% if height is defined %}--height {{ height }}{% endif %}
+      {% if padding is defined %}--padding {{ padding }}{% endif %}
+      {% if background_color is defined %}--background-color '{{ background_color }}'{% endif %}
+      {% if title_scale is defined %}--title-scale {{ title_scale }}{% endif %}
+      {% if title_color is defined %}--title-color '{{ title_color }}'{% endif %}
+      {% if mcs_smiles is defined %}--mcs-smiles {{ mcs_smiles }}{% endif %}
+      {% if mcs_color is defined %}--mcs-color '{{ mcs_color }}'{% endif %}
+      {% if highlight_fields is defined %}--highlight-fields '{{ highlight_fields }}'{% endif %}
+      {% if highlight_colors is defined %}--highlight-colors '{{ highlight_colors }}'{% endif %}
+      {% if label_color is defined %}--label-color '{{ label_color }}'{% endif %}
+      {% if label_scale is defined %}--label-scale {{ label_scale }}{% endif %}
+      {% if label_distance is defined %}--label-distance {{ label_distance }}{% endif %}
+      {% if outer_glow is defined and outer_glow %}--outer-glow{% endif %}
+    variables:
+      order:
+        options:
+        - outputFile
+        - width
+        - height
+        - padding
+        - background_color
+        - title_scale
+        - title_color
+        - mcs_scale
+        - mcs_color
+        - highlight_fields
+        - highlight_colors
+        - label_color
+        - label_scale
+        - label_distance
+        - outer_glow
+      inputs:
+        type: object
+        required:
+        - inputFile
+        properties:
+          inputFile:
+            title: Input molecules
+            mime-types:
+            - chemical/x-mdl-sdfile
+            - text/csv
+            type: file
+      outputs:
+        type: object
+        properties:
+          results:
+            title: Output file name
+            mime-types:
+            - chemical/x-mdl-sdfile
+            creates: '{{ outputFile }}'
+            type: file
+      options:
+        type: object
+        required:
+        - outputFile
+        properties:
+          outputFile:
+            title: Output file (.svg, .png, .pdf, .jpg)
+            type: string
+            default: molecules.svg
+            pattern: "^[A-Za-z0-9_/\\.\\-]+$"
+          width:
+            title: Image width
+            type: integer
+          height:
+            title: Image height
+            type: integer
+          padding:
+            title: Image padding
+            type: integer
+          background_color:
+            title: Background color
+          title_scale:
+            title: Title scale (default 1)
+            type: number
+          title_color:
+            title: Title color
+          mcs_smiles:
+            title: MCS to highlight/align (SMILES)
+          mcs_color:
+            title: MCS color
+          highlight_fields:
+            title: Field names with highlight data
+            multiple: true
+          highlight_colors:
+            title: Colors for field highlighting
+            multiple: true
+          label_color:
+            title: Label color
+          label_scale:
+            title: Label scale (default 1)
+            type: number
+          label_distance:
+            title: Label distance from atom (default 0.25)
+            type: number
+    tests:
+      simple-svg:
+        inputs:
+          inputFile: data/pkas.sdf
+        options:
+          outputFile: molecules.svg
+          width: 400
+          height: 400
+          background_color: white
+        checks:
+          exitCode: 0
+          outputs:
+          - name: molecules.svg
+            checks:
+            - exists: true

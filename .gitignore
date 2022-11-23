@@ -20,3 +20,5 @@ orchestration/**/.terraform
 orchestration/ansible/**/*.retry
 orchestration/ansible/inventory
 orchestration/ansible/parameters
+
+data-manager/jote

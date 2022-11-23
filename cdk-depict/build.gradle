@@ -57,7 +57,7 @@ application {
 
 docker {
     javaApplication {
-        baseImage = 'openjdk:11-jre-slim'
+        baseImage = 'openjdk:11-jre'
         maintainer = 'Tim Dudgeon "tdudgeon@informaticsmatters.com"'
         ports = []
         images = ["squonk/cdk-depict:${dockerImageTag}"]

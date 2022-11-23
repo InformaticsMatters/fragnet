@@ -17,11 +17,7 @@
 package org.squonk.cdk.depict;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Logger;
@@ -72,7 +68,6 @@ public class Mol2Image {
 
     private final String input;
     private final String output;
-    private final String labelField;
 
     private String[] highlightFields;
     private Color[] highlightColors;
@@ -82,11 +77,9 @@ public class Mol2Image {
     protected Mol2Image(String input, String output,
                         int width, int height, double padding,
                         Color backgroundColor, Color labelColor, Color titleColor, Boolean outerGlow,
-                        Double labelScale, Double labelDistance, Double titleScale,
-                        String labelField){
+                        Double labelScale, Double labelDistance, Double titleScale) {
         this.input = input;
         this.output = output;
-        this.labelField = labelField;
 
         Map<Class, Object> extraParams = new HashMap<>();
         if (labelDistance != null) {
@@ -133,12 +126,6 @@ public class Mol2Image {
                 .desc("Output file for images (.png, .svg)")
                 .required()
                 .build());
-        options.addOption(Option.builder("l")
-                .longOpt("label-field")
-                .hasArg()
-                .argName("name")
-                .desc("Field containing atom labels")
-                .build());
         options.addOption(Option.builder(null)
                 .longOpt("width")
                 .hasArg()
@@ -167,10 +154,11 @@ public class Mol2Image {
                 .desc("Background color")
                 .build());
         options.addOption(Option.builder(null)
-                .longOpt("label-color")
+                .longOpt("title-scale")
                 .hasArg()
-                .argName("color")
-                .desc("Atom label color")
+                .argName("scale")
+                .desc("Title scale (default 1)")
+                .type(Double.class)
                 .build());
         options.addOption(Option.builder(null)
                 .longOpt("title-color")
@@ -179,10 +167,32 @@ public class Mol2Image {
                 .desc("Title color")
                 .build());
         options.addOption(Option.builder(null)
+                .longOpt("mcs-smiles")
+                .hasArg()
+                .argName("smiles")
+                .desc("MCS highlight (SMILES)")
+                .build());
+        options.addOption(Option.builder(null)
                 .longOpt("mcs-color")
                 .hasArg()
                 .argName("color")
                 .desc("MCS highlight color")
+                .build());
+        options.addOption(Option.builder(null)
+                .longOpt("highlight-fields")
+                .desc("Field names for atom highlighting")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .build());
+        options.addOption(Option.builder(null)
+                .longOpt("highlight-colors")
+                .desc("Colours for atom highlighting")
+                .numberOfArgs(Option.UNLIMITED_VALUES)
+                .build());
+        options.addOption(Option.builder(null)
+                .longOpt("label-color")
+                .hasArg()
+                .argName("color")
+                .desc("Atom label color")
                 .build());
         options.addOption(Option.builder(null)
                 .longOpt("label-scale")
@@ -199,32 +209,9 @@ public class Mol2Image {
                 .type(Double.class)
                 .build());
         options.addOption(Option.builder(null)
-                .longOpt("title-scale")
-                .hasArg()
-                .argName("scale")
-                .desc("Title scale (default 1)")
-                .type(Double.class)
-                .build());
-        options.addOption(Option.builder(null)
-                .longOpt("mcs-smiles")
-                .hasArg()
-                .argName("smiles")
-                .desc("MCS highlight (SMILES)")
-                .build());
-        options.addOption(Option.builder(null)
                 .longOpt("outer-glow")
                 .hasArg(false)
                 .desc("Highlight using outer glow")
-                .build());
-        options.addOption(Option.builder(null)
-                .longOpt("highlight-fields")
-                .desc("Field names for atom highlighting")
-                .numberOfArgs(Option.UNLIMITED_VALUES)
-                .build());
-        options.addOption(Option.builder(null)
-                .longOpt("highlight-colors")
-                .desc("Colours for atom highlighting")
-                .numberOfArgs(Option.UNLIMITED_VALUES)
                 .build());
 
         if (args.length == 0 | (args.length == 1 && ("-h".equals(args[0]) | "--help".equals(args[0])))) {
@@ -243,10 +230,6 @@ public class Mol2Image {
 
             String inputFile = cmd.getOptionValue("input");
             String outputFile = cmd.getOptionValue("output");
-            String labelField = null;
-            if (cmd.hasOption("label-field")) {
-                labelField = cmd.getOptionValue("label-field");
-            }
             int width = Integer.valueOf(cmd.getOptionValue("width", "500"));
             int height = Integer.valueOf(cmd.getOptionValue("height", "500"));
             double padding = Double.valueOf(cmd.getOptionValue("padding", "5"));
@@ -271,8 +254,7 @@ public class Mol2Image {
 
             Mol2Image m2i = new Mol2Image(inputFile, outputFile, width, height, padding,
                     bgColor, labelColor, titleColor, outerGlow,
-                    labelScale, labelDistance, titleScale,
-                    labelField);
+                    labelScale, labelDistance, titleScale);
 
             if (mcsSmiles != null) {
                 m2i.setMCS(mcsSmiles, mcsColor);
