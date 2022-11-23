@@ -3,7 +3,7 @@
 kind: DataManagerJobDefinition
 kind-version: '2021.1'
 name: CDK molecular depiction
-collection: cdk-depict
+collection: chemaxon
 
 jobs:
   cdk-depict-mols:
