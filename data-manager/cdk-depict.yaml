@@ -35,8 +35,8 @@ jobs:
       {% if title_color is defined %}--title-color '{{ title_color }}'{% endif %}
       {% if mcs_smiles is defined %}--mcs-smiles {{ mcs_smiles }}{% endif %}
       {% if mcs_color is defined %}--mcs-color '{{ mcs_color }}'{% endif %}
-      {% if highlight_fields is defined %}--highlight-fields '{{ highlight_fields }}'{% endif %}
-      {% if highlight_colors is defined %}--highlight-colors '{{ highlight_colors }}'{% endif %}
+      {% if highlight_fields is defined %}--highlight-fields{% for f in highlight_fields %} '{{ f }}'{% endfor %}{% endif %}
+      {% if highlight_colors is defined %}--highlight-colors{% for f in highlight_colors %} '{{ f }}'{% endfor %}{% endif %}
       {% if label_color is defined %}--label-color '{{ label_color }}'{% endif %}
       {% if label_scale is defined %}--label-scale {{ label_scale }}{% endif %}
       {% if label_distance is defined %}--label-distance {{ label_distance }}{% endif %}
@@ -101,29 +101,37 @@ jobs:
           background_color:
             title: Background color
             type: string
+            pattern: "^[A-Za-z]+$"
           title_scale:
             title: Title scale (default 1)
             type: number
           title_color:
             title: Title color
             type: string
+            pattern: "^[A-Za-z]+$"
           mcs_smiles:
             title: MCS to highlight/align (SMILES)
             type: string
+            pattern: "^[A-za-z0-9=\[\]\(\)\+\-\.\/%#@\\]+$"
           mcs_color:
             title: MCS color
             type: string
+            pattern: "^[A-Za-z]+$"
           highlight_fields:
             title: Field names with highlight data
-            type: string
-            multiple: true
+            type: array
+            items:
+              type: string
           highlight_colors:
             title: Colors for field highlighting
-            type: string
-            multiple: true
+            type: array
+            pattern: "^[A-Za-z]+$"
+            items:
+              type: string
           label_color:
             title: Label color
             type: string
+            pattern: "^[A-Za-z]+$"
           label_scale:
             title: Label scale (default 1)
             type: number
