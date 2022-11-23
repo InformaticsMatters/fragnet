@@ -58,6 +58,8 @@ jobs:
         install: true
     - name: Push tag
       run: |
+        docker tag squonk/cdk-depict:latest squonk/cdk-depict:${{ env.GITHUB_REF_SLUG }}
+        docker push squonk/cdk-depict:${{ env.GITHUB_REF_SLUG }}
         docker tag squonk/fragnet-depict:latest squonk/fragnet-depict:${{ env.GITHUB_REF_SLUG }}
         docker push squonk/fragnet-depict:${{ env.GITHUB_REF_SLUG }}
         docker tag squonk/fragnet-search:latest squonk/fragnet-search:${{ env.GITHUB_REF_SLUG }}

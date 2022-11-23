@@ -61,6 +61,7 @@ jobs:
         install: true
     - name: Push latest
       run: |
+        docker push squonk/cdk-depict:latest
         docker push squonk/fragnet-depict:latest
         docker push squonk/fragnet-search:latest
 

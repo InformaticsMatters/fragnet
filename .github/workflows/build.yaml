@@ -39,4 +39,4 @@ jobs:
       with:
         java-version: 11
     - name: Build
-      run: ./gradlew buildDockerImage -x test
+      run: ./gradlew buildDockerImages -x test

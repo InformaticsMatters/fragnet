@@ -59,6 +59,10 @@ jobs:
     # the tagged images and a 'stable' form
     - name: Push stable
       run: |
+        docker tag squonk/cdk-depict:latest squonk/cdk-depict:stable
+        docker tag squonk/cdk-depict:latest squonk/cdk-depict:${{ env.GITHUB_REF_SLUG }}
+        docker push squonk/cdk-depict:stable
+        docker push squonk/cdk-depict:${{ env.GITHUB_REF_SLUG }}
         docker tag squonk/fragnet-depict:latest squonk/fragnet-depict:stable
         docker tag squonk/fragnet-depict:latest squonk/fragnet-depict:${{ env.GITHUB_REF_SLUG }}
         docker push squonk/fragnet-depict:stable
