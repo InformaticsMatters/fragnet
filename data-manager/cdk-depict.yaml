@@ -2,8 +2,8 @@
 # Tools using the Chemistry Development Kit
 kind: DataManagerJobDefinition
 kind-version: '2021.1'
-name: ChemAxon molecular properties
-collection: chemaxon
+name: CDK molecular depiction
+collection: cdk-depict
 
 jobs:
   cdk-depict-mols:
@@ -105,18 +105,24 @@ jobs:
             type: number
           title_color:
             title: Title color
+            type: string
           mcs_smiles:
             title: MCS to highlight/align (SMILES)
+            type: string
           mcs_color:
             title: MCS color
+            type: string
           highlight_fields:
             title: Field names with highlight data
+            type: string
             multiple: true
           highlight_colors:
             title: Colors for field highlighting
+            type: string
             multiple: true
           label_color:
             title: Label color
+            type: string
           label_scale:
             title: Label scale (default 1)
             type: number
