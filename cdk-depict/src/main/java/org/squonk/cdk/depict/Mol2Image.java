@@ -77,7 +77,7 @@ public class Mol2Image {
     protected Mol2Image(String input, String output,
                         int width, int height, double padding,
                         Color backgroundColor, Color labelColor, Color titleColor, Boolean outerGlow,
-                        Double labelScale, Double labelDistance, Double titleScale) {
+                        Double labelScale, Double labelDistance, String titleField, Double titleScale) {
         this.input = input;
         this.output = output;
 
@@ -88,7 +88,7 @@ public class Mol2Image {
 
         depicter = new CDKMolDepict(width, height, 2.5d,
                 null,
-                backgroundColor, labelColor, titleColor, outerGlow,
+                backgroundColor, labelColor, titleField, titleColor, outerGlow,
                 labelScale, titleScale, false, false, padding, extraParams);
     }
 
@@ -152,6 +152,12 @@ public class Mol2Image {
                 .hasArg()
                 .argName("color")
                 .desc("Background color")
+                .build());
+        options.addOption(Option.builder(null)
+                .longOpt("title-field")
+                .hasArg()
+                .argName("name")
+                .desc("Title field")
                 .build());
         options.addOption(Option.builder(null)
                 .longOpt("title-scale")
@@ -243,6 +249,7 @@ public class Mol2Image {
 
             String mcsColorStr = cmd.getOptionValue("mcs-color");
             Color mcsColor = (mcsColorStr == null ? null : Colors.getColorByName(mcsColorStr));
+            String titleField = cmd.getOptionValue("title-field");
             String titleColorStr = cmd.getOptionValue("title-color");
             Color titleColor = (titleColorStr == null ? null : Colors.getColorByName(titleColorStr));
             double titleScale = Double.valueOf(cmd.getOptionValue("title-scale", "1"));
@@ -254,7 +261,7 @@ public class Mol2Image {
 
             Mol2Image m2i = new Mol2Image(inputFile, outputFile, width, height, padding,
                     bgColor, labelColor, titleColor, outerGlow,
-                    labelScale, labelDistance, titleScale);
+                    labelScale, labelDistance, titleField, titleScale);
 
             if (mcsSmiles != null) {
                 m2i.setMCS(mcsSmiles, mcsColor);

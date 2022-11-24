@@ -154,7 +154,7 @@ public class CDKMolDepictServlet extends HttpServlet {
         boolean outerGlow = getBooleanHttpParameter("outerGlow", params, false);
 
         CDKMolDepict depict = new CDKMolDepict(
-                width, height, margin, colorScheme, backgroundColor, null, null, outerGlow,
+                width, height, margin, colorScheme, backgroundColor, null, null, null, outerGlow,
                 null, null, expandToFit, noStereo, null, null);
         depict.setShowOnlyExplicitH(showExplicitHOnly);
         depict.setMCSAlignment(query, mcsColor);

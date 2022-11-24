@@ -16,6 +16,7 @@
 
 package org.squonk.cdk.depict;
 
+import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.depict.Depiction;
 import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
@@ -87,6 +88,8 @@ public class CDKMolDepict {
     private Color mcsColor = null;
     private final boolean removeStereo;
 
+    private final String titleFieldName;
+
     /**
      * Create with default parameters
      */
@@ -97,6 +100,7 @@ public class CDKMolDepict {
                 null,
                 null,
                 Color.WHITE,
+                null,
                 null,
                 null,
                 null,
@@ -121,6 +125,7 @@ public class CDKMolDepict {
                 Color.WHITE,
                 null,
                 null,
+                null,
                 outerGlow,
                 null,
                 null,
@@ -140,6 +145,7 @@ public class CDKMolDepict {
                         IAtomColorer colorScheme,
                         Color backgroundColor,
                         Color annotationColor,
+                        String titleField,
                         Color titleColor,
                         Boolean outerGlow,
                         Double annotationScale,
@@ -177,6 +183,7 @@ public class CDKMolDepict {
                         });
 
         this.removeStereo = removeStereo == null ? false : removeStereo.booleanValue();
+        this.titleFieldName = titleField;
 
         if (expandToFit == null || expandToFit.booleanValue()) {
             dg = dg.withFillToFit();
@@ -243,6 +250,7 @@ public class CDKMolDepict {
         this.mcsColor = mcsColor;
     }
 
+
     /**
      * Get the supported colorers. See the COLORERS Map for the values.
      *
@@ -251,6 +259,10 @@ public class CDKMolDepict {
      */
     public static IAtomColorer getColorer(String name) {
         return COLORERS.get(name);
+    }
+
+    public String getTitleField() {
+        return this.titleFieldName;
     }
 
     public Depiction depict(IAtomContainer mol, Color highlightColor, List<Integer> atomHighlights) throws CDKException, CloneNotSupportedException {
@@ -346,6 +358,12 @@ public class CDKMolDepict {
     private IAtomContainer fixMolecule(IAtomContainer mol, boolean showOnlyExplicitH) {
         if (showOnlyExplicitH) {
             mol = fixExplicitHOnly(mol);
+        }
+        if (titleFieldName == null) {
+            mol.removeProperty(CDKConstants.TITLE);
+        } else {
+            String title = mol.getProperty(titleFieldName, String.class);
+            mol.setProperty(CDKConstants.TITLE, title);
         }
         return mol;
     }
