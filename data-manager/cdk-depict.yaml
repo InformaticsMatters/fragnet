@@ -110,7 +110,8 @@ jobs:
           title_field:
             title: Title field
             type: string
-            pattern: "^[A-Za-z0-9_ \\-]+$"
+            default: "cdk:Title"
+            pattern: "^[A-Za-z0-9_ \\-:]+$"
           title_color:
             title: Title color
             type: string
