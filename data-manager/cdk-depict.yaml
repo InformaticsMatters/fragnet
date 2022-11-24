@@ -103,7 +103,7 @@ jobs:
           background_color:
             title: Background color
             type: string
-            pattern: "^[A-Za-z]+$"
+            pattern: "^[A-Za-z_]+$"
           title_scale:
             title: Title scale (default 1)
             type: number
@@ -115,14 +115,14 @@ jobs:
           title_color:
             title: Title color
             type: string
-            pattern: "^[A-Za-z]+$"
+            pattern: "^[A-Za-z_]+$"
           mcs_smiles:
             title: MCS to highlight/align (SMILES)
             type: string
           mcs_color:
             title: MCS color
             type: string
-            pattern: "^[A-Za-z]+$"
+            pattern: "^[A-Za-z_]+$"
           highlight_fields:
             title: Field names with highlight data
             type: array
@@ -132,13 +132,13 @@ jobs:
           highlight_colors:
             title: Colors for field highlighting
             type: array
-            pattern: "^[A-Za-z]+$"
+            pattern: "^[A-Za-z_]+$"
             items:
               type: string
           label_color:
             title: Label color
             type: string
-            pattern: "^[A-Za-z]+$"
+            pattern: "^[A-Za-z_]+$"
           label_scale:
             title: Label scale (default 1)
             type: number
