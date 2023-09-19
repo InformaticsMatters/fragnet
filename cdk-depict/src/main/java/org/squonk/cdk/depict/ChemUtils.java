@@ -21,10 +21,15 @@ import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.geometry.GeometryUtil;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.io.IChemObjectReader;
+import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.MDLV2000Writer;
+import org.openscience.cdk.io.MDLV3000Reader;
 import org.openscience.cdk.io.iterator.IteratingSDFReader;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
+import org.openscience.cdk.silent.AtomContainer;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.smsd.Isomorphism;
 import org.openscience.cdk.smsd.interfaces.Algorithm;
@@ -33,13 +38,11 @@ import org.openscience.cdk.smsd.tools.ExtAtomContainerManipulator;
 import javax.vecmath.Point2d;
 import javax.vecmath.Vector2d;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +53,15 @@ public class ChemUtils {
     private static final Logger LOG = Logger.getLogger(ChemUtils.class.getName());
     private static final SmilesParser smilesParser = new SmilesParser(SilentChemObjectBuilder.getInstance());
 
+
+    public static IAtomContainer readMol(String molstr, String format) throws Exception {
+        if (format == null || format.equals("smiles")) {
+            return readSmiles(molstr);
+        } else if (format.equals("mol")) {
+            return readMolfile(molstr);
+        }
+        throw new IllegalArgumentException("Format not supported: " + format);
+    }
     /**
      * Convenience method to generate IAtomContainer from SMILES string
      *
@@ -57,22 +69,28 @@ public class ChemUtils {
      * @return
      * @throws IOException
      */
-    public static IAtomContainer readSmiles(String smiles) throws IOException, InvalidSmilesException {
+    public static IAtomContainer readSmiles(String smiles) throws InvalidSmilesException {
         return smilesParser.parseSmiles(smiles);
     }
 
-    /**
-     * Generate 2D coordinates for the given molecucle
-     *
-     * @param mol
-     * @return The layed out molecule
-     * @throws CDKException
-     */
-    public static IAtomContainer generate2D(IAtomContainer mol) throws CDKException {
-        StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-        sdg.setMolecule(mol);
-        sdg.generateCoordinates(new Vector2d(0, 1));
-        return sdg.getMolecule();
+    public static IAtomContainer readMolfile(String molstr) {
+        try {
+            MDLV2000Reader parser = new MDLV2000Reader(new ByteArrayInputStream(molstr.getBytes()),
+                    IChemObjectReader.Mode.RELAXED);
+            IAtomContainer mol = parser.read(new AtomContainer());
+            return mol;
+        } catch (CDKException e) {
+            // not V2000 format
+        }
+        try {
+            MDLV3000Reader parser = new MDLV3000Reader(new ByteArrayInputStream(molstr.getBytes()),
+                    IChemObjectReader.Mode.RELAXED);
+            IAtomContainer mol = parser.read(new AtomContainer());
+            return mol;
+        } catch (CDKException e) {
+            // not V3000 format
+        }
+        throw new RuntimeException("Not a V2000 or V3000 format molfile");
     }
 
     /**
@@ -191,18 +209,29 @@ public class ChemUtils {
      * @param mol The molecule
      * @param always Generate even if the molecule already has 2D coordinates
      * @throws CDKException
+     * returns The molecule
      */
-    public static void layoutMoleculeIn2D(IAtomContainer mol, boolean always) throws CDKException {
+    public static IAtomContainer layoutMoleculeIn2D(IAtomContainer mol, boolean always) throws CDKException {
         if (always || !GeometryUtil.has2DCoordinates(mol)) {
             LOG.fine("Laying out molecule");
+            if (GeometryUtil.has3DCoordinates(mol)) {
+                SmilesGenerator generator = SmilesGenerator.generic();
+                String smiles = generator.create(mol);
+                mol = readSmiles(smiles);
+            }
             StructureDiagramGenerator g = new StructureDiagramGenerator();
             g.generateCoordinates(mol);
         }
+        return mol;
+    }
+
+    public static IAtomContainer layoutMoleculeIn2D(IAtomContainer mol) throws CDKException {
+        return layoutMoleculeIn2D(mol, false);
     }
 
     public static String convertToMolfile(IAtomContainer mol) throws IOException, CDKException {
         if (!GeometryUtil.has2DCoordinates(mol)) {
-            mol = generate2D(mol);
+            mol = layoutMoleculeIn2D(mol);
         }
         StringWriter writer = new StringWriter();
         try (MDLV2000Writer mdl = new MDLV2000Writer(writer)) {

@@ -31,12 +31,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.Color;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Mol depiction servlet using CDK.
@@ -66,24 +64,49 @@ public class CDKMolDepictServlet extends HttpServlet {
 
     private static final Logger LOG = Logger.getLogger(CDKMolDepictServlet.class.getName());
 
+    public String test(IAtomContainer mol) throws Exception {
+        System.out.println("Creating depictor");
+        CDKMolDepict moldepict = createMolDepict(Collections.emptyMap());
+        System.out.println("Depicting");
+        Depiction d = moldepict.depict(mol);
+        System.out.println("Generating SVG");
+        String svg = d.toSvgStr();
+        return svg;
+    }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-
-        String smiles = req.getParameter("mol");
-        if (smiles == null) {
-            LOG.info("No smiles specified. Cannot render");
+        String molstr = req.getParameter("mol");
+        String format = req.getParameter("format");
+        if (molstr == null) {
+            LOG.info("No molecule specified. Cannot render");
             return;
         }
         try {
+                long t0 = new Date().getTime();
+                IAtomContainer mol = ChemUtils.readMol(molstr, format);
+                generateSVG(req, resp, mol);
+                long t1 = new Date().getTime();
+                LOG.fine("Depicting " + " took " + (t1 - t0) + "ms");
+
+        } catch (Exception e) {
+            throw new IOException("Failed to generate SVG", e);
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException{
+
+        String molstr = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        try {
             long t0 = new Date().getTime();
-            IAtomContainer mol = ChemUtils.readSmiles(smiles);
+            IAtomContainer mol = ChemUtils.readMolfile(molstr);
             generateSVG(req, resp, mol);
             long t1 = new Date().getTime();
-            LOG.fine("Depicting " + smiles + " took " + (t1 - t0) + "ms");
-        } catch (CDKException e) {
+            LOG.fine("Depicting " + " took " + (t1 - t0) + "ms");
+
+        } catch (Exception e) {
             throw new IOException("Failed to generate SVG", e);
         }
     }

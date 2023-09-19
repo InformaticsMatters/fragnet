@@ -16,16 +16,16 @@ class ChemUtilsSpec extends Specification {
         IAtomContainer mol = smilesParser.parseSmiles('NC1=CC=CC=C1')
 
         when:
-        def result = ChemUtils.generate2D(mol)
+        ChemUtils.layoutMoleculeIn2D(mol)
 
         then:
-        result.getAtom(0).getPoint2d() != null
+        mol.getAtom(0).getPoint2d() != null
     }
 
     void "determineMCS"() {
 
-        IAtomContainer query = ChemUtils.generate2D(smilesParser.parseSmiles('NC1=CC=CC=C1'))
-        IAtomContainer target = ChemUtils.generate2D(smilesParser.parseSmiles('NC1=CC(=CC=C1)C(O)=O'))
+        IAtomContainer query = ChemUtils.layoutMoleculeIn2D(smilesParser.parseSmiles('NC1=CC=CC=C1'))
+        IAtomContainer target = ChemUtils.layoutMoleculeIn2D(smilesParser.parseSmiles('NC1=CC(=CC=C1)C(O)=O'))
 
         when:
         ChemUtils.prepareForMCS(query)
@@ -38,7 +38,7 @@ class ChemUtilsSpec extends Specification {
 
     void "alignMolecule"() {
 
-        IAtomContainer query = ChemUtils.generate2D(smilesParser.parseSmiles('NC1=CC=CC=C1'))
+        IAtomContainer query = ChemUtils.layoutMoleculeIn2D(smilesParser.parseSmiles('NC1=CC=CC=C1'))
         IAtomContainer target = smilesParser.parseSmiles('NC1=CC(=CC=C1)C(O)=O')
 
         ChemUtils.prepareForMCS(query)

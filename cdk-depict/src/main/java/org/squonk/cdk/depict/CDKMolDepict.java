@@ -24,6 +24,7 @@ import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IChemObject;
+import org.openscience.cdk.io.MDLV2000Writer;
 import org.openscience.cdk.renderer.RendererModel;
 import org.openscience.cdk.renderer.SymbolVisibility;
 import org.openscience.cdk.renderer.color.*;
@@ -33,6 +34,8 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -321,8 +324,7 @@ public class CDKMolDepict {
             IAtomContainer mol2 = fixMolecule(mol, showOnlyExplicitH);
 
             // the remove stereo trick only works if 2D coordinates are already present so we make sure that is the case
-            ChemUtils.layoutMoleculeIn2D(mol, false);
-            // fix the molecule so that it displays as required
+            mol2 = ChemUtils.layoutMoleculeIn2D(mol, false);
 
             if (removeStereo) {
                 // we need to display without stereochemistry e.g. no wedge/dash/squiggle bonds
@@ -351,7 +353,7 @@ public class CDKMolDepict {
             }
         }
 
-        Depiction depiction = dg.depict(mols);
+        Depiction depiction = dg.depict(mols2);
         return depiction;
     }
 
