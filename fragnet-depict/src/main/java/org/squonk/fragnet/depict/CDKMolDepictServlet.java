@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Informatics Matters Ltd.
+ * Copyright (c) 2023 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.squonk.cdk.depict.CDKMolDepict;
 import org.squonk.cdk.depict.ChemUtils;
 import org.squonk.cdk.depict.Colors;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

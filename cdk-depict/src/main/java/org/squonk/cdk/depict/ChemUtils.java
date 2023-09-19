@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Informatics Matters Ltd.
+ * Copyright (c) 2023 Informatics Matters Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,11 @@ import org.openscience.cdk.smsd.interfaces.Algorithm;
 import org.openscience.cdk.smsd.tools.ExtAtomContainerManipulator;
 
 import javax.vecmath.Point2d;
-import javax.vecmath.Vector2d;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -98,7 +96,6 @@ public class ChemUtils {
      * The input molecule is modified. Clone it first if you don't want this to happen.
      *
      * @param mol
-     * @return
      * @throws CDKException
      */
     public static void prepareForMCS(IAtomContainer mol) throws CDKException {

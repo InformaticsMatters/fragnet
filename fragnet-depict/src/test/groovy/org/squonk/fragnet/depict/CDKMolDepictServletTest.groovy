@@ -1,7 +1,6 @@
 package org.squonk.fragnet.depict
 
 import org.squonk.cdk.depict.ChemUtils
-import org.squonk.fragnet.depict.CDKMolDepictServlet
 import spock.lang.Specification
 
 class CDKMolDepictServletTest extends Specification {
