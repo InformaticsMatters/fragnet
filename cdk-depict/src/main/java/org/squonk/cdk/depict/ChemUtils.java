@@ -55,7 +55,7 @@ public class ChemUtils {
     public static IAtomContainer readMol(String molstr, String format) throws Exception {
         if (format == null || format.equals("smiles")) {
             return readSmiles(molstr);
-        } else if (format.equals("mol")) {
+        } else if (format.equals("mol") || format.equals("molfile")) {
             return readMolfile(molstr);
         }
         throw new IllegalArgumentException("Format not supported: " + format);

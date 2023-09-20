@@ -1,11 +1,11 @@
 # Fragnet Depict
 
-This module provides the ability to depict smiles strings as SVG.
+This module provides the ability to depict smiles or molfile strings as SVG.
 It is based on CDK rendering which provides high quality layout and depiction of molecules.
 The code is largely based on the rendering code used in Squonk:
 https://github.com/InformaticsMatters/squonk
 
-Example usage (depending on the server it is deployed to and the context):
+Example usage with SMILES (depending on the server it is deployed to and the context):
 http://localhost:8080/fragnet-depict/moldepict?&w=75&h=75&bg=0x33FFFF00&mol=CN1C%3DNC2%3DC1C(%3DO)N(C)C(%3DO)N2C
 
 ## Parameters
@@ -61,6 +61,16 @@ User specified highlighting and MCS highlighting can be combined, with the user 
 in both sets. The `outer glow` option applies to both. e.g. It is NOT possible to highlight MCS by colouring atoms and 
 bonds and highlight the user specified atoms with outer glow. But it is possible to use different colours.
 
+
+## Rendering molfiles
+
+MDL Molfiles can also be rendered. If using a get operation you must specify `format=mol` and make sure the molfile is
+encoded (in particular spaces replaced by %20 and newlines by %0A). Alterntively you can use a POST operation with the
+molfile being set as the body of the POST operation. In this case the format is assumed to be molfile, so there is no
+need to specify `format=mol`.
+
+**Example using GET**
+https://localhost:8080/fragnet-depict/moldepict?&w=75&h=60&bg=0x33FFFF00&format=mol&mol=%0A%20%20%20%20%20RDKit%20%20%20%20%20%20%20%20%20%203D%0A%0A%2011%2011%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200999%20V2000%0A%20%20%2010.1040%20%20%20-0.6810%20%20%2022.5530%20C%20%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%0A%20%20%20%209.2070%20%20%20-0.0590%20%20%2021.4840%20C%20%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%0A%20%20%20%209.5320%20%20%20%200.9550%20%20%2020.9690%20O%20%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%0A%20%20%20%207.9590%20%20%20-0.7020%20%20%2021.1090%20N%20%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%0A%20%20%20%207.1050%20%20%20-0.1160%20%20%2020.0880%20C%20%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%0A%20%20%20%207.4770%20%20%20-0.1810%20%20%2018.7520%20C%20%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%0A%20%20%20%206.7240%20%20%20%200.3380%20%20%2017.8000%20N%20%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%0A%20%20%20%205.5930%20%20%20%200.9420%20%20%2018.0910%20C%20%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%0A%20%20%20%205.1410%20%20%20%201.0620%20%20%2019.3980%20C%20%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%0A%20%20%20%205.9120%20%20%20%200.5170%20%20%2020.4250%20C%20%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%0A%20%20%20%205.4700%20%20%20%200.6210%20%20%2021.8830%20C%20%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%20%200%0A%20%202%20%201%20%201%20%200%0A%20%203%20%202%20%202%20%200%0A%20%204%20%202%20%201%20%200%0A%20%205%20%204%20%201%20%200%0A%20%206%20%205%20%202%20%200%0A%20%207%20%206%20%201%20%200%0A%20%208%20%207%20%202%20%200%0A%20%209%20%208%20%201%20%200%0A%2010%20%209%20%202%20%200%0A%2010%20%205%20%201%20%200%0A%2011%2010%20%201%20%200%0AM%20%20END
 
 ## Format conversion
 
