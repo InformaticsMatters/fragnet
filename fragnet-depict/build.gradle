@@ -32,7 +32,7 @@ dependencies {
     
     providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
 
-    def cdkVersion = '2.3'
+    def cdkVersion = '2.9'
     def tomcatVersion = '8.5.43'
 
     implementation project(':cdk-depict')
@@ -46,7 +46,6 @@ dependencies {
     implementation "org.openscience.cdk:cdk-renderbasic:$cdkVersion"
     implementation "org.openscience.cdk:cdk-renderawt:$cdkVersion"
     implementation "org.openscience.cdk:cdk-depict:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-smsd:$cdkVersion"
     implementation "org.openscience.cdk:cdk-legacy:$cdkVersion"
     
     tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",

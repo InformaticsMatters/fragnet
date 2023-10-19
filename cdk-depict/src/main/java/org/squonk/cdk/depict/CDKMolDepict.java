@@ -321,7 +321,7 @@ public class CDKMolDepict {
             IAtomContainer mol2 = fixMolecule(mol, showOnlyExplicitH);
 
             // the remove stereo trick only works if 2D coordinates are already present so we make sure that is the case
-            mol2 = ChemUtils.layoutMoleculeIn2D(mol, false);
+            mol2 = ChemUtils.layoutMoleculeIn2D(mol, true);
 
             if (removeStereo) {
                 // we need to display without stereochemistry e.g. no wedge/dash/squiggle bonds
