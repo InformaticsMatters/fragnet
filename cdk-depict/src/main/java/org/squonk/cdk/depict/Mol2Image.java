@@ -188,11 +188,13 @@ public class Mol2Image {
                 .longOpt("highlight-fields")
                 .desc("Field names for atom highlighting")
                 .numberOfArgs(Option.UNLIMITED_VALUES)
+                //.required(false)
                 .build());
         options.addOption(Option.builder(null)
                 .longOpt("highlight-colors")
                 .desc("Colours for atom highlighting")
                 .numberOfArgs(Option.UNLIMITED_VALUES)
+                //.required(false)
                 .build());
         options.addOption(Option.builder(null)
                 .longOpt("label-color")
@@ -225,6 +227,8 @@ public class Mol2Image {
             formatter.setOptionComparator(null);
             formatter.printHelp("app", options);
         } else {
+
+            //DMLOG.logEvent(DMLogger.Level.INFO, options.toString());
 
             CommandLineParser parser = new DefaultParser();
             CommandLine cmd = parser.parse(options, args);
@@ -268,9 +272,7 @@ public class Mol2Image {
             }
 
             Color[] highlightColors = null;
-            System.out.println("FLDS: " + highlightFields + " COLS: " + highlightColorsStr);
             if (highlightFields != null && highlightColorsStr != null) {
-                System.out.println("FLDS: " + highlightFields + " COLS: " + highlightColorsStr);
                 if (highlightFields.length != highlightColorsStr.length) {
                     throw new IllegalArgumentException("highlight-fields and highlight-colors must have same number of arguments");
                 }
@@ -324,15 +326,18 @@ public class Mol2Image {
         if (prop != null) {
             String[] lines = prop.split("\n");
             for (String line : lines) {
+                System.out.println("Checking " + line);
                 String[] tokens = line.split(" ");
                 if (tokens.length == 2) {
                     int atno = Integer.valueOf(tokens[0]);
                     atomIdxs.add(atno);
                     String label = tokens[1];
-                    //System.out.println(propName + " " + atno + " " + label);
+                    System.out.println(propName + " " + atno + " " + label);
                     if (addAtomLabel) {
                         mol.getAtom(atno).setProperty(CDKConstants.COMMENT, label);
                     }
+                } else {
+                    System.out.println("Unable to handle " + line);
                 }
             }
         }

@@ -36,8 +36,8 @@ jobs:
       {% if title_color is defined %}--title-color '{{ title_color }}'{% endif %}
       {% if mcs_smiles is defined %}--mcs-smiles {{ mcs_smiles }}{% endif %}
       {% if mcs_color is defined %}--mcs-color '{{ mcs_color }}'{% endif %}
-      {% if highlight_fields is defined %}--highlight-fields{% for f in highlight_fields %} '{{ f }}'{% endfor %}{% endif %}
-      {% if highlight_colors is defined %}--highlight-colors{% for f in highlight_colors %} '{{ f }}'{% endfor %}{% endif %}
+      {% if highlight_fields is defined and highlight_fields %}--highlight-fields{% for f in highlight_fields %} '{{ f }}'{% endfor %}{% endif %}
+      {% if highlight_colors is defined and highlight_colors %}--highlight-colors{% for f in highlight_colors %} '{{ f }}'{% endfor %}{% endif %}
       {% if label_color is defined %}--label-color '{{ label_color }}'{% endif %}
       {% if label_scale is defined %}--label-scale {{ label_scale }}{% endif %}
       {% if label_distance is defined %}--label-distance {{ label_distance }}{% endif %}

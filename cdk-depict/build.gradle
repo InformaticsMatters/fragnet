@@ -51,6 +51,8 @@ application {
     // this can be set as a commandline option e.g.
     // ./gradlew run --args="--help" -PmainClass=org.foo.Bar
     mainClass = 'org.squonk.cdk.depict.Mol2Image'
+    // examples:
+    // ./gradlew run --args="--input ../data/smartcyp-10.sdf --output molecules.svg --title-field cdk:Title --highlight-fields SMARTCyp_GEN --highlight-colors pink --outer-glow --label-color green"
 }
 
 

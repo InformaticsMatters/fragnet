@@ -38,6 +38,7 @@ import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Mol depiction using CDK. Can be used to generate SVG or image files.
@@ -298,7 +299,6 @@ public class CDKMolDepict {
             mols2.add(alignTo);
         }
         Map<Color, List<IChemObject>> allHighlights = new HashMap<>();
-        int count = 0;
 
         // first do all the MCS alignments so that "user defined" ones override
         if (alignTo != null) {
@@ -316,12 +316,12 @@ public class CDKMolDepict {
         }
 
         // now do the rest of the processing
+        int count = 0;
         for (IAtomContainer mol : mols) {
-
-            IAtomContainer mol2 = fixMolecule(mol, showOnlyExplicitH);
+            System.out.println("Processing molecule" + count);
 
             // the remove stereo trick only works if 2D coordinates are already present so we make sure that is the case
-            mol2 = ChemUtils.layoutMoleculeIn2D(mol, true);
+            IAtomContainer mol2 = ChemUtils.layoutMoleculeIn2D(mol, true);
 
             if (removeStereo) {
                 // we need to display without stereochemistry e.g. no wedge/dash/squiggle bonds
@@ -344,7 +344,7 @@ public class CDKMolDepict {
 
         DepictionGenerator dg = generator;
         dg = dg.withMolTitle();
-        if (allHighlights.size() > 0) {
+        if (!allHighlights.isEmpty()) {
             for (Color col : allHighlights.keySet()) {
                 dg = dg.withHighlight(allHighlights.get(col), col);
             }
@@ -426,6 +426,9 @@ public class CDKMolDepict {
 
     private List<IAtom> findAtomHighlights(IAtomContainer mol, List<Integer> atomIndexes) {
         List<IAtom> atomHighlightList = new ArrayList<>();
+        String atlist = atomIndexes.stream().
+                map((s) -> String.valueOf(s)).collect(Collectors.joining(", "));
+        System.out.println("Checking atoms " + atlist);
         if (atomIndexes != null) {
             for (int index : atomIndexes) {
                 IAtom atom = mol.getAtom(index);

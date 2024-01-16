@@ -210,13 +210,8 @@ public class ChemUtils {
      */
     public static IAtomContainer layoutMoleculeIn2D(IAtomContainer mol, boolean always) throws CDKException {
 
-            if (GeometryUtil.has3DCoordinates(mol) || GeometryUtil.has2DCoordinates(mol)) {
-                SmilesGenerator generator = SmilesGenerator.generic();
-                String smiles = generator.create(mol);
-                mol = readSmiles(smiles);
-            }
-            StructureDiagramGenerator g = new StructureDiagramGenerator();
-            g.generateCoordinates(mol);
+        StructureDiagramGenerator g = new StructureDiagramGenerator();
+        g.generateCoordinates(mol);
 
         return mol;
     }
