@@ -154,7 +154,7 @@ class CDKMolDepictSpec extends Specification {
 
     void "no stereo"() {
 
-        IAtomContainer mol = ChemUtils.readSmiles("c1ccc(N=C2SCCN2c2ccccc2)cc1")
+        IAtomContainer mol = ChemUtils.readSmiles("C[C@@H](C(=O)O)N")
         CDKMolDepict depict = new CDKMolDepict(false, true)
 
         when:

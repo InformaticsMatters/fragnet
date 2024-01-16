@@ -98,7 +98,6 @@ public class Mol2Image {
     }
 
     public void setMCS(IAtomContainer mol, Color color) throws CDKException {
-        System.out.println("COLOR: " + color);
         depicter.setMCSAlignment(mol, color);
     }
 
@@ -326,18 +325,18 @@ public class Mol2Image {
         if (prop != null) {
             String[] lines = prop.split("\n");
             for (String line : lines) {
-                System.out.println("Checking " + line);
+                LOG.fine("Checking " + line);
                 String[] tokens = line.split(" ");
                 if (tokens.length == 2) {
                     int atno = Integer.valueOf(tokens[0]);
                     atomIdxs.add(atno);
                     String label = tokens[1];
-                    System.out.println(propName + " " + atno + " " + label);
+                    LOG.fine(propName + " " + atno + " " + label);
                     if (addAtomLabel) {
                         mol.getAtom(atno).setProperty(CDKConstants.COMMENT, label);
                     }
                 } else {
-                    System.out.println("Unable to handle " + line);
+                    LOG.warning("Unable to handle " + line);
                 }
             }
         }

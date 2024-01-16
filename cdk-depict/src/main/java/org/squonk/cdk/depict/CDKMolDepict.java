@@ -318,14 +318,10 @@ public class CDKMolDepict {
         // now do the rest of the processing
         int count = 0;
         for (IAtomContainer mol : mols) {
-            System.out.println("Processing molecule" + count);
-
-            // the remove stereo trick only works if 2D coordinates are already present so we make sure that is the case
-            IAtomContainer mol2 = ChemUtils.layoutMoleculeIn2D(mol, true);
-
+            LOG.info("Processing molecule " + count);
             if (removeStereo) {
                 // we need to display without stereochemistry e.g. no wedge/dash/squiggle bonds
-                removeStereoChemistry(mol2);
+                mol.setStereoElements(new ArrayList<>());
             }
 
             Map<Color, List<Integer>> molHighlights = new HashMap<>();
@@ -336,14 +332,13 @@ public class CDKMolDepict {
                     molHighlights.put(col, molAtoms);
                 }
             }
-            findHighlights(mol2, allHighlights, molHighlights);
+            findHighlights(mol, allHighlights, molHighlights);
 
-            mols2.add(mol2);
+            mols2.add(mol);
             count++;
         }
 
-        DepictionGenerator dg = generator;
-        dg = dg.withMolTitle();
+        DepictionGenerator dg = generator.withMolTitle();
         if (!allHighlights.isEmpty()) {
             for (Color col : allHighlights.keySet()) {
                 dg = dg.withHighlight(allHighlights.get(col), col);
@@ -389,14 +384,6 @@ public class CDKMolDepict {
         return atoms;
     }
 
-    private void removeStereoChemistry(IAtomContainer mol) {
-        LOG.fine("Removing stereochemistry from bonds");
-        for (IBond bond : mol.bonds()) {
-            bond.setStereo(IBond.Stereo.NONE);
-            bond.setDisplay(IBond.Display.Solid);
-        }
-    }
-
     private IAtomContainer fixExplicitHOnly(IAtomContainer mol) {
         LOG.fine("Removing implicit hydrogens");
         for (IAtom atom : mol.atoms()) {
@@ -428,7 +415,7 @@ public class CDKMolDepict {
         List<IAtom> atomHighlightList = new ArrayList<>();
         String atlist = atomIndexes.stream().
                 map((s) -> String.valueOf(s)).collect(Collectors.joining(", "));
-        System.out.println("Checking atoms " + atlist);
+        LOG.info("Checking atoms " + atlist);
         if (atomIndexes != null) {
             for (int index : atomIndexes) {
                 IAtom atom = mol.getAtom(index);
