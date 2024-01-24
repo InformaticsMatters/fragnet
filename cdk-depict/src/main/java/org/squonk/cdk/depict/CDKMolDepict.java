@@ -286,7 +286,8 @@ public class CDKMolDepict {
      * molecule.
      *
      * @param mols The molecules to render
-     * @param atomHighlights A Map containing the data to highlight
+     * @param atomHighlights A Map of atoms to highlight. The keys are colours, and the values are a List of Lists
+     *                       of the atom numbers to highlight
      * @return
      * @throws CDKException
      * @throws CloneNotSupportedException
@@ -299,19 +300,23 @@ public class CDKMolDepict {
             mols2.add(alignTo);
         }
         Map<Color, List<IChemObject>> allHighlights = new HashMap<>();
-
+        List<List<IChemObject>> mcsAtomList = new ArrayList<>();
         // first do all the MCS alignments so that "user defined" ones override
-        if (alignTo != null) {
-            List<IChemObject> allMcsAtoms = new ArrayList<>();
-            if (mcsColor != null) {
-                allHighlights.put(mcsColor, allMcsAtoms);
-            }
+        if (alignTo != null && mcsColor != null) {
+            List<IChemObject> mcsAtoms = new ArrayList<>();
+            mcsAtomList.add(mcsAtoms);
+            allHighlights.put(mcsColor, mcsAtoms);
 
+            // for each mol generate the MCS and add the atoms to the allMcsAtoms list
             for (IAtomContainer mol : mols) {
-                List<IChemObject> mcsAtoms = alignAndLayoutMolecule(mol);
-                if (!mcsAtoms.isEmpty()) {
-                    allMcsAtoms.addAll(mcsAtoms);
+                List<IAtom> mcs = alignAndLayoutMolecule(mol);
+                if (!mcs.isEmpty()) {
+                    mcsAtoms.addAll(mcs);
                 }
+            }
+        } else {
+            for (IAtomContainer mol : mols) {
+                mcsAtomList.add(Collections.emptyList());
             }
         }
 
@@ -324,12 +329,29 @@ public class CDKMolDepict {
                 mol.setStereoElements(new ArrayList<>());
             }
 
+            // generate the atom indexes of the mcs
             Map<Color, List<Integer>> molHighlights = new HashMap<>();
+            List<IChemObject> mcsAtoms = mcsAtomList.get(count);
+            List<Integer> mcsIndexes = new ArrayList<>();
+            for (IChemObject atom : mcsAtoms) {
+                mcsIndexes.add(((IAtom)atom).getIndex());
+            }
+            molHighlights.put(mcsColor, mcsIndexes);
+            // add the atom indexes of the user specified highlights
             if (atomHighlights != null) {
                 for (Color col : atomHighlights.keySet()) {
                     List<Integer> molAtoms = atomHighlights.get(col).get(count);
-                    // TODO - check the color doesn't exist from the mcs phase
-                    molHighlights.put(col, molAtoms);
+                    if (molHighlights.containsKey(col)) {
+                        List<Integer> current = molHighlights.get(col);
+                        for (Integer idx : molAtoms) {
+                            boolean found = current.contains(idx);
+                            if (!found) {
+                                current.add(idx);
+                            }
+                        }
+                    } else {
+                        molHighlights.put(col, molAtoms);
+                    }
                 }
             }
             findHighlights(mol, allHighlights, molHighlights);
@@ -362,8 +384,8 @@ public class CDKMolDepict {
         return mol;
     }
 
-    private List<IChemObject> alignAndLayoutMolecule(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
-        List<IChemObject> atoms = new ArrayList<>();
+    private List<IAtom> alignAndLayoutMolecule(IAtomContainer mol) throws CDKException, CloneNotSupportedException {
+        List<IAtom> atoms = new ArrayList<>();
         if (alignTo != null) {
             LOG.fine("Aligning molecule");
             try {
@@ -415,7 +437,7 @@ public class CDKMolDepict {
         List<IAtom> atomHighlightList = new ArrayList<>();
         String atlist = atomIndexes.stream().
                 map((s) -> String.valueOf(s)).collect(Collectors.joining(", "));
-        LOG.info("Checking atoms " + atlist);
+        LOG.fine("Checking atoms " + atlist);
         if (atomIndexes != null) {
             for (int index : atomIndexes) {
                 IAtom atom = mol.getAtom(index);
@@ -449,7 +471,9 @@ public class CDKMolDepict {
     }
 
     /**
-     * Call this for each molecule to accumulate the atoms and bonds that have to be highlighted
+     * Call this for each molecule to accumulate the atoms and bonds that have to be highlighted.
+     * The atoms to highlight are specified in the atomHighlights parameter, and any bonds between those atoms are
+     * also highlighted.
      *
      * @param mol            The molecule
      * @param allHighLights  Map that accumulates all the atom and bond objects that need to be highlighted for each color
