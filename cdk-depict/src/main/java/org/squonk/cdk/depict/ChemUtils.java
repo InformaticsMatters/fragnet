@@ -248,6 +248,7 @@ public class ChemUtils {
         Path path = Paths.get(filepath);
         Path dir = path.getParent();
         if (dir != null) {
+            LOG.info("Creating dir " + dir.getFileName());
             Files.createDirectories(dir);
         }
     }

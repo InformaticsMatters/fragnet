@@ -17,7 +17,11 @@
 package org.squonk.cdk.depict;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Logger;
@@ -105,6 +109,17 @@ public class Mol2Image {
         assert highlightFields.length == highlightColors.length;
         this.highlightFields = highlightFields;
         this.highlightColors = highlightColors;
+    }
+
+    private static void deleteMysteryDir() throws IOException {
+        Path myst = FileSystems.getDefault().getPath("?");
+        if (Files.exists(myst)) {
+            Log.info("Mystery dir exists - deleting it");
+            Files.walk(myst)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -227,8 +242,6 @@ public class Mol2Image {
             formatter.printHelp("app", options);
         } else {
 
-            //DMLOG.logEvent(DMLogger.Level.INFO, options.toString());
-
             CommandLineParser parser = new DefaultParser();
             CommandLine cmd = parser.parse(options, args);
             StringBuilder builder = new StringBuilder(Mol2Image.class.getName());
@@ -284,6 +297,9 @@ public class Mol2Image {
 
             m2i.generate();
         }
+
+        // delete the strange dir named "?" that is created by Java for font info
+        deleteMysteryDir();
     }
 
     protected void generate() throws Exception {
