@@ -114,7 +114,7 @@ public class Mol2Image {
     private static void deleteMysteryDir() throws IOException {
         Path myst = FileSystems.getDefault().getPath("?");
         if (Files.exists(myst)) {
-            Log.info("Mystery dir exists - deleting it");
+            LOG.info("Mystery dir exists - deleting it");
             Files.walk(myst)
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
