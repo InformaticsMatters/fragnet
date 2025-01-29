@@ -158,6 +158,8 @@ $CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-databind*.jar \
 $CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jboss-logging*.jar \
 $CATALINA_HOME/lib/''')
 
+    instruction('CMD /usr/local/tomcat/bin/catalina.sh run')
+
 }
 
 task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
