@@ -75,7 +75,7 @@ public class ChemUtils {
         try {
             MDLV2000Reader parser = new MDLV2000Reader(new ByteArrayInputStream(molstr.getBytes()),
                     IChemObjectReader.Mode.RELAXED);
-            IAtomContainer mol = parser.read(new AtomContainer());
+            IAtomContainer mol = parser.read(SilentChemObjectBuilder.getInstance().newAtomContainer());
             return mol;
         } catch (CDKException e) {
             // not V2000 format
@@ -83,7 +83,7 @@ public class ChemUtils {
         try {
             MDLV3000Reader parser = new MDLV3000Reader(new ByteArrayInputStream(molstr.getBytes()),
                     IChemObjectReader.Mode.RELAXED);
-            IAtomContainer mol = parser.read(new AtomContainer());
+            IAtomContainer mol = parser.read(SilentChemObjectBuilder.getInstance().newAtomContainer());
             return mol;
         } catch (CDKException e) {
             // not V3000 format

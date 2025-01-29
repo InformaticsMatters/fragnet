@@ -22,10 +22,11 @@ import spock.lang.Specification
 
 import java.awt.*
 import java.nio.file.Files
+import java.util.stream.Collectors
 
 class CDKMolDepictSpec extends Specification {
 
-    void "smiles2svg"() {
+    def "smiles2svg"() {
 
         CDKMolDepict depict = new CDKMolDepict()
         def mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
@@ -41,7 +42,7 @@ class CDKMolDepictSpec extends Specification {
         svg.contains("height='250.0'")
     }
 
-    void "smiles2svggrid"() {
+    def "smiles2svggrid"() {
 
         CDKMolDepict depict = new CDKMolDepict()
         def mols = [
@@ -59,7 +60,7 @@ class CDKMolDepictSpec extends Specification {
         svg.count("class='mol'") == 2
     }
 
-    void "smiles2svg highlight"() {
+    def "smiles2svg highlight"() {
 
         CDKMolDepict depict = new CDKMolDepict(true, false)
         IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
@@ -74,7 +75,7 @@ class CDKMolDepictSpec extends Specification {
         svg.contains("outerglow")
     }
 
-    void "smiles2png"() {
+    def "smiles2png"() {
 
         CDKMolDepict depict = new CDKMolDepict()
         IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
@@ -91,7 +92,7 @@ class CDKMolDepictSpec extends Specification {
         png.length > 0
     }
 
-    void "smiles2png glow highlight"() {
+    def "smiles2png glow highlight"() {
 
         IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
 
@@ -116,7 +117,7 @@ class CDKMolDepictSpec extends Specification {
         png1.length > png2.length
     }
 
-    void "smiles2png mcs"() {
+    def "smiles2png mcs"() {
 
         CDKMolDepict depict = new CDKMolDepict()
         IAtomContainer mol = ChemUtils.readSmiles("CC[C@@H](C(=O)O)N")
@@ -134,7 +135,7 @@ class CDKMolDepictSpec extends Specification {
         png.length > 0
     }
 
-    void "smiles2png highlight + mcs"() {
+    def "smiles2png highlight + mcs"() {
 
         CDKMolDepict depict = new CDKMolDepict(true, false)
         IAtomContainer mol = ChemUtils.readSmiles("CC[C@@H](C(=O)O)N")
@@ -152,7 +153,7 @@ class CDKMolDepictSpec extends Specification {
         png.length > 0
     }
 
-    void "no stereo"() {
+    def "no stereo"() {
 
         IAtomContainer mol = ChemUtils.readSmiles("C[C@@H](C(=O)O)N")
         CDKMolDepict depict = new CDKMolDepict(false, true)
@@ -168,7 +169,7 @@ class CDKMolDepictSpec extends Specification {
         png.length > 0
     }
 
-    void "alignment error"() {
+    def "alignment error"() {
 
         // this alignment causes an error in CDK (probably bug).
         // this test checks that the error is ignored and an image is still generated.
@@ -189,7 +190,7 @@ class CDKMolDepictSpec extends Specification {
         png.length > 0
     }
 
-    void "smiles2pngWithAtomLabels"() {
+    def "smiles2pngWithAtomLabels"() {
 
         CDKMolDepict depict = new CDKMolDepict()
         IAtomContainer mol = ChemUtils.readSmiles("[H]C1NCC(C)C(N)=C1")
@@ -202,6 +203,23 @@ class CDKMolDepictSpec extends Specification {
         def img = d.toImg()
         byte[] png = depict.writeImage(img, 'png')
         Files.write(java.nio.file.Paths.get("/tmp/myimage7.png"), png)
+
+        then:
+        png != null
+        png.length > 0
+    }
+
+    def "molfile2png"() {
+
+        CDKMolDepict depict = new CDKMolDepict()
+        String molfile = Files.readString(java.nio.file.Paths.get('../data/example.mol'));
+        IAtomContainer mol = ChemUtils.readMolfile(molfile)
+
+        when:
+        def d = depict.depict(mol)
+        def img = d.toImg()
+        byte[] png = depict.writeImage(img, 'png')
+        Files.write(java.nio.file.Paths.get("/tmp/myimage8.png"), png)
 
         then:
         png != null

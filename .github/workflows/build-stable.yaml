@@ -99,7 +99,7 @@ jobs:
     steps:
     - name: Inject slug/short variables
       uses: rlespinasse/github-slug-action@v4
-    - uses: informaticsmatters/trigger-awx-action@v1
+    - uses: informaticsmatters/trigger-awx-action@v2
       with:
         template: FragnetSearch API
         template-host: ${{ secrets.AWX_HOST }}

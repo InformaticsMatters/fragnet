@@ -43,7 +43,7 @@ allprojects {
     // look at the jackson2-version property here (with correct tag) to get the right Jackson version
     // https://github.com/apache/camel/blob/master/parent/pom.xml
     project.ext.set('jacksonVersion', '2.10.0')
-    project.ext.set('groovyVersion', '2.5.9')
+    project.ext.set('groovyVersion', '3.0.23')
     project.ext.set('weldVersion', '3.0.5.Final')
 
     // Define the tag label for docker images.
@@ -72,9 +72,17 @@ allprojects {
     dependencies {
         implementation 'org.slf4j:slf4j-jdk14:1.7.25'
 
-        // Spock for unit testing
-        testImplementation "org.codehaus.groovy:groovy-all:$groovyVersion"
-        testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
+        implementation platform("org.codehaus.groovy:groovy-bom:$groovyVersion")
+        implementation "org.codehaus.groovy:groovy"
+        testImplementation platform("org.spockframework:spock-bom:2.3-groovy-3.0")
+        testImplementation "org.spockframework:spock-core"
+    }
+
+    test {
+        useJUnitPlatform()
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
     }
 
 }

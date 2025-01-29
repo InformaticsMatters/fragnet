@@ -201,7 +201,7 @@ public class CDKMolDepictServlet extends HttpServlet {
         if (str == null) {
             return defaultValue;
         } else {
-            return new Integer(str);
+            return Integer.valueOf(str);
         }
     }
 
@@ -214,7 +214,7 @@ public class CDKMolDepictServlet extends HttpServlet {
             List<Integer> results = new ArrayList<>();
             for (String item : items) {
                 try {
-                    Integer i = new Integer(item.trim());
+                    Integer i = Integer.valueOf(item.trim());
                     results.add(i);
                 } catch (NumberFormatException e) {
                     LOG.log(Level.WARNING, "Invalid integer: " + item, e);
@@ -229,7 +229,7 @@ public class CDKMolDepictServlet extends HttpServlet {
         if (str == null) {
             return defaultValue;
         } else {
-            return new Double(str);
+            return Double.valueOf(str);
         }
     }
 
@@ -238,7 +238,7 @@ public class CDKMolDepictServlet extends HttpServlet {
         if (str == null) {
             return defaultValue;
         } else {
-            return new Boolean(str);
+            return Boolean.valueOf(str);
         }
     }
 
