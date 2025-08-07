@@ -25,7 +25,7 @@ plugins {
     id 'groovy'
     id 'com.bmuschko.tomcat'
     //id 'com.bmuschko.docker-remote-api' version '5.3.0' // needs gradle >= 5.1
-    id 'com.bmuschko.docker-remote-api' version '7.4.0'
+    id 'com.bmuschko.docker-remote-api' version '8.1.0'
 }
 
 description = 'Fragment network search'
@@ -121,6 +121,11 @@ test {
 tasks.test.dependsOn("startNeoContainer")
 tasks.test.finalizedBy("stopNeoContainer")
 
+tasks.register('copyKeycloak', Copy) {
+    from('../lib')
+    into('./build')
+    include('keycloak-oidc-tomcat-adapter-24.0.5.tar.gz')
+}
 
 task buildDockerFile(type: Dockerfile) {
 
@@ -129,19 +134,17 @@ task buildDockerFile(type: Dockerfile) {
     ]
 
     destFile = project.file('build/Dockerfile')
-    from "informaticsmatters/rdkit-tomcat-debian:latest"
+    from "informaticsmatters/rdkit-tomcat-debian:Release_2024_09_2"
     label(['maintainer': 'Tim Dudgeon "tdudgeon@informaticsmatters.com"'])
 
     // include the keycloak adapters
-    runCommand('''mkdir keycloak &&\
- cd keycloak &&\
- curl -s -o keycloak.tar.gz\
- https://downloads.jboss.org/keycloak/10.0.2/adapters/keycloak-oidc/keycloak-tomcat-adapter-dist-10.0.2.tar.gz &&\
- tar xfz keycloak.tar.gz &&\
- rm keycloak.tar.gz &&\
+    runCommand('mkdir keycloak')
+    // adding the tarball also extracts it
+    addFile('./keycloak-oidc-tomcat-adapter-24.0.5.tar.gz', 'keycloak')
+    runCommand('''cd keycloak &&\
  mv *.jar $CATALINA_HOME/lib &&\
  cd $CATALINA_HOME &&\
- rm -rf keycloak''')
+ rm -rf keycloak /tmp/keycloak.tar.gz''')
 
     addFile('./libs/fragnet-search*.war', "/usr/local/tomcat/webapps/")
     // need to unpack the zip as we need to mess with the keycloak related jars
@@ -166,3 +169,5 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: buildDockerFile) {
     inputDir = buildDockerFile.destFile.get().asFile.parentFile
     images.add("squonk/fragnet-search:${dockerImageTag}")
 }
+
+tasks["buildDockerImage"].dependsOn("copyKeycloak")
