@@ -150,7 +150,8 @@ task buildDockerFile(type: Dockerfile) {
     // need to unpack the zip as we need to mess with the keycloak related jars
     runCommand("cd /usr/local/tomcat/webapps && " +
             "unzip -d fragnet-search fragnet-search*.war && " +
-            "rm fragnet-*.war")
+            "rm fragnet-*.war && " +
+            "sed -i 's/protocol=\"AJP\\/1.3\"/protocol=\"AJP\\/1.3\" secretRequired=\"false\"/' /usr/local/tomcat/conf/server.xml")
 
     // this bit handles the conflicting jars in lib and webapps/fragnet-search/WEB-INF/lib.
     // the old ones in lib are removed and the correct ones moved from the webapp lib dir to the tomcat lib dir.
