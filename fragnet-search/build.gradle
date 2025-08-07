@@ -125,6 +125,7 @@ tasks.register('copyKeycloak', Copy) {
     from('../lib')
     into('./build')
     include('keycloak-oidc-tomcat-adapter-24.0.5.tar.gz')
+    include('keycloak-policy-enforcer-24.0.5.jar')
 }
 
 task buildDockerFile(type: Dockerfile) {
@@ -161,6 +162,9 @@ $CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-annotations*.jar \
 $CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jackson-databind*.jar \
 $CATALINA_HOME/webapps/fragnet-search/WEB-INF/lib/jboss-logging*.jar \
 $CATALINA_HOME/lib/''')
+
+    // this adds a missing dependency. See https://github.com/ahus1/keycloak-dropwizard-integration/issues/354
+    addFile('./keycloak-policy-enforcer-24.0.5.jar', "/usr/local/tomcat/lib/")
 
     instruction('CMD /usr/local/tomcat/bin/catalina.sh run')
 
