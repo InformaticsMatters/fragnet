@@ -134,7 +134,7 @@ task buildDockerFile(type: Dockerfile) {
     ]
 
     destFile = project.file('build/Dockerfile')
-    from "informaticsmatters/rdkit-tomcat-debian:Release_2024_09_2"
+    from "informaticsmatters/rdkit-tomcat-debian:Release_2023_03_3"
     label(['maintainer': 'Tim Dudgeon "tdudgeon@informaticsmatters.com"'])
 
     // include the keycloak adapters
