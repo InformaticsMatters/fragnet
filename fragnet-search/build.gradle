@@ -87,14 +87,15 @@ tomcat {
 }
 
 task createNeoContainer(type: DockerCreateContainer) {
-    targetImageId 'informaticsmatters/fragnet-test:3.5.25-xchem-combi-sample-2021-02'
-    //portSpecs = ['7474:7474','7687:7687']
+    //targetImageId 'informaticsmatters/fragnet-test:3.5.25-xchem-combi-sample-2021-02'
+    targetImageId 'informaticsmatters/fragnet-test:4.4.37-hash'
+//    portSpecs = ['7474:7474','7687:7687']
     envVars = ['NEO4J_dbms_memory_pagecache_size': '2g',
                'NEO4J_dbms_memory_heap_initial__size': '2g',
                'NEO4J_dbms_memory_heap_max__size': '2g',
-               'NEO4J_AUTH': 'neo4j/test123',
+               'NEO4J_AUTH': 'neo4j/test1234',
                'NEO4J_USERNAME': 'neo4j',
-               'NEO4J_PASSWORD': 'test123']
+               'NEO4J_PASSWORD': 'test1234']
 }
 
 task startNeoContainer(type: DockerStartContainer) {
@@ -108,9 +109,9 @@ task stopNeoContainer(type: DockerStopContainer) {
 
 test {
     environment = [
-            'NEO4J_PASSWORD': 'test123',
+            'NEO4J_PASSWORD': 'test1234',
             'NEO4J_SERVER': 'localhost',
-            'LD_LIBRARY_PATH': RDBASE + '/build/Code/JavaWrappers/gmwrapper:/usr/x86_64-linux-gnu',
+            'LD_LIBRARY_PATH': RDBASE + '/build/Code/JavaWrappers/gmwrapper:/usr/lib/x86_64-linux-gnu',
             'RDBASE': RDBASE
     ]
 //    beforeTest { descriptor ->

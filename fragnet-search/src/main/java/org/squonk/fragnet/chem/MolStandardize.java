@@ -16,6 +16,7 @@
 package org.squonk.fragnet.chem;
 
 import org.RDKit.*;
+import org.slf4j.LoggerFactory;
 import org.squonk.fragnet.Constants;
 import org.squonk.fragnet.search.model.v2.ConvertedSmilesMols;
 
@@ -30,6 +31,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class MolStandardize {
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(MolStandardize.class);
 
     static {
         System.loadLibrary("GraphMolWrap");

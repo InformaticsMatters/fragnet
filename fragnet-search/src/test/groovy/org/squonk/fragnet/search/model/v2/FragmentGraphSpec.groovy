@@ -1,6 +1,5 @@
 package org.squonk.fragnet.search.model.v2
 
-import org.junit.Ignore
 import org.squonk.fragnet.chem.Calculator
 import spock.lang.Specification
 

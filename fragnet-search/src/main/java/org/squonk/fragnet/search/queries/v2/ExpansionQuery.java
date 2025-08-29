@@ -92,8 +92,8 @@ public class ExpansionQuery extends AbstractQuery {
             List<String> suppliers) {
 
         String stdSmiles = MolStandardize.prepareNonisoMol(mol, mimeType);
-//        LOG.info("Supplied SMILES: " + smiles);
-//        LOG.info("Using SMILES: " + stdSmiles);
+        LOG.finer("Supplied SMILES: " + mol);
+        LOG.finer("Using SMILES: " + stdSmiles);
 
         QueryAndParams qandp = generateCypherQuery(stdSmiles, hops, hacMin, hacMax, racMin, racMax, suppliers);
 

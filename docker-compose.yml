@@ -11,7 +11,7 @@ services:
   #
   neo4j:
     #image: informaticsmatters/fragnet-test:fragalysis-ro4-xchem-11
-    image: informaticsmatters/fragnet-test:3.5.25-xchem-combi-sample-2021-02
+    image: informaticsmatters/fragnet-test:4.4.37-hash
     environment:
       NEO4J_dbms_memory_pagecache_size: 8g
       NEO4J_dbms_memory_heap_initial__size: 2g
@@ -19,7 +19,7 @@ services:
       #NEO4J_AUTH: neo4j/neo4j
       #NEO4J_USERNAME: neo4j
       #NEO4J_PASSWORD: neo4j
-      GRAPH_PASSWORD: test123
+      GRAPH_PASSWORD: test1234
     ports:
     - "7474:7474"
     - "7687:7687"
@@ -39,7 +39,8 @@ services:
   fragnet-search:
           image: squonk/fragnet-search:latest
           environment:
-            NEO4J_PASSWORD: test123
+            NEO4J_PASSWORD: test1234
+            LD_LIBRARY_PATH: /rdkit/gmwrapper:/usr/lib/x86_64-linux-gnu
           ports:
             - "8080:8080"
           depends_on:
