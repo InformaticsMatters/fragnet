@@ -296,9 +296,6 @@ public class CDKMolDepict {
             throws CDKException, CloneNotSupportedException {
 
         List<IAtomContainer> mols2 = new ArrayList<>();
-        if (alignTo != null) {
-            mols2.add(alignTo);
-        }
         Map<Color, List<IChemObject>> allHighlights = new HashMap<>();
         List<List<IChemObject>> mcsAtomList = new ArrayList<>();
         // first do all the MCS alignments so that "user defined" ones override
